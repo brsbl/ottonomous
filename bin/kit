@@ -1,0 +1,222 @@
+#!/usr/bin/env bash
+# kit - AI Developer Kit unified CLI
+# Routes commands to spec, task, or log subsystems
+#
+# Usage: kit <system> <command> [args...]
+#        kit init           Initialize all systems
+#        kit status         Show project state
+#        kit --version      Show version
+#        kit --help         Show help
+
+set -euo pipefail
+
+VERSION="0.1.0"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KIT_ROOT="${SCRIPT_DIR}/.."
+SYSTEMS_DIR="${KIT_ROOT}/systems"
+
+# Source shared utilities
+source "${KIT_ROOT}/shared/lib/core.sh"
+
+# ==============================================================================
+# Help and Version
+# ==============================================================================
+
+show_version() {
+    echo "kit (AI Developer Kit) version ${VERSION}"
+}
+
+show_help() {
+    cat <<'EOF'
+kit - AI Developer Kit
+
+A unified CLI for managing specs, tasks, and logs in AI-assisted
+software development workflows.
+
+USAGE:
+    kit <system> <command> [args...]
+    kit <global-command>
+
+SYSTEMS:
+    spec     Define what to build (specifications)
+    task     Track work to do (task management)
+    log      Capture learnings (engineering log)
+
+GLOBAL COMMANDS:
+    init     Initialize all systems in current directory
+    status   Show project state across all systems
+    help     Show this help message
+    version  Show version information
+
+EXAMPLES:
+    kit init                    # Initialize project
+    kit spec list               # List all specs
+    kit task list               # List all tasks
+    kit log search "auth"       # Search engineering logs
+
+Use /spec, /task, /log agent commands for creation and intelligent operations.
+EOF
+}
+
+# ==============================================================================
+# Global Commands
+# ==============================================================================
+
+# Initialize all systems in current directory
+cmd_init() {
+    info "Initializing AI Developer Kit..."
+
+    # Create .kit directory structure
+    mkdir -p .kit/specs .kit/tasks .kit/logs
+
+    local failed=0
+
+    # Initialize spec system
+    if [[ -x "${SYSTEMS_DIR}/spec/bin/spec" ]]; then
+        info "  Initializing spec system..."
+        "${SYSTEMS_DIR}/spec/bin/spec" init "$@" || failed=1
+    fi
+
+    # Initialize log system
+    if [[ -x "${SYSTEMS_DIR}/log/bin/log" ]]; then
+        info "  Initializing log system..."
+        "${SYSTEMS_DIR}/log/bin/log" init "$@" || failed=1
+    fi
+
+    # Note: task system init requires a spec file, so skip here
+
+    if [[ "$failed" -eq 0 ]]; then
+        success "AI Developer Kit initialized!"
+        echo ""
+        echo "Next steps: Use /spec to create your first specification"
+    else
+        error "Some systems failed to initialize"
+        return 1
+    fi
+}
+
+# Show project status across all systems
+cmd_status() {
+    echo "${COLOR_BOLD}AI Developer Kit Status${COLOR_RESET}"
+    echo "======================="
+    echo ""
+
+    # Specs status
+    if [[ -d ".kit/specs" ]]; then
+        local spec_count
+        spec_count=$(find .kit/specs -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+        echo "${COLOR_BLUE}Specs:${COLOR_RESET} ${spec_count} specification(s) in .kit/specs/"
+
+        # Show by status if specs exist
+        if [[ "$spec_count" -gt 0 ]] && [[ -x "${SYSTEMS_DIR}/spec/bin/spec" ]]; then
+            "${SYSTEMS_DIR}/spec/bin/spec" list --json 2>/dev/null | \
+                jq -r 'group_by(.status) | .[] | "  - \(.[0].status): \(length)"' 2>/dev/null || true
+        fi
+    else
+        echo "${COLOR_YELLOW}Specs:${COLOR_RESET} Not initialized (run: kit init)"
+    fi
+    echo ""
+
+    # Tasks status
+    if [[ -d ".kit/tasks" ]]; then
+        local task_files
+        task_files=$(find .kit/tasks -name "*.json" -type f 2>/dev/null | wc -l | tr -d ' ')
+        echo "${COLOR_BLUE}Tasks:${COLOR_RESET} ${task_files} task file(s) in .kit/tasks/"
+
+        # Count tasks by status
+        if [[ "$task_files" -gt 0 ]]; then
+            local pending done in_progress
+            pending=$(find .kit/tasks -name "*.json" -exec cat {} \; 2>/dev/null | \
+                jq -r '.tasks[]? | select(.status == "pending") | .id' 2>/dev/null | wc -l | tr -d ' ')
+            in_progress=$(find .kit/tasks -name "*.json" -exec cat {} \; 2>/dev/null | \
+                jq -r '.tasks[]? | select(.status == "in_progress") | .id' 2>/dev/null | wc -l | tr -d ' ')
+            done=$(find .kit/tasks -name "*.json" -exec cat {} \; 2>/dev/null | \
+                jq -r '.tasks[]? | select(.status == "done") | .id' 2>/dev/null | wc -l | tr -d ' ')
+            echo "  - pending: ${pending}"
+            echo "  - in_progress: ${in_progress}"
+            echo "  - done: ${done}"
+        fi
+    else
+        echo "${COLOR_YELLOW}Tasks:${COLOR_RESET} Not initialized"
+    fi
+    echo ""
+
+    # Logs status
+    if [[ -d ".kit/logs" ]]; then
+        local log_count
+        log_count=$(find .kit/logs -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+        echo "${COLOR_BLUE}Logs:${COLOR_RESET} ${log_count} entry(ies) in .kit/logs/"
+    else
+        echo "${COLOR_YELLOW}Logs:${COLOR_RESET} Not initialized (run: kit init)"
+    fi
+}
+
+# ==============================================================================
+# Main Routing
+# ==============================================================================
+
+main() {
+    # No arguments - show help
+    if [[ $# -eq 0 ]]; then
+        show_help
+        exit 0
+    fi
+
+    local cmd="$1"
+    shift
+
+    case "$cmd" in
+        # Global flags
+        --version|-v|version)
+            show_version
+            ;;
+        --help|-h|help)
+            show_help
+            ;;
+
+        # Global commands
+        init)
+            cmd_init "$@"
+            ;;
+        status)
+            cmd_status "$@"
+            ;;
+
+        # Route to subsystems
+        spec)
+            if [[ ! -x "${SYSTEMS_DIR}/spec/bin/spec" ]]; then
+                error "Spec system not found"
+                exit 1
+            fi
+            export SPEC_DIR=".kit/specs"
+            exec "${SYSTEMS_DIR}/spec/bin/spec" "$@"
+            ;;
+        task)
+            if [[ ! -x "${SYSTEMS_DIR}/tasks/bin/tasks" ]]; then
+                error "Task system not found"
+                exit 1
+            fi
+            export TASKS_DIR=".kit/tasks"
+            exec "${SYSTEMS_DIR}/tasks/bin/tasks" "$@"
+            ;;
+        log)
+            if [[ ! -x "${SYSTEMS_DIR}/log/bin/log" ]]; then
+                error "Log system not found"
+                exit 1
+            fi
+            export LOG_DIR=".kit/logs"
+            exec "${SYSTEMS_DIR}/log/bin/log" "$@"
+            ;;
+
+        # Unknown command
+        *)
+            error "Unknown command: $cmd"
+            echo ""
+            echo "Available commands: spec, task, log, init, status, help, version"
+            echo "Run 'kit --help' for usage information."
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

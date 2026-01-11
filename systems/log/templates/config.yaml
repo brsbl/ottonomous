@@ -1,0 +1,2 @@
+# KB System Configuration
+auto_verify: false  # Ask before verifying stale entries

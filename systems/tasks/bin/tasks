@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Determine the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_DIR="${SCRIPT_DIR}/../lib"
+
+# Version
+VERSION="0.1.0"
+
+# Source configuration and utilities
+if [[ -f "${LIB_DIR}/config.sh" ]]; then
+    source "${LIB_DIR}/config.sh"
+fi
+
+if [[ -f "${LIB_DIR}/utils.sh" ]]; then
+    source "${LIB_DIR}/utils.sh"
+fi
+
+# Usage function
+usage() {
+    cat <<'EOF'
+tasks - Task management for AI coding agents
+
+Usage: tasks <command> [options]
+
+Commands:
+  list [--spec <id>]   List all tasks
+
+All other operations handled by /task agent command.
+EOF
+}
+
+# Show version
+version() {
+    echo "tasks version ${VERSION}"
+}
+
+# Check if no arguments provided
+if [[ $# -eq 0 ]]; then
+    usage
+    exit 1
+fi
+
+# Parse the first argument as the command
+COMMAND="$1"
+shift
+
+case "${COMMAND}" in
+    --help|-h)
+        usage
+        exit 0
+        ;;
+    --version)
+        version
+        exit 0
+        ;;
+    list)
+        COMMAND_SCRIPT="${LIB_DIR}/commands/${COMMAND}.sh"
+        if [[ -f "${COMMAND_SCRIPT}" ]]; then
+            source "${COMMAND_SCRIPT}"
+            "cmd_${COMMAND}" "$@"
+        else
+            echo "Error: Command script not found: ${COMMAND_SCRIPT}" >&2
+            exit 1
+        fi
+        ;;
+    *)
+        echo "Use /task agent command" >&2
+        exit 1
+        ;;
+esac

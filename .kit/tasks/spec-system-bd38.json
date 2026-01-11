@@ -1,0 +1,41 @@
+{
+  "spec_id": "spec-system-bd38",
+  "spec_path": ".kit/specs/spec-system-bd38.md",
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Implement /spec agent skill with create workflow (interview, draft, write file)",
+      "status": "not_started",
+      "priority": 1,
+      "depends_on": []
+    },
+    {
+      "id": "2",
+      "title": "Add /spec edit, update status, and remove operations",
+      "status": "not_started",
+      "priority": 2,
+      "depends_on": ["1"]
+    },
+    {
+      "id": "3",
+      "title": "Implement unique ID generation (name-slug-xxxx format)",
+      "status": "not_started",
+      "priority": 1,
+      "depends_on": []
+    },
+    {
+      "id": "4",
+      "title": "Implement kit spec list CLI command (read-only)",
+      "status": "not_started",
+      "priority": 2,
+      "depends_on": []
+    },
+    {
+      "id": "5",
+      "title": "Add spec skill auto-trigger detection for planning keywords",
+      "status": "not_started",
+      "priority": 3,
+      "depends_on": ["1"]
+    }
+  ]
+}

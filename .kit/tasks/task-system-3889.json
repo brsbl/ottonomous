@@ -1,0 +1,41 @@
+{
+  "spec_id": "task-system-3889",
+  "spec_path": ".kit/specs/task-system-3889.md",
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Implement /task agent skill for generating tasks from specs",
+      "status": "not_started",
+      "priority": 1,
+      "depends_on": []
+    },
+    {
+      "id": "2",
+      "title": "Add /task update status and close operations",
+      "status": "not_started",
+      "priority": 2,
+      "depends_on": ["1"]
+    },
+    {
+      "id": "3",
+      "title": "Implement /task next with smart ordering algorithm (priority, dependencies, creation order)",
+      "status": "not_started",
+      "priority": 1,
+      "depends_on": ["1"]
+    },
+    {
+      "id": "4",
+      "title": "Implement kit task list CLI command (read-only)",
+      "status": "not_started",
+      "priority": 2,
+      "depends_on": []
+    },
+    {
+      "id": "5",
+      "title": "Add circular dependency detection and rejection",
+      "status": "not_started",
+      "priority": 3,
+      "depends_on": ["1"]
+    }
+  ]
+}

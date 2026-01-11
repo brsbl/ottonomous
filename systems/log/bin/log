@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Determine the directory where this script resides
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_DIR="${SCRIPT_DIR}/../lib"
+
+# Version
+VERSION="0.1.0"
+
+# Source configuration and utilities
+if [[ -f "${LIB_DIR}/config.sh" ]]; then
+    source "${LIB_DIR}/config.sh"
+fi
+
+if [[ -f "${LIB_DIR}/utils.sh" ]]; then
+    source "${LIB_DIR}/utils.sh"
+fi
+
+# Usage information
+usage() {
+    cat <<'EOF'
+log - Code-anchored engineering log for AI agents
+
+Usage: log <command> [options]
+
+Commands:
+  init              Initialize engineering log
+  list              List all log entries
+  search <term>     Search across log entries
+
+All other operations handled by /log agent command.
+EOF
+}
+
+# Show version
+version() {
+    echo "log version ${VERSION}"
+}
+
+# Main entry point
+main() {
+    # Handle no arguments
+    if [[ $# -eq 0 ]]; then
+        usage
+        exit 1
+    fi
+
+    local command="$1"
+    shift
+
+    # Handle global flags
+    case "$command" in
+        --help|-h)
+            usage
+            exit 0
+            ;;
+        --version)
+            version
+            exit 0
+            ;;
+    esac
+
+    # Route to command scripts
+    local command_script="${LIB_DIR}/commands/${command}.sh"
+
+    case "$command" in
+        init|list|search)
+            if [[ -f "$command_script" ]]; then
+                source "$command_script"
+                "cmd_${command}" "$@"
+            else
+                echo "Error: Command script not found: ${command_script}" >&2
+                exit 1
+            fi
+            ;;
+        *)
+            echo "Use /log agent command" >&2
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"
