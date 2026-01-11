@@ -1,0 +1,12 @@
+.DS_Store
+node_modules/
+.env
+.env.*
+*.log
+*.tmp
+*.swp
+*~
+
+# Review output files (keep .gitkeep)
+.kit/reviews/*
+!.kit/reviews/.gitkeep
