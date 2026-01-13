@@ -1,0 +1,38 @@
+{
+  "spec_id": "log-system-refactor-eb71",
+  "spec_path": ".kit/specs/log-system-refactor-eb71.md",
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Create INDEX.md for log system",
+      "status": "done",
+      "priority": 1,
+      "depends_on": [],
+      "description": "Create .kit/logs/INDEX.md with initial structure for fast retrieval"
+    },
+    {
+      "id": "2",
+      "title": "Verify /log workflow works end-to-end",
+      "status": "done",
+      "priority": 1,
+      "depends_on": ["1"],
+      "description": "Run /log to add a discovery and verify entry + INDEX.md are updated"
+    },
+    {
+      "id": "3",
+      "title": "Verify staleness detection works",
+      "status": "in_progress",
+      "priority": 1,
+      "depends_on": ["2"],
+      "description": "Test git timestamp comparison identifies stale entries correctly"
+    },
+    {
+      "id": "4",
+      "title": "Mark spec as implemented",
+      "status": "pending",
+      "priority": 2,
+      "depends_on": ["2", "3"],
+      "description": "Update status in frontmatter to 'implemented'"
+    }
+  ]
+}

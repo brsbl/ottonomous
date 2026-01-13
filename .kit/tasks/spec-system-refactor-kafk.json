@@ -1,0 +1,22 @@
+{
+  "spec_id": "spec-system-refactor-kafk",
+  "spec_path": ".kit/specs/spec-system-refactor-kafk.md",
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Verify /spec workflow works end-to-end",
+      "status": "done",
+      "priority": 1,
+      "depends_on": [],
+      "description": "Run /spec and complete full workflow. Confirm no CLI references triggered."
+    },
+    {
+      "id": "2",
+      "title": "Mark spec as implemented",
+      "status": "done",
+      "priority": 2,
+      "depends_on": ["1"],
+      "description": "Update status in frontmatter to 'implemented'"
+    }
+  ]
+}

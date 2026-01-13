@@ -1,0 +1,46 @@
+{
+  "spec_id": "task-generation-guidance-7k2m",
+  "spec_path": ".kit/specs/task-generation-guidance-7k2m.md",
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Add Task Design Principles section",
+      "status": "done",
+      "priority": 1,
+      "depends_on": [],
+      "description": "Success: New section before Workflow with atomic task guidance (one deliverable, <1 day, ≤3 files). Touches: .claude/commands/task.md"
+    },
+    {
+      "id": "2",
+      "title": "Enhance Analyze step with verification checklist",
+      "status": "done",
+      "priority": 1,
+      "depends_on": [],
+      "description": "Success: Step 2 includes checklist for scope/files/dependencies. Touches: .claude/commands/task.md"
+    },
+    {
+      "id": "3",
+      "title": "Update description field requirements",
+      "status": "done",
+      "priority": 2,
+      "depends_on": [],
+      "description": "Success: Description guidance includes success criteria + files + scope. Touches: .claude/commands/task.md"
+    },
+    {
+      "id": "4",
+      "title": "Add dependency visibility to Propose step",
+      "status": "done",
+      "priority": 2,
+      "depends_on": [],
+      "description": "Success: Propose step shows parallel tasks and sequential chains. Touches: .claude/commands/task.md"
+    },
+    {
+      "id": "5",
+      "title": "Verify /task workflow end-to-end",
+      "status": "done",
+      "priority": 1,
+      "depends_on": ["1", "2", "3", "4"],
+      "description": "Success: Run /task on a test spec, confirm new guidance is followed"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "spec_id": "task-system-refactor-x81a",
+  "spec_path": ".kit/specs/task-system-refactor-x81a.md",
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Verify /task workflow works end-to-end",
+      "status": "done",
+      "priority": 1,
+      "depends_on": [],
+      "description": "Run /task on a spec and verify tasks are generated correctly without CLI calls"
+    },
+    {
+      "id": "2",
+      "title": "Verify /next workflow works end-to-end",
+      "status": "done",
+      "priority": 1,
+      "depends_on": [],
+      "description": "Run /next and verify it picks correct task using priority + dependency logic"
+    },
+    {
+      "id": "3",
+      "title": "Mark spec as implemented",
+      "status": "done",
+      "priority": 2,
+      "depends_on": ["1", "2"],
+      "description": "Update status in frontmatter to 'implemented'"
+    }
+  ]
+}

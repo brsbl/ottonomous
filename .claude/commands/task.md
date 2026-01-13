@@ -1,52 +1,80 @@
 # Task Command
 
-Generate tasks from an approved spec through AI analysis.
+Generate implementation tasks from an approved spec.
+
+**Usage:** `/task <spec-id>`
+
+## Task Design Principles
+
+Each task should be an **atomic unit of work**:
+
+- **One deliverable**: What concrete output indicates completion?
+- **One success state**: Clear, verifiable "done" condition
+- **Atomic scope**: Completable in one session
+  - Target: < 1 day of focused work
+  - Guideline: ≤ 3 files modified (if more, consider splitting)
+- **Minimal dependencies**: Only add `depends_on` when task truly cannot start without another completing
+  - Default assumption: tasks run in parallel
+  - Justify dependencies explicitly
 
 ## Workflow
 
 ### 1. Get Spec
 
-If no spec ID provided, run `kit spec list` and use `AskUserQuestion` to ask which spec to generate tasks for.
+Read the spec from `.kit/specs/$ARGUMENTS.md`
 
-Read the spec file from `.kit/specs/<spec-id>.md`.
+If spec not found, report error and list available specs.
+
+If spec status is not "approved", report: "Spec '{spec-id}' has status '{status}'. Only approved specs can generate tasks."
 
 ### 2. Analyze
 
-Analyze the spec to identify discrete, actionable tasks:
-- Break down each section into implementable units
-- Identify dependencies between tasks
-- Assign priorities (0=critical, 1=high, 2=medium, 3=low, 4=nice-to-have)
-- Consider implementation order
+Break spec into discrete, implementable tasks.
 
-### 3. Propose Tasks
+**For each task, verify:**
+- [ ] Clear success criterion (what's "done"?)
+- [ ] Scope: completable in ~4-6 hours
+- [ ] File scope: ≤ 3 files (if more, split the task)
+- [ ] Dependencies justified (not arbitrary ordering)
 
-Present the proposed task list to the user:
+**Assign priorities:**
+- 0 = Critical (blocks other work)
+- 1 = High (important, do soon)
+- 2 = Normal (default)
+- 3 = Low (can defer)
+- 4 = Nice to have
+
+### 3. Propose
+
+Present task list as a table showing all fields:
 
 ```
-Proposed tasks for <spec-name>:
+Proposed tasks for {spec-name}:
 
-1. [P1] Task title
-   Depends on: none
-
-2. [P2] Another task
-   Depends on: 1
-
-...
+| ID | Title | Priority | Depends On | Description |
+|----|-------|----------|------------|-------------|
+| 1 | Task title | P1 | none | Brief description of the task |
+| 2 | Another task | P2 | 1 | Brief description of the task |
 ```
 
-Use `AskUserQuestion` to confirm or request changes.
+After the table, note parallelism:
+- "**Parallelism:** Tasks {ids} have no dependencies and can run in parallel."
+- "**Sequential:** {chain}" (e.g., "1→2→3")
+
+Use `AskUserQuestion` to confirm or get changes.
 
 ### 4. Save
 
-Write tasks to `.kit/tasks/<spec-id>.json`:
-
+Write to `.kit/tasks/{spec-id}.json`:
 ```json
 {
-  "spec_id": "<spec-id>",
+  "spec_id": "{spec-id}",
+  "spec_path": ".kit/specs/{spec-id}.md",
   "tasks": [
     {
-      "id": 1,
+      "id": "1",
       "title": "Task title",
+      "description": "Success: [what done looks like]. Touches: [files]. Scope: [estimate]",
       "status": "pending",
       "priority": 1,
       "depends_on": []
@@ -55,13 +83,13 @@ Write tasks to `.kit/tasks/<spec-id>.json`:
 }
 ```
 
-Report the result and suggest `kit task next` to find the first task to work on.
+Stage: `git add .kit/tasks/{spec-id}.json`
 
-## CLI Reference
+Confirm: "Created {n} tasks for {spec-name}"
 
-```
-kit task list [--spec <id>]     List tasks
-kit task next [--spec <id>]     Find next unblocked task
-kit task update <id> --status   Update task status
-kit task close <id>             Mark task done
-```
+### 5. Next Steps
+
+Offer to start working:
+> "Would you like me to start on the first task? Run `/next` to begin."
+
+See [next command](.claude/commands/next.md).

@@ -1,14 +1,19 @@
 ---
 name: spec-writing
-description: Help write a feature or project specification. Use when the user mentions building a new feature, starting a new project, working on a task or milestone or phase, planning implementation, or needs to write a spec/PRD. Before running, ask the user if they'd like help creating a spec.
+description: Writes specifications through collaborative interview. Use when user mentions plans, create a plan, planning, new features, projects, or needs a spec/PRD.
 ---
 
-# Spec Writing Skill
+# Spec Writing
 
-When this skill is triggered, first use `AskUserQuestion` to ask:
+When this skill activates, first ask the user:
+> "Would you like to use the /spec workflow to create a detailed specification?"
 
-> "It sounds like you're starting something new. Would you like me to help you write a spec for this? I'll analyze the codebase, research best practices, and interview you to fill in the gaps."
+If yes, follow [spec command](.claude/commands/spec.md).
 
-If the user declines, stop here and continue normally.
+## Quick start
 
-If the user agrees, run the `/spec` command.
+**Before writing a spec**, check for existing related specs:
+
+```bash
+ls .kit/specs/*.md
+```

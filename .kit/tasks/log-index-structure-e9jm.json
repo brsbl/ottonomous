@@ -1,0 +1,30 @@
+{
+  "spec_id": "log-index-structure-e9jm",
+  "spec_path": ".kit/specs/log-index-structure-e9jm.md",
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Create INDEX.md with initial template",
+      "status": "done",
+      "priority": 1,
+      "depends_on": [],
+      "description": "Create .kit/logs/INDEX.md with minimal template per spec"
+    },
+    {
+      "id": "2",
+      "title": "Populate INDEX.md with existing log entries",
+      "status": "done",
+      "priority": 1,
+      "depends_on": ["1"],
+      "description": "Add all 10 existing log entries to the index with agent-determined organization"
+    },
+    {
+      "id": "3",
+      "title": "Verify INDEX.md update works via /log",
+      "status": "done",
+      "priority": 2,
+      "depends_on": ["2"],
+      "description": "Run /log to add a discovery and verify INDEX.md is updated correctly"
+    }
+  ]
+}
