@@ -62,11 +62,18 @@ cat .kit/logs/git-timestamp-utilities-k3m9.md
 Before trusting an entry, verify its anchors haven't changed since it was written:
 
 ```bash
-# Get entry timestamp (last commit to the entry file)
-entry_time=$(git log -1 --format="%ct" -- .kit/logs/{entry-id}.md)
+# Get entry timestamp (last commit to the entry file, fallback to mtime for uncommitted)
+entry_time=$(git log -1 --format="%ct" -- .kit/logs/{entry-id}.md 2>/dev/null)
+if [ -z "$entry_time" ]; then
+  # Fallback to file modification time for uncommitted files
+  entry_time=$(stat -c %Y .kit/logs/{entry-id}.md 2>/dev/null || stat -f %m .kit/logs/{entry-id}.md)
+fi
 
-# Check each anchor file from frontmatter
-anchor_time=$(git log -1 --format="%ct" -- {anchor_file})
+# Check each anchor file from frontmatter (same fallback logic)
+anchor_time=$(git log -1 --format="%ct" -- {anchor_file} 2>/dev/null)
+if [ -z "$anchor_time" ]; then
+  anchor_time=$(stat -c %Y {anchor_file} 2>/dev/null || stat -f %m {anchor_file})
+fi
 
 # If anchor_time > entry_time, the anchor changed after entry was written
 ```

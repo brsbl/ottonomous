@@ -215,8 +215,8 @@ Select the source files that IMPLEMENT the behavior you're documenting:
 # Create slug from topic (lowercase, hyphens, max 30 chars)
 slug=$(echo "$topic" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | cut -c1-30)
 
-# Add 4-character hash suffix (deterministic from topic)
-hash=$(echo "$topic" | { sha1sum 2>/dev/null || shasum; } | cut -c1-4)
+# Add 4-character random hash suffix (allows multiple entries for same topic)
+hash=$(head -c 16 /dev/urandom | { sha1sum 2>/dev/null || shasum; } | cut -c1-4)
 
 # Combine
 id="${slug}-${hash}"

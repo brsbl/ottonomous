@@ -45,16 +45,15 @@ cp -r aidevkit/.claude your-project/
 
 ## Quick Start
 
-```bash
-# Initialize the log system
-/log init
+In Claude Code, use these slash commands:
 
-# Create a specification (interactive interview)
-/spec
-
-# Generate tasks from a spec
-/task
 ```
+/log init    # Initialize the log system
+/spec        # Create a specification (interactive interview)
+/task        # Generate tasks from a spec
+```
+
+These are Claude Code slash commands, not shell commands. Run them in a Claude Code session.
 
 ## Slash Commands
 

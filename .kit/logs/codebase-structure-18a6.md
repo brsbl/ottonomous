@@ -17,14 +17,11 @@ anchors:
 | `.claude/` | Claude Code integration files |
 | `.claude/skills/` | Auto-triggering skill definitions |
 | `.claude/commands/` | Slash command workflows |
-| `.claude/agents/` | Custom agent configurations |
-| `docs/` | Additional documentation |
 
 ## Architecture Layers
 
 1. **Skills** — Background context that auto-triggers based on conversation
 2. **Commands** — Explicit user-invoked workflows via `/command`
-3. **CLI** — Read-only shell commands for querying data
 
 ## Key Files
 
