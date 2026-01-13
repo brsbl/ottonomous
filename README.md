@@ -1,10 +1,10 @@
 # AI Developer Kit
 
-A unified CLI toolkit for AI-assisted software development. Provides structured workflows for creating and manaing feature specifications, engineering tasks, and knowledge base.
+A toolkit for AI-assisted software development using Claude Code skills and commands. Provides structured workflows for creating and managing feature specifications, engineering tasks, and knowledge base.
 
 ## Overview
 
-AI Developer Kit (`kit`) helps you and AI agents collaborate more effectively by providing:
+AI Developer Kit helps you and AI agents collaborate more effectively by providing:
 
 - **Specs** — Define what to build before implementation
 - **Tasks** — Break specs into prioritized, dependency-aware work items
@@ -14,26 +14,16 @@ All data lives in `.kit/` within your project, using markdown and JSON formats t
 
 ## Architecture
 
-Each system (spec, task, log) follows a three-layer architecture:
-
-```
-Skill → Command → CLI
-```
+Each system (spec, task, log) follows a skill/command architecture:
 
 | Layer | Location | Purpose |
 |-------|----------|---------|
 | **Skill** | `.claude/skills/*/SKILL.md` | Auto-triggers on context, provides workflow instructions |
 | **Command** | `.claude/commands/*.md` | Slash command (`/log`) user entry point for explicit actions |
-| **CLI** | `kit <system> <action>` | Read-only shell operations (list, search, status) |
 
-### Critical Design Point
+### Design Philosophy
 
-**The CLI is read-only. Manipulation happens via Claude Code.**
-
-- **CLI commands**: `init`, `list`, `search`, `stale` — query and display data
-- **Skill/Command**: `create`, `edit`, `verify`, `remove` — Claude writes files directly
-
-This design keeps shell scripts simple while leveraging Claude's intelligence for content generation. Claude Code reads/writes markdown files directly using the skill workflows, then stages them with git.
+**All manipulation happens via Claude Code.** Claude reads/writes markdown files directly using skill workflows, then stages them with git.
 
 **Example flow:**
 1. Skill auto-triggers when exploring code, reminds to search log first
@@ -43,67 +33,40 @@ This design keeps shell scripts simple while leveraging Claude's intelligence fo
 
 ## Installation
 
+Clone the repository and copy the `.claude/` directory to your project:
+
 ```bash
 # Clone the repository
 git clone https://github.com/example/aidevkit.git
 
-# Add to PATH
-export PATH="$PATH:/path/to/aidevkit/bin"
-
-# Initialize in your project
-cd your-project
-kit init
+# Copy skills and commands to your project
+cp -r aidevkit/.claude your-project/
 ```
 
 ## Quick Start
 
 ```bash
-# Initialize the toolkit in your project
-kit init
+# Initialize the log system
+/log init
 
-# Create a specification
-kit spec create --name "User Authentication" --content "Implement OAuth2 login..."
+# Create a specification (interactive interview)
+/spec
 
-# Generate tasks from the spec
-kit task init .kit/specs/user-authentication-a7x3.md
-
-# See what to work on next
-kit task next
-
-# After discovering something about the code, log it
-kit log add .kit/logs/auth/session-flow.md \
-  --anchor src/auth/session.js \
-  --content "Sessions use JWT tokens stored in httpOnly cookies..."
-
-# Search your engineering logs
-kit log search "authentication"
+# Generate tasks from a spec
+/task
 ```
 
-## Commands
+## Slash Commands
 
-### Global Commands
+### `/spec` — Create Specifications
 
-```bash
-kit init          # Initialize all systems in current directory
-kit status        # Show project state across all systems
-kit --help        # Show help
-kit --version     # Show version
-```
+Interactive interview to create feature specifications:
 
-### Spec System
-
-Manage specifications for features, projects, and milestones.
-
-```bash
-kit spec init                              # Initialize specs directory
-kit spec create --name "Name" [--content "..."]  # Create new spec
-kit spec list [--status <status>]          # List all specs
-kit spec show <id>                         # Display a specification
-kit spec update <id> --status <status>     # Update spec status
-kit spec edit <id>                         # Edit spec content
-kit spec remove <id>                       # Remove a specification
-kit spec search "term"                     # Search specifications
-```
+1. Gathers context from codebase and reference projects
+2. Researches best practices
+3. Interviews you with recommended options
+4. Drafts spec covering product requirements and technical design
+5. Saves to `.kit/specs/{id}.md`
 
 **Spec Statuses:** `draft` → `in-review` → `approved` → `implemented` → `deprecated`
 
@@ -113,7 +76,7 @@ kit spec search "term"                     # Search specifications
 ---
 id: user-authentication-a7x3
 name: User Authentication
-status: draft
+status: approved
 created: 2024-01-15
 ---
 
@@ -121,22 +84,14 @@ created: 2024-01-15
 Implement OAuth2 login with Google and GitHub providers...
 ```
 
-### Task System
+### `/task` — Manage Tasks
 
-Break specifications into actionable, dependency-aware tasks.
+Break specifications into actionable, dependency-aware tasks:
 
-```bash
-kit task init <spec-path>                  # Generate task list from spec
-kit task list [--spec <id>] [--status <s>] # List tasks
-kit task next [--spec <id>]                # Get highest-priority unblocked task
-kit task create --spec <id> "Title" [-p <0-4>] [--depends <id,id>]
-kit task update <id> --status <status>     # Update status
-kit task update <id> --priority <0-4>      # Update priority
-kit task close <id>                        # Mark task as done
-kit task remove <id>                       # Delete task
-kit task dep add <child> <parent>          # Add dependency
-kit task dep remove <child> <parent>       # Remove dependency
-```
+- Generate task list from a spec
+- Track task status and priorities
+- Get next unblocked task by priority
+- Manage dependencies between tasks
 
 **Task Statuses:** `pending` → `in_progress` → `done`
 
@@ -167,23 +122,13 @@ kit task dep remove <child> <parent>       # Remove dependency
 }
 ```
 
-### Log System
+### `/log` — Engineering Log
 
 Capture code discoveries anchored to source files. When anchor files change, log entries are marked stale.
 
-**CLI (read-only):**
-```bash
-kit log init                               # Initialize log system
-kit log list [--status <status>]           # List all entries
-kit log search <term>                      # Search log entries
-kit log stale                              # List stale/orphaned entries
-```
-
-**Manipulation (via `/log` command):**
-- Create entries: Claude writes markdown directly
-- Edit entries: Claude updates content, preserves anchors
-- Verify entries: Touch file to update mtime
-- Remove entries: Delete file, stage deletion
+- `/log` — Create new log entry (guided workflow)
+- `/log init` — First-time setup: document codebase and create baseline entries
+- `/log rebuild` — Regenerate INDEX.md, clean orphans, re-seed if empty
 
 **Staleness States:**
 - `valid` — All anchors exist and haven't changed since entry was created
@@ -206,7 +151,7 @@ Refresh tokens are rotated on use to prevent replay attacks.
 
 ## Directory Structure
 
-After running `kit init`, your project will have:
+After setup, your project will have:
 
 ```
 your-project/
@@ -216,6 +161,7 @@ your-project/
 │   ├── tasks/              # Task JSON files
 │   │   └── *.json
 │   ├── logs/               # Engineering log entries
+│   │   ├── INDEX.md        # Quick lookup index
 │   │   └── **/*.md
 │   └── config.yaml         # Shared configuration
 ├── .claude/
@@ -230,11 +176,7 @@ your-project/
 └── ...
 ```
 
-## Claude Code Integration
-
-AI Developer Kit includes skills and commands for Claude Code that enable AI-assisted workflows.
-
-### Skills (Auto-Trigger)
+## Skills (Auto-Trigger)
 
 Skills activate automatically based on context:
 
@@ -242,15 +184,7 @@ Skills activate automatically based on context:
 - **Task Skill** — Triggers when a spec exists and you mention tasks or implementation
 - **Log Skill** — Triggers when investigating code or making discoveries
 
-### Slash Commands
-
-Invoke explicit workflows:
-
-- `/spec` — Interactive interview to create a specification
-- `/task` — Task management and prioritization
-- `/log` — Search and capture code knowledge
-
-### Example AI Workflow
+## Example AI Workflow
 
 1. **You:** "I want to add user authentication to the app"
 2. **Claude:** Recognizes new feature, offers to create a spec
@@ -259,7 +193,7 @@ Invoke explicit workflows:
 5. **You:** Approve task generation
 6. **Claude:** Creates prioritized task list with dependencies
 7. **You:** "What should I work on first?"
-8. **Claude:** Runs `kit task next`, proposes highest-priority unblocked task
+8. **Claude:** Identifies highest-priority unblocked task
 9. **You:** Work through tasks, Claude marks them complete
 10. **Claude:** After discovering code patterns, adds to engineering log
 
@@ -275,74 +209,10 @@ auto_verify: false
 auto_pick: false
 ```
 
-## Workflows
-
-### Creating a New Feature
-
-```bash
-# 1. Create the specification
-kit spec create --name "Payment Processing" --content "..."
-
-# 2. Generate tasks
-kit task init .kit/specs/payment-processing-b2c4.md
-
-# 3. Add tasks manually if needed
-kit task create --spec payment-processing-b2c4 "Integrate Stripe" -p 1
-kit task create --spec payment-processing-b2c4 "Add webhook handler" -p 2 --depends 1
-
-# 4. Start working
-kit task next --spec payment-processing-b2c4
-kit task update 1 --status in_progress
-
-# 5. Complete tasks
-kit task close 1
-kit task next  # Shows task 2 is now unblocked
-```
-
-### Capturing Code Knowledge
-
-```bash
-# Before investigating, search existing knowledge
-kit log search "payment"
-
-# When anchor files change, entries become stale
-kit log stale
-```
-
-To capture discoveries, use `/log` command which guides Claude through:
-1. Identifying anchor files
-2. Generating a unique ID
-3. Writing the entry to `.kit/logs/`
-4. Staging with git
-
-### Cross-System Workflow
-
-```bash
-# Check overall project status
-kit status
-
-# Output:
-# AI Developer Kit Status
-# =======================
-#
-# Specs: 3 specification(s) in .kit/specs/
-#   - draft: 1
-#   - approved: 2
-#
-# Tasks: 2 task file(s) in .kit/tasks/
-#   - pending: 5
-#   - in_progress: 1
-#   - done: 8
-#
-# Logs: 12 entry(ies) in .kit/logs/
-#   - stale: 2
-```
-
 ## Dependencies
 
-- Bash 3.2+
-- jq (for JSON processing)
-- Git (optional, for staleness tracking)
+- Claude Code with skills/commands support
+- Git (for staleness tracking)
 
 ## Design Principles
 
