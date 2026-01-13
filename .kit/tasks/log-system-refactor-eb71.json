@@ -21,7 +21,7 @@
     {
       "id": "3",
       "title": "Verify staleness detection works",
-      "status": "in_progress",
+      "status": "done",
       "priority": 1,
       "depends_on": ["2"],
       "description": "Test git timestamp comparison identifies stale entries correctly"
@@ -29,7 +29,7 @@
     {
       "id": "4",
       "title": "Mark spec as implemented",
-      "status": "pending",
+      "status": "done",
       "priority": 2,
       "depends_on": ["2", "3"],
       "description": "Update status in frontmatter to 'implemented'"

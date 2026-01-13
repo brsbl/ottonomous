@@ -1,7 +1,7 @@
 ---
 id: log-system-refactor-eb71
 name: Log System Refactor
-status: approved
+status: implemented
 created: 2026-01-12
 updated: 2026-01-12
 ---
@@ -22,7 +22,7 @@ The log system is an **evergreen knowledge base** that captures engineering disc
 
 - **Skill contains full lifecycle**: search, check staleness, verify, update entries
 - **Command /log focuses on one thing**: adding new discoveries
-- **Progressive disclosure**: INDEX.md organized by file path, agent reads relevant sections
+- **Progressive disclosure**: INDEX.md enables fast retrieval, format agent-determined
 - **Staleness via git timestamps**: agent runs git commands directly
 - **Auto-updating index**: INDEX.md regenerated when entries added
 - **Simple init**: creates .kit/logs/ + INDEX.md
@@ -30,8 +30,7 @@ The log system is an **evergreen knowledge base** that captures engineering disc
 ## Non-Goals
 
 - Migration from current CLI
-- Topic-based categorization (uses anchor paths instead)
-- Complex index with tags/metadata
+- Prescriptive index schema (agent determines format based on project)
 
 ---
 
@@ -44,8 +43,8 @@ User Context (exploring code, investigating)
 ┌─────────────────────────────────────────────┐
 │  Skill: .claude/skills/log/SKILL.md          │
 │  (Full Lifecycle - Evergreen)                │
-│  - Prime Directive: search first             │
-│  - Read INDEX.md section for current path    │
+│  - Search log before investigating code      │
+│  - Consult INDEX.md for fast retrieval       │
 │  - Check staleness (git timestamps)          │
 │  - Verify/update stale entries               │
 │  - Links to /log for adding new entries      │
@@ -64,7 +63,7 @@ User Context (exploring code, investigating)
      ▼
 ┌─────────────────────────────────────────────┐
 │  Data: .kit/logs/                            │
-│  ├── INDEX.md    (path-based navigation)     │
+│  ├── INDEX.md    (fast retrieval)            │
 │  └── *.md        (entries with anchors)      │
 └─────────────────────────────────────────────┘
 ```
@@ -78,23 +77,20 @@ User Context (exploring code, investigating)
 ```markdown
 ---
 name: engineering-log
-description: Captures engineering knowledge anchored to source files. Use when exploring code, investigating bugs, planning implementation, or answering questions about how code works.
+description: Captures engineering knowledge anchored to source files. Activates when exploring code, investigating bugs, planning implementation, or answering questions about how code works. Always search this log before reading source files.
 ---
 
 # Engineering Log
 
 Institutional memory for the codebase.
 
-## Prime Directive
+## Quick start
 
-**Search the log before investigating code.**
+**Search the log before investigating code:**
 
-## Search
-
-1. Determine which directory you're working in
-2. Read the relevant section of [.kit/logs/INDEX.md]
-3. Grep `.kit/logs/` for specific keywords if needed
-4. Read matching entry files
+1. Consult [.kit/logs/INDEX.md] to find potentially relevant entries
+2. Grep `.kit/logs/` for specific keywords if needed
+3. Read matching entry files
 
 ## Check Staleness
 
@@ -112,11 +108,14 @@ anchor_time=$(git log -1 --format="%ct" -- {anchor_file})
 
 ## Verify Stale Entry
 
-If entry is still accurate:
+If entry is still accurate after reviewing anchor changes:
 ```bash
 touch .kit/logs/{entry}.md
 git add .kit/logs/{entry}.md
+git commit -m "verify: {entry-id}"
 ```
+
+Note: Verification requires a commit because staleness detection uses git commit timestamps.
 
 ## Update Entry
 
@@ -179,10 +178,7 @@ anchors:
 
 ### 4. Update Index
 
-Regenerate `.kit/logs/INDEX.md`:
-- Group entry by anchor directory path
-- Add row to appropriate section
-- Create new section if path doesn't exist
+Update `.kit/logs/INDEX.md` to include the new entry. Format is agent-determined based on project structure.
 
 ### 5. Stage
 
@@ -197,34 +193,13 @@ Tell user: "Logged discovery about {topic} anchored to {files}."
 
 ### Index: `.kit/logs/INDEX.md`
 
-**Structure:** Organized by anchor file path for progressive disclosure.
+An index for fast entry retrieval. Agent generates and maintains based on project structure.
 
-```markdown
-# Engineering Log Index
+**Requirements:**
+- Enough context to decide relevance without reading full entries
+- Updated when entries are added/modified
 
-## src/auth/
-
-| ID | Topic | Anchors |
-|----|-------|---------|
-| auth-flow-a1b2 | JWT session handling | session.js, middleware.js |
-| token-refresh-c3d4 | Token refresh logic | refresh.js |
-
-## src/api/
-
-| ID | Topic | Anchors |
-|----|-------|---------|
-| rate-limiting-e5f6 | Rate limit implementation | limiter.js |
-
-## systems/log/
-
-| ID | Topic | Anchors |
-|----|-------|---------|
-| staleness-bn3q | Staleness detection | utils/staleness.sh |
-```
-
-**Progressive disclosure benefit:** Agent working on `src/auth/` only reads that section, keeping context window focused.
-
-**Auto-generated:** Rebuilt when entries are added via /log command.
+**Format:** Agent-determined. Could be organized by directory, by concept, flat list, or whatever suits the project.
 
 ---
 
@@ -253,10 +228,7 @@ anchors:
 
 **Location:** `.kit/logs/INDEX.md`
 
-Markdown with sections per anchor directory path. Each section contains a table with columns:
-- ID (links to entry file)
-- Topic/Title
-- Anchors (filenames only, full path in section header)
+Agent-determined markdown format. Must enable fast retrieval without reading all entry files.
 
 ### Staleness states
 
@@ -280,9 +252,9 @@ Computed dynamically via git timestamps:
 ### Skill lifecycle operations
 
 All performed by agent directly:
-- **Search**: Read INDEX.md section + grep
+- **Search**: Consult INDEX.md + grep
 - **Staleness**: Run git commands for timestamps
-- **Verify**: Touch file + git add
+- **Verify**: Touch file + git add + git commit
 - **Update**: Edit file + git add
 - **Cleanup**: Edit/delete file + git add
 
@@ -296,7 +268,7 @@ All performed by agent directly:
    ```markdown
    # Engineering Log Index
 
-   <!-- Entries will be added here, organized by anchor path -->
+   <!-- Agent will populate based on project structure -->
    ```
 
 ---
@@ -325,11 +297,11 @@ systems/log/
 ## Verification
 
 1. **Skill triggers**: Activates when exploring/investigating code
-2. **Progressive disclosure**: Agent reads only relevant INDEX.md section
+2. **Index enables retrieval**: Agent finds relevant entries via INDEX.md
 3. **Search works**: Finds entries via index + grep
 4. **Staleness computed**: Git timestamps correctly identify stale entries
 5. **/log adds entry**: Creates file and updates INDEX.md
-6. **Verify workflow**: Touch + stage marks entry as verified
+6. **Verify workflow**: Touch + stage + commit marks entry as verified
 
 ---
 
