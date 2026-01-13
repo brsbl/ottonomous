@@ -22,17 +22,24 @@ Skill → Command → CLI
 
 | Layer | Location | Purpose |
 |-------|----------|---------|
-| **Skill** | `.claude/skills/*/SKILL.md` | Auto-triggers on context, asks user "Run /command?" |
-| **Command** | `.claude/commands/*.md` | Slash command (`/task`) tells agent to invoke CLI |
-| **CLI** | `kit <system> <action>` | Pure shell, does the actual work |
+| **Skill** | `.claude/skills/*/SKILL.md` | Auto-triggers on context, provides workflow instructions |
+| **Command** | `.claude/commands/*.md` | Slash command (`/log`) user entry point for explicit actions |
+| **CLI** | `kit <system> <action>` | Read-only shell operations (list, search, status) |
+
+### Critical Design Point
+
+**The CLI is read-only. Manipulation happens via Claude Code.**
+
+- **CLI commands**: `init`, `list`, `search`, `stale` — query and display data
+- **Skill/Command**: `create`, `edit`, `verify`, `remove` — Claude writes files directly
+
+This design keeps shell scripts simple while leveraging Claude's intelligence for content generation. Claude Code reads/writes markdown files directly using the skill workflows, then stages them with git.
 
 **Example flow:**
-1. Skill detects approved spec, asks "Generate tasks?"
-2. User confirms → Skill invokes `/task` command
-3. Command tells agent to run `kit task create <spec-id>`
-4. CLI generates tasks from spec
-
-This separation keeps AI logic in Claude Code (skills/commands) and data operations in pure shell (CLI).
+1. Skill auto-triggers when exploring code, reminds to search log first
+2. User runs `/log` command after discovering something
+3. Command provides workflow: identify anchors, generate ID, write entry
+4. Claude writes the markdown file directly, stages with git
 
 ## Installation
 
@@ -164,16 +171,19 @@ kit task dep remove <child> <parent>       # Remove dependency
 
 Capture code discoveries anchored to source files. When anchor files change, log entries are marked stale.
 
+**CLI (read-only):**
 ```bash
 kit log init                               # Initialize log system
-kit log add <file> --anchor <path> --content "..."  # Add new entry
-kit log edit <file> [--content "..."]      # Edit existing entry
-kit log verify <file>                      # Mark entry as verified
-kit log remove <file>                      # Remove entry
-kit log search <term> [--json]             # Search log entries
 kit log list [--status <status>]           # List all entries
+kit log search <term>                      # Search log entries
 kit log stale                              # List stale/orphaned entries
 ```
+
+**Manipulation (via `/log` command):**
+- Create entries: Claude writes markdown directly
+- Edit entries: Claude updates content, preserves anchors
+- Verify entries: Touch file to update mtime
+- Remove entries: Delete file, stage deletion
 
 **Staleness States:**
 - `valid` — All anchors exist and haven't changed since entry was created
@@ -295,21 +305,15 @@ kit task next  # Shows task 2 is now unblocked
 # Before investigating, search existing knowledge
 kit log search "payment"
 
-# After discovering something, capture it
-kit log add .kit/logs/payments/stripe-webhooks.md \
-  --anchor src/webhooks/stripe.js \
-  --anchor src/services/payment.js \
-  --content "Stripe webhooks are verified using the signing secret..."
-
 # When anchor files change, entries become stale
 kit log stale
-
-# After verifying knowledge is still accurate
-kit log verify .kit/logs/payments/stripe-webhooks.md
-
-# Or update if the knowledge changed
-kit log edit .kit/logs/payments/stripe-webhooks.md --content "Updated flow..."
 ```
+
+To capture discoveries, use `/log` command which guides Claude through:
+1. Identifying anchor files
+2. Generating a unique ID
+3. Writing the entry to `.kit/logs/`
+4. Staging with git
 
 ### Cross-System Workflow
 

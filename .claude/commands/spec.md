@@ -4,41 +4,99 @@ Create specifications through collaborative AI-human interview.
 
 ## Workflow
 
-### 1. Research
+### 1. Gather Context
 
-Before asking questions:
-- Use Task tool with Explore agent to analyze relevant codebase patterns
-- Run `kit spec list` to check for related specs
-- Use WebSearch if external best practices would help
+**Reference projects:**
+Use `AskUserQuestion` to ask:
+> "Are there any reference projects or examples I should look at for inspiration?"
 
-### 2. Interview
+If provided:
+- Explore the reference project(s) to understand their approach
+- Note patterns and design decisions to reference during interview
 
-Use the `AskUserQuestion` tool to ask about anything non-obvious:
-- Goals, constraints, preferences, decisions you can't infer
-- Ask ONE question at a time
-- Stop when you have enough context (typically 2-5 questions)
+**Existing specs:**
+- Glob `.kit/specs/*.md` to find related specs
+- Read relevant specs to understand context
 
-### 3. Draft
+**Codebase analysis:**
+- Use Glob to find relevant files and Read to understand current architecture
+- Use Grep to search for related patterns and implementations
+
+### 2. Research Best Practices
+
+Use `WebSearch` to find:
+- Industry best practices for the feature type
+- Common pitfalls and recommendations
+- How popular projects solve similar problems
+
+### 3. Interview
+
+Use `AskUserQuestion` to gather requirements. For each decision point:
+
+**Format each question with options:**
+- Present 2-3 options (use `options` parameter)
+- Mark one as "(Recommended)" based on research
+- Include description with:
+  - Pros/cons of each option
+  - What reference project(s) do (if applicable)
+  - What best practices suggest
+
+**Example:**
+```
+Question: "How should authentication be handled?"
+Options:
+- "JWT tokens (Recommended)" - "Stateless, scalable. Reference project uses this. Industry standard for APIs."
+- "Session cookies" - "Simpler setup, but requires session storage. Better for traditional web apps."
+- "OAuth only" - "Delegate to providers. Less code but depends on external services."
+```
+
+**Topics to cover:**
+- Core requirements and constraints
+- Key architectural decisions
+- Scope boundaries
+- Edge cases
+
+Stop when sufficient context (typically 3-5 questions).
+
+### 4. Draft
 
 Write a spec covering:
-- Overview (what and why)
-- Goals / Non-Goals
-- User Stories (if applicable)
-- Detailed Design
-- Commands (Agent command vs CLI, if applicable)
-- Future Considerations (phased features)
 
-Mark gaps as `[TBD: reason]`.
+**Product Requirements:**
+- **Overview** - What and why, problem being solved
+- **Goals / Non-Goals** - Explicit scope boundaries
+- **User Stories** - User-facing behavior (if applicable)
 
-### 4. Approval
+**Technical Design:**
+- **Architecture** - System design, component relationships, data flow
+- **Detailed Design** - Implementation approach, key algorithms, data structures
+- **API / Interface** - Public interfaces, commands, contracts
+- **Data Model** - Schema, storage, state management
 
-Present the draft, then use `AskUserQuestion` to confirm approval or get change requests. Revise until approved.
+**Planning:**
+- **Future Considerations** - Deferred features, extensibility points
+- **Open Questions** - Unresolved decisions marked as `[TBD: reason]`
 
-### 5. Save
+Reference the research and decisions made during interview.
 
-Generate a unique ID: `{slug}-{4-random-chars}` (e.g., `user-auth-a7x3`)
+### 5. Approval
 
-Write the spec file to `.kit/specs/{id}.md` with frontmatter:
+Present draft to user. Use `AskUserQuestion` to:
+- Confirm approval, or
+- Collect specific change requests
+
+Revise until approved.
+
+### 6. Save
+
+Generate unique ID:
+```bash
+slug=$(echo "$name" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | cut -c1-30)
+hash=$(cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | head -c 4)
+id="${slug}-${hash}"
+```
+
+Write to `.kit/specs/{id}.md`:
 ```yaml
 ---
 id: {id}
@@ -47,16 +105,17 @@ status: approved
 created: {YYYY-MM-DD}
 updated: {YYYY-MM-DD}
 ---
+
+{spec content}
 ```
 
-Offer to generate tasks via `/task` command.
+Stage: `git add .kit/specs/{id}.md`
 
-## CLI Reference
+Confirm to user: "Saved spec to .kit/specs/{id}.md"
 
-```
-kit spec list                    List all specs
-kit spec update <id> --status    Update status
-kit spec remove <id>             Delete spec
-kit init                         Setup directories
-kit status                       Project overview
-```
+### 7. Next Steps
+
+Offer task generation:
+> "Would you like me to generate implementation tasks from this spec?"
+
+If yes, see [task command](.claude/commands/task.md).

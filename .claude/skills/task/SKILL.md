@@ -1,6 +1,6 @@
 ---
 name: task-management
-description: Generates and manages task lists from specs. Activates when user has a spec and mentions tasks, implementation, work, or asks "what's next?"
+description: Generates and manages task lists from specs. Activates when user has a spec and mentions tasks, implementation, work, or what to do next.
 ---
 
 # Task Management

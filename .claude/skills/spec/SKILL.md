@@ -1,6 +1,6 @@
 ---
 name: spec-writing
-description: Writes specifications through collaborative interview. Use when user mentions plans, create a plan, planning, new features, projects, or needs a spec/PRD.
+description: Writes specifications through collaborative interview. Activates when user mentions planning, new features, projects, or needs a spec/PRD.
 ---
 
 # Spec Writing
