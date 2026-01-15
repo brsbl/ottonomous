@@ -7,6 +7,9 @@ node_modules/
 *.swp
 *~
 
+# Local Claude settings
+.claude/
+
 # Review output files (keep .gitkeep)
 .kit/reviews/*
 !.kit/reviews/.gitkeep

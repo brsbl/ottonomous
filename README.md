@@ -1,12 +1,21 @@
 # Claude Code Kit
 
-A skills toolkit for Claude Code.
+A Claude Code plugin providing structured workflows for planning, implementation, review, and knowledge management.
 
 ## Installation
 
+Install as a Claude Code plugin:
+
+```bash
+/plugin install brsbl/claude-code-kit
+```
+
+Or manually clone and install:
+
 ```bash
 git clone https://github.com/brsbl/claude-code-kit.git
-cp -r claude-code-kit/.claude your-project/
+cd your-project
+claude --plugin-dir /path/to/claude-code-kit
 ```
 
 ## Skills
@@ -28,18 +37,27 @@ cp -r claude-code-kit/.claude your-project/
 - **`/semantic-review`** — Generates audience-specific walkthrough (developers, reviewers, stakeholders) with per-component analysis. Opens HTML in browser
 - **`/code-review`** — Finds bugs with priority levels: P0 (blocking), P1 (urgent), P2 (normal), P3 (low)
 
-## Directory Structure
+## Plugin Structure
 
 ```
-your-project/
-├── .kit/
-│   ├── specs/        # Specifications (*.md)
-│   ├── tasks/        # Tasks (*.json)
-│   ├── logs/         # Engineering logs with INDEX.md
-│   ├── reviews/      # Review outputs (*.md, *.html)
-│   └── config.yaml   # Configuration
-└── .claude/
-    └── skills/       # Skill definitions
+claude-code-kit/
+├── .claude-plugin/
+│   └── plugin.json   # Plugin metadata
+├── skills/           # Skill definitions
+│   ├── spec/         # /spec command
+│   ├── task/         # /task command
+│   ├── next/         # /next command
+│   ├── log/          # /log command
+│   ├── orchestrator/ # /orchestrator command
+│   ├── worktree/     # /worktree command
+│   ├── semantic-review/  # /semantic-review command
+│   └── code-review/  # /code-review command
+└── .kit/             # Runtime data (created in your project)
+    ├── specs/        # Specifications (*.md)
+    ├── tasks/        # Tasks (*.json)
+    ├── logs/         # Engineering logs with INDEX.md
+    ├── reviews/      # Review outputs (*.md, *.html)
+    └── config.yaml   # Configuration
 ```
 
 ## Configuration
