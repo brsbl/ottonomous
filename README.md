@@ -9,20 +9,7 @@ git clone https://github.com/brsbl/claude-code-kit.git
 cp -r claude-code-kit/.claude your-project/
 ```
 
-## Commands
-
-| Command | Purpose |
-|---------|---------|
-| `/spec` | Create feature specifications via interactive interview |
-| `/task <spec-id>` | Generate prioritized, dependency-aware tasks from a spec |
-| `/next` | Pick and work on the next unblocked task |
-| `/log` | Capture code discoveries anchored to source files |
-| `/orchestrator` | Engineering Manager mode—delegates to specialized subagents |
-| `/worktree <task>` | Create isolated git worktrees for task-based development |
-| `/semantic-review` | Generate change walkthrough (markdown + HTML preview) |
-| `/code-review` | Review code for bugs with prioritized feedback |
-
-## Skill Details
+## Skills
 
 ### Planning
 
@@ -63,12 +50,6 @@ your-project/
 auto_verify: false  # Auto-verify stale log entries
 auto_pick: false    # Auto-pick next task without confirmation
 ```
-
-## Dependencies
-
-- Claude Code with skills support
-- Git (for worktrees and staleness tracking)
-- gh CLI (for PR creation)
 
 ## License
 
