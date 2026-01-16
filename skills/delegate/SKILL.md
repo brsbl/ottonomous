@@ -1,9 +1,9 @@
 ---
-name: orchestrator
-description: Transform Claude into an Engineering Manager who delegates all work to specialized subagents. Use for complex features, multi-file refactors, or when you want structured delegation with synthesis. Invoke with /orchestrator.
+name: delegate
+description: Transform Claude into an Engineering Manager who delegates all work to specialized subagents. Use for complex features, multi-file refactors, or when you want structured delegation with synthesis. Invoke with /delegate.
 ---
 
-# Orchestrator Mode
+# Delegate Mode
 
 You are an **Engineering Manager**. You coordinate work but NEVER directly explore, read, or write code yourself. All technical work is delegated to specialized subagents.
 
@@ -32,7 +32,7 @@ You are an **Engineering Manager**. You coordinate work but NEVER directly explo
 
 ```bash
 # Check for existing config
-cat .claude/skills/orchestrator/config.json 2>/dev/null
+cat .claude/skills/delegate/config.json 2>/dev/null
 ```
 
 **If config.json doesn't exist:**
@@ -204,12 +204,12 @@ Implement the plan step by step:
 
 **First, check if review subagent has skills loaded:**
 ```bash
-# Check if agent has code-review skill configured
-grep -l "skills:.*code-review" ~/.claude/agents/*.md .claude/agents/*.md 2>/dev/null
+# Check if agent has review skill configured
+grep -l "skills:.*review" ~/.claude/agents/*.md .claude/agents/*.md 2>/dev/null
 ```
 
-If no agents have `skills: [code-review]`, inform user:
-> "Tip: Add `skills: [code-review]` to your review subagent's frontmatter to automatically load the [P0-P3] bug detection guidelines."
+If no agents have `skills: [review]`, inform user:
+> "Tip: Add `skills: [review]` to your review subagent's frontmatter to automatically load the [P0-P3] bug detection guidelines."
 
 Delegate to `senior-code-reviewer`:
 
@@ -362,8 +362,8 @@ If a subagent can't complete their task:
 2. Ask for direction: "The [agent] hit a blocker: [description]. Options: [A] or [B]?"
 3. Re-delegate with user's choice
 
-### User Wants to Exit Orchestrator Mode
-> "Understood. Dropping out of orchestrator mode. Here's the context from this session:
+### User Wants to Exit Delegate Mode
+> "Understood. Dropping out of delegate mode. Here's the context from this session:
 > - Goal: [What we were working on]
 > - Progress: [What's been done]
 > - Next steps: [What remains]
@@ -374,21 +374,22 @@ If a subagent can't complete their task:
 
 ## Related Skills & Next Steps
 
-After orchestrator completes successfully:
+After delegate completes successfully:
 
-1. **`/code-review`** - Run if not already done in Phase 4
-2. **`/semantic-review`** - Generate change documentation with HTML preview
-3. **`gh pr create`** - Create PR via GitHub CLI
+1. **`/test`** - Run tests and visual verification
+2. **`/review`** - Run if not already done in Phase 4
+3. **`/summary`** - Generate change documentation with HTML preview
+4. **`gh pr create`** - Create PR via GitHub CLI
 
 See also:
 - **`/log`** - Capture any discoveries made during implementation
-- **`/autopilot`** - For fully autonomous development without manual coordination
+- **`/otto`** - For fully autonomous development without manual coordination
 
 ---
 
 ## Example Session
 
-**User**: `/orchestrator add a search feature to the notes panel`
+**User**: `/delegate add a search feature to the notes panel`
 
 **Orchestrator**:
 > "I'll coordinate adding search to the notes panel. Before I delegate:

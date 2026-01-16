@@ -11,5 +11,5 @@ node_modules/
 .claude/
 
 # Review output files (keep .gitkeep)
-.kit/reviews/*
-!.kit/reviews/.gitkeep
+.otto/reviews/*
+!.otto/reviews/.gitkeep

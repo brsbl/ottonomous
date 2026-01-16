@@ -1,6 +1,6 @@
 ---
-name: code-review
-description: Review code changes for bugs with prioritized, actionable feedback. Uses parallel subagents for thorough review of large changes, then creates fix plans and delegates implementation. Invoke with /code-review.
+name: review
+description: Review code changes for bugs with prioritized, actionable feedback. Uses parallel subagents for thorough review of large changes, then creates fix plans and delegates implementation. Invoke with /review.
 ---
 
 # Code Review
@@ -12,7 +12,7 @@ Review code changes for bugs and issues with prioritized, actionable feedback. F
 **Check for AUTO_MODE at the start of every workflow:**
 
 ```bash
-AUTO_MODE=$(grep -q "auto_pick: true" .kit/config.yaml 2>/dev/null && echo "true" || echo "false")
+AUTO_MODE=$(grep -q "auto_pick: true" .otto/config.yaml 2>/dev/null && echo "true" || echo "false")
 ```
 
 **When `AUTO_MODE=true`:**
@@ -45,7 +45,7 @@ AUTO_MODE=$(grep -q "auto_pick: true" .kit/config.yaml 2>/dev/null && echo "true
 
 ```bash
 # Check for existing config
-cat .claude/skills/code-review/config.json 2>/dev/null
+cat .claude/skills/review/config.json 2>/dev/null
 ```
 
 **If config.json doesn't exist:**

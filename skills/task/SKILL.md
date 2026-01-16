@@ -14,7 +14,7 @@ Generate implementation tasks from an approved spec.
 **Check for AUTO_MODE at the start of every workflow:**
 
 ```bash
-AUTO_MODE=$(grep -q "auto_pick: true" .kit/config.yaml 2>/dev/null && echo "true" || echo "false")
+AUTO_MODE=$(grep -q "auto_pick: true" .otto/config.yaml 2>/dev/null && echo "true" || echo "false")
 ```
 
 **When `AUTO_MODE=true`:**
@@ -27,7 +27,7 @@ AUTO_MODE=$(grep -q "auto_pick: true" .kit/config.yaml 2>/dev/null && echo "true
 **Check for pending tasks** before starting new work:
 
 ```bash
-ls .kit/tasks/*.json 2>/dev/null
+ls .otto/tasks/*.json 2>/dev/null
 ```
 
 ## Task Design Principles
@@ -47,7 +47,7 @@ Each task should be an **atomic unit of work**:
 
 ### 1. Get Spec
 
-Read the spec from `.kit/specs/$ARGUMENTS.md`
+Read the spec from `.otto/specs/$ARGUMENTS.md`
 
 If spec not found, report error and list available specs.
 
@@ -91,11 +91,11 @@ Use `AskUserQuestion` to confirm or get changes.
 
 ### 4. Save
 
-Write to `.kit/tasks/{spec-id}.json`:
+Write to `.otto/tasks/{spec-id}.json`:
 ```json
 {
   "spec_id": "{spec-id}",
-  "spec_path": ".kit/specs/{spec-id}.md",
+  "spec_path": ".otto/specs/{spec-id}.md",
   "tasks": [
     {
       "id": "1",
@@ -117,7 +117,7 @@ Write to `.kit/tasks/{spec-id}.json`:
 - `skipped`: Set to `true` when task is skipped due to max blockers
 - `skip_reason`: Reason the task was skipped (set when `skipped: true`)
 
-Stage: `git add .kit/tasks/{spec-id}.json`
+Stage: `git add .otto/tasks/{spec-id}.json`
 
 Confirm: "Created {n} tasks for {spec-name}"
 
