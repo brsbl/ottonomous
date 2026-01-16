@@ -191,18 +191,18 @@ status: in_progress
 
 ```bash
 # Update dev-browser submodule if present
-if [ -d "skills/dev-browser/.git" ]; then
-  git submodule update --remote --merge skills/dev-browser 2>/dev/null || true
+if [ -d ".claude/skills/dev-browser/.git" ]; then
+  git submodule update --remote --merge .claude/skills/dev-browser 2>/dev/null || true
 fi
 
 # Install dependencies if needed
-if [ -d "skills/dev-browser" ] && [ -f "skills/dev-browser/package.json" ]; then
-  (cd skills/dev-browser && npm install 2>/dev/null) || true
+if [ -d ".claude/skills/dev-browser" ] && [ -f ".claude/skills/dev-browser/package.json" ]; then
+  (cd .claude/skills/dev-browser && npm install 2>/dev/null) || true
 fi
 
 # Start server in background and verify it started
-if [ -f "skills/dev-browser/server.sh" ]; then
-  nohup skills/dev-browser/server.sh > .otto/otto/sessions/${session_id}/dev-browser.log 2>&1 &
+if [ -f ".claude/skills/dev-browser/server.sh" ]; then
+  nohup .claude/skills/dev-browser/server.sh > .otto/otto/sessions/${session_id}/dev-browser.log 2>&1 &
   echo $! > .otto/otto/sessions/${session_id}/dev-browser.pid
   sleep 3  # Wait for server to initialize
 
@@ -219,8 +219,8 @@ fi
 #### Step 0.7: Start Report Server
 
 ```bash
-if [ -f "skills/otto/report/server.js" ]; then
-  node skills/otto/report/server.js --session ${session_id} --port 3456 &
+if [ -f "$SKILL_DIR/report/server.js" ]; then
+  node "$SKILL_DIR/report/server.js" --session ${session_id} --port 3456 &
   echo $! > .otto/otto/sessions/${session_id}/report.pid
   sleep 1
   echo "Report: http://localhost:3456"
@@ -672,7 +672,7 @@ Invoke Skill: skill="dev-browser"
 Once the dev-browser skill is loaded, write a verification script:
 
 ```bash
-cd skills/dev-browser && npx tsx <<'EOF'
+cd .claude/skills/dev-browser && npx tsx <<'EOF'
 import { connect, waitForPageLoad } from "@/client.js";
 
 const client = await connect();
@@ -1421,7 +1421,7 @@ Prevent conflicts with unique page names:
 All dev-browser scripts follow this pattern:
 
 ```bash
-cd skills/dev-browser && npx tsx <<'EOF'
+cd .claude/skills/dev-browser && npx tsx <<'EOF'
 import { connect, waitForPageLoad } from "@/client.js";
 
 const client = await connect();

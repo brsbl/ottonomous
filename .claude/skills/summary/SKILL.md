@@ -118,14 +118,13 @@ Use the bundled conversion script to transform markdown to styled HTML with synt
 **First-time setup** (if dependencies not installed):
 
 ```bash
-cd skills/summary && npm install
+cd "$SKILL_DIR" && npm install
 ```
 
 **Convert to HTML:**
 
 ```bash
-# Get the skill directory (where the converter lives)
-SKILL_DIR="skills/summary"
+# $SKILL_DIR is automatically set by Claude Code when invoking this skill
 
 # Run the converter
 node "$SKILL_DIR/scripts/md-to-html.js" ".otto/reviews/{filename}.md" ".otto/reviews/{filename}.html"

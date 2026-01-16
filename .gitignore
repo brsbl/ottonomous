@@ -7,8 +7,9 @@ node_modules/
 *.swp
 *~
 
-# Local Claude settings
-.claude/
+# Local Claude settings (except skills which are tracked)
+.claude/*
+!.claude/skills/
 
 # Review output files (keep .gitkeep)
 .otto/reviews/*
