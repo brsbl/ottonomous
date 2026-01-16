@@ -30,7 +30,7 @@ Step-by-step control over each phase:
 /spec              # 1. Write specification
 /task my-spec      # 2. Break into tasks
 /next              # 3. Execute next task
-/test              # 4. Run tests + visual verification
+/test              # 4. Run tests + visual verification with browser automation 
 /review            # 5. Review for bugs
 /summary           # 6. Overview of changes
 /log               # 6. Document changes
@@ -43,10 +43,10 @@ Fully autonomous from idea to working code:
 /otto Build a CLI todo app with local JSON storage
 ```
 This workflow is essentially 2 nested loops:
-- outter loop: manager agent delegates to subagents to research a product idea → write a spec → generate tasks → execute tasks in parallel → test & review in parallel → report status to manager agent 
-- inner loop: subagents document feedback about the skills workflow and manager agent documents feedback on reporting process as they work. after each milestone, manager agent creates a plan for subagents to improve the workflow
+- **outter loop**: manager agent delegates to subagents to research a product idea (argument for the skill) → write a spec → generate tasks from spec → execute tasks in parallel → test & review in parallel → regularly report status to manager agent
+- **inner loop**: subagents and manager agent document feedback about the workflow as they work. after each milestone, manager agent creates a plan for subagents to improve the workflow
 
-these loops run continuously until the product is built to spec.
+these loops run continuously until the product is built to spec (with stop hooks to validate after each task).
 
 ## Skills
 
