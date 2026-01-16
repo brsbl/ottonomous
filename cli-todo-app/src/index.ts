@@ -25,12 +25,26 @@ program
 program
   .command('done <id>')
   .description('Mark a todo as completed')
-  .action((id: string) => doneTodo(parseInt(id, 10)));
+  .action((id: string) => {
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId) || parsedId <= 0) {
+      console.error('Error: ID must be a positive number');
+      process.exit(1);
+    }
+    doneTodo(parsedId);
+  });
 
 program
   .command('remove <id>')
   .description('Remove a todo by ID')
-  .action((id: string) => removeTodo(parseInt(id, 10)));
+  .action((id: string) => {
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId) || parsedId <= 0) {
+      console.error('Error: ID must be a positive number');
+      process.exit(1);
+    }
+    removeTodo(parsedId);
+  });
 
 program
   .command('clear')

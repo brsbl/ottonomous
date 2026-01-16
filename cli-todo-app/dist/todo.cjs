@@ -3486,7 +3486,12 @@ async function loadTodos() {
     if (error.code === "ENOENT") {
       return [];
     }
-    return [];
+    if (error instanceof SyntaxError) {
+      console.error(`Warning: Todo file at ${storagePath} is corrupted. Starting with empty list.`);
+      console.error("Consider backing up the file before adding new todos.");
+      return [];
+    }
+    throw error;
   }
 }
 async function saveTodos(todos) {
@@ -4146,8 +4151,22 @@ var program2 = new Command();
 program2.name("todo").version("1.0.0").description("A command-line todo application");
 program2.command("add <text>").description("Add a new todo item").action((text) => addTodo(text));
 program2.command("list").description("List all todos").action(() => listTodos());
-program2.command("done <id>").description("Mark a todo as completed").action((id) => doneTodo(parseInt(id, 10)));
-program2.command("remove <id>").description("Remove a todo by ID").action((id) => removeTodo(parseInt(id, 10)));
+program2.command("done <id>").description("Mark a todo as completed").action((id) => {
+  const parsedId = parseInt(id, 10);
+  if (isNaN(parsedId) || parsedId <= 0) {
+    console.error("Error: ID must be a positive number");
+    process.exit(1);
+  }
+  doneTodo(parsedId);
+});
+program2.command("remove <id>").description("Remove a todo by ID").action((id) => {
+  const parsedId = parseInt(id, 10);
+  if (isNaN(parsedId) || parsedId <= 0) {
+    console.error("Error: ID must be a positive number");
+    process.exit(1);
+  }
+  removeTodo(parsedId);
+});
 program2.command("clear").description("Clear all completed todos").action(() => clearCompleted());
 if (process.argv.length === 2) {
   listTodos();

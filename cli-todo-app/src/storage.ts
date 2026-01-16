@@ -23,12 +23,18 @@ export async function loadTodos(): Promise<Todo[]> {
     const parsed = JSON.parse(data);
     return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
-    // Return empty array if file doesn't exist or is invalid
+    // Return empty array if file doesn't exist
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       return [];
     }
-    // For parse errors or other issues, return empty array
-    return [];
+    // For parse errors, warn user about potential data corruption
+    if (error instanceof SyntaxError) {
+      console.error(`Warning: Todo file at ${storagePath} is corrupted. Starting with empty list.`);
+      console.error('Consider backing up the file before adding new todos.');
+      return [];
+    }
+    // For other errors, throw to surface the issue
+    throw error;
   }
 }
 
