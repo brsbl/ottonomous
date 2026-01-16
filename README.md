@@ -33,7 +33,7 @@ Step-by-step control over each phase:
 /test              # 4. Run tests + visual verification
 /review            # 5. Review for bugs
 /summary           # 6. Overview of changes
-/log           # 6. Document changes
+/log               # 6. Document changes
 ```
 
 ### Ottonomous Workflow
@@ -42,8 +42,11 @@ Fully autonomous from idea to working code:
 ```bash
 /otto Build a CLI todo app with local JSON storage
 ```
+This workflow is essentially 2 nested loops:
+- outter loop: manager agent delegates to subagents to research a product idea → write a spec → generate tasks → execute tasks in parallel → test & review in parallel → report status to manager agent 
+- inner loop: subagents document feedback about the skills workflow and manager agent documents feedback on reporting process as they work. after each milestone, manager agent creates a plan for subagents to improve the workflow
 
-Automatically: researches → specs → tasks → executes → reviews → reports
+these loops run continuously until the product is built to spec.
 
 ## Skills
 
@@ -68,7 +71,7 @@ Automatically: researches → specs → tasks → executes → reviews → repor
 
 - **`/dev-browser`** — Browser automation using Playwright with persistent page state. Two modes: standalone (launches Chromium) or extension (connects to existing Chrome). Use for web testing, scraping, screenshots, and form automation
 - 
-### Knowledge Base
+### Engineering Knowledge Base
 
 - **`/log`** — Document information about the codebase anchored to files; entries marked stale when anchors change. Use `/log init` for setup, `/log rebuild` to regenerate index
 
