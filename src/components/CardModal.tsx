@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Card, Priority, Label } from '../types';
 import { useBoardStore } from '../store/boardStore';
+import { sanitizeColor } from '../utils/colorValidation';
 
 /**
  * Priority options with display labels and colors for the button group
@@ -262,10 +263,10 @@ export function CardModal({ card, onSave, onDelete, onClose }: CardModalProps) {
                         : 'opacity-60 hover:opacity-100'
                     }`}
                     style={{
-                      backgroundColor: label.color,
+                      backgroundColor: sanitizeColor(label.color),
                       color: '#ffffff',
                       // @ts-expect-error - CSS custom property for ring color
-                      '--tw-ring-color': label.color,
+                      '--tw-ring-color': sanitizeColor(label.color),
                     }}
                     aria-pressed={selected}
                     title={selected ? `Remove ${label.name}` : `Add ${label.name}`}

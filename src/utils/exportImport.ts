@@ -4,6 +4,12 @@
  */
 
 import type { Board, Card, Column, Label } from '../types';
+import { isValidColor } from './colorValidation';
+
+/**
+ * Maximum allowed length for title and description fields
+ */
+const MAX_STRING_LENGTH = 500;
 
 /**
  * Data structure for exported board data
@@ -35,11 +41,14 @@ function isObject(value: unknown): value is Record<string, unknown> {
  */
 function isValidLabel(label: unknown): label is Label {
   if (!isObject(label)) return false;
-  return (
-    typeof label.id === 'string' &&
-    typeof label.name === 'string' &&
-    typeof label.color === 'string'
-  );
+  if (typeof label.id !== 'string') return false;
+  if (typeof label.name !== 'string') return false;
+  if (typeof label.color !== 'string') return false;
+  // Validate color format
+  if (!isValidColor(label.color)) return false;
+  // Validate name length
+  if (label.name.length > MAX_STRING_LENGTH) return false;
+  return true;
 }
 
 /**
@@ -55,6 +64,9 @@ function isValidCard(card: unknown): card is Card {
   if (typeof card.updatedAt !== 'string') return false;
   if (!Array.isArray(card.labels)) return false;
 
+  // Validate string length limits
+  if (card.title.length > MAX_STRING_LENGTH) return false;
+
   // Validate all labels
   for (const label of card.labels) {
     if (!isValidLabel(label)) return false;
@@ -62,6 +74,7 @@ function isValidCard(card: unknown): card is Card {
 
   // Optional fields type checks
   if (card.description !== undefined && typeof card.description !== 'string') return false;
+  if (card.description !== undefined && card.description.length > MAX_STRING_LENGTH) return false;
   if (card.priority !== undefined &&
       !['low', 'medium', 'high', 'urgent'].includes(card.priority as string)) return false;
   if (card.dueDate !== undefined && typeof card.dueDate !== 'string') return false;

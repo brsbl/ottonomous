@@ -269,6 +269,17 @@ export const useBoardStore = create<BoardState>()(
       // Move a column from one position to another
       moveColumn: (fromIndex: number, toIndex: number) =>
         set((state) => {
+          // Bounds checking for fromIndex and toIndex
+          const columnsLength = state.board.columns.length;
+          if (
+            fromIndex < 0 ||
+            fromIndex >= columnsLength ||
+            toIndex < 0 ||
+            toIndex >= columnsLength
+          ) {
+            return state; // Invalid indices, return unchanged state
+          }
+
           const columns = [...state.board.columns];
           const [movedColumn] = columns.splice(fromIndex, 1);
           columns.splice(toIndex, 0, movedColumn);
@@ -290,6 +301,12 @@ export const useBoardStore = create<BoardState>()(
         cardData: Omit<Card, 'id' | 'createdAt' | 'updatedAt'>
       ) =>
         set((state) => {
+          // Validate that the column exists
+          const columnExists = state.board.columns.some((col) => col.id === columnId);
+          if (!columnExists) {
+            return state; // Column doesn't exist, return unchanged state
+          }
+
           const timestamp = now();
           const newCard: Card = {
             ...cardData,
@@ -369,6 +386,11 @@ export const useBoardStore = create<BoardState>()(
         toIndex: number
       ) =>
         set((state) => {
+          // Validate that the card exists
+          if (!state.cards[cardId]) {
+            return state; // Card doesn't exist, return unchanged state
+          }
+
           const columns = state.board.columns.map((column) => {
             if (column.id === fromColumnId && column.id === toColumnId) {
               // Moving within the same column

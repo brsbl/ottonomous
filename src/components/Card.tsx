@@ -6,6 +6,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Card as CardType, Priority } from '../types';
+import { sanitizeColor } from '../utils/colorValidation';
 
 /**
  * Get the left border color class based on priority level
@@ -139,7 +140,7 @@ export function Card({ card, onClick, isOverlay = false, isSelected = false }: C
             <span
               key={label.id}
               className="inline-block px-2 py-0.5 text-xs rounded-full text-white"
-              style={{ backgroundColor: label.color }}
+              style={{ backgroundColor: sanitizeColor(label.color) }}
               title={label.name}
             >
               {label.name}
