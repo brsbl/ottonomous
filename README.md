@@ -46,19 +46,18 @@ Automatically: researches → specs → tasks → executes → reviews → repor
 
 ## Skills
 
+- **`/otto`** — Fully autonomous product development from idea to working code. Spawns fresh agents per task, iteratively reviews code and runs self-improvement cycles to improve overall process.
+
 ### Planning
 
 - **`/spec`** — Interactive interview that gathers context, researches best practices, and outputs a spec to `.otto/specs/{id}.md`
 - **`/task`** — Breaks specs into tasks with status (`pending` → `in_progress` → `done`), priority (0-4), and dependencies
-- **`/next`** — Finds highest priority unblocked task and starts work
-- **`/log`** — Documents discoveries anchored to files; entries marked stale when anchors change. Use `/log init` for setup, `/log rebuild` to regenerate index
 
 ### Development
 
 - **`/delegate`** — Transforms Claude into an Engineering Manager who delegates all technical work (exploration, planning, coding, review) to specialized subagents
-- **`/otto`** — Fully autonomous product development from idea to working code. Spawns fresh agents per task, runs self-improvement cycles, integrates dev-browser for visual verification
 
-### Testing & Review
+### Testing & Review (with Browser Automation)
 
 - **`/test`** — Canonical testing skill: run automated tests and visual verification with dev-browser. Detects test runners, captures results, and walks through UI flows
 - **`/review`** — Finds bugs with priority levels: P0 (blocking), P1 (urgent), P2 (normal), P3 (low)
@@ -67,10 +66,16 @@ Automatically: researches → specs → tasks → executes → reviews → repor
 ### Browser Automation
 
 - **`/dev-browser`** — Browser automation using Playwright with persistent page state. Two modes: standalone (launches Chromium) or extension (connects to existing Chrome). Use for web testing, scraping, screenshots, and form automation
+- 
+### Knowledge Base
+
+- **`/log`** — Document information about the codebase anchored to files; entries marked stale when anchors change. Use `/log init` for setup, `/log rebuild` to regenerate index
 
 ### Maintenance
 
 - **`/clean`** — Clean ottonomous workflow artifacts from `.otto/`. Supports selective cleaning of sessions, specs, tasks, and reviews while preserving configuration
+
+
 
 ## Workflows
 
