@@ -74,6 +74,24 @@ auto_verify: false  # Auto-verify stale log entries
 auto_pick: false    # Auto-pick next task without confirmation
 ```
 
+## Migration Note
+
+This repository was renamed from `claude-code-kit` to `ottonomous` on 2026-01-16.
+
+**What changed:**
+- Repository: `brsbl/claude-code-kit` → `brsbl/ottonomous`
+- Command: `/autopilot` → `/otto`
+- Data directory: `.kit/` → `.otto/`
+- Branch prefix: `autopilot/` → `otto/`
+- Session ID: `autopilot-YYYYMMDD-HHMMSS` → `otto-YYYYMMDD-HHMMSS`
+
+**For existing users:**
+1. Pull latest: `git pull origin main`
+2. Rename local directory: `mv claude-code-kit ottonomous`
+3. Use `/otto` command going forward
+
+Historical `autopilot/` branches preserved for reference.
+
 ## License
 
 MIT
