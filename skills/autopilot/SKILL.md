@@ -67,6 +67,8 @@ autopilot:
   max_tasks: 50
   max_duration_hours: 4
   feedback_rotation_interval: 10
+  open_dashboard: false           # Auto-open dashboard in browser (skipped if headless)
+  skip_improvement_cycles: false  # Skip self-improvement loops (faster but less thorough)
 ```
 
 #### Step 0.2: Generate Session ID
@@ -127,6 +129,12 @@ Write to `.kit/autopilot/sessions/${session_id}/state.json`:
     "can_resume": true,
     "last_successful_task_id": null,
     "last_error": null
+  },
+
+  // Integration availability - set during Phase 0 initialization
+  "integrations": {
+    "dev_browser_available": false,
+    "dashboard_available": false
   }
 }
 ```
@@ -192,13 +200,21 @@ if [ -d "skills/dev-browser" ] && [ -f "skills/dev-browser/package.json" ]; then
   (cd skills/dev-browser && npm install 2>/dev/null) || true
 fi
 
-# Start server in background
+# Start server in background and verify it started
 if [ -f "skills/dev-browser/server.sh" ]; then
   nohup skills/dev-browser/server.sh > .kit/autopilot/sessions/${session_id}/dev-browser.log 2>&1 &
   echo $! > .kit/autopilot/sessions/${session_id}/dev-browser.pid
-  sleep 2  # Wait for server to initialize
+  sleep 3  # Wait for server to initialize
+
+  # Verify server is responding
+  curl -s http://localhost:9222/json/version > /dev/null
+  # Exit code 0 = server running, non-zero = failed
 fi
 ```
+
+**Orchestrator action after server check:**
+- If curl succeeded: Set `state.integrations.dev_browser_available = true`, announce "✓ Dev-browser server running"
+- If curl failed: Set `state.integrations.dev_browser_available = false`, announce "⚠️ Dev-browser server failed to start - visual verification disabled"
 
 #### Step 0.7: Start Dashboard Server
 
@@ -208,8 +224,20 @@ if [ -f ".kit/autopilot/dashboard-server.js" ]; then
   echo $! > .kit/autopilot/sessions/${session_id}/dashboard.pid
   sleep 1
   echo "Dashboard: http://localhost:3456"
+
+  # Verify dashboard is responding
+  curl -s http://localhost:3456 > /dev/null
 fi
 ```
+
+**Orchestrator action after dashboard start:**
+- If curl succeeded: Set `state.integrations.dashboard_available = true`
+- If curl failed: Set `state.integrations.dashboard_available = false`, announce "⚠️ Dashboard server failed to start"
+
+**Auto-open logic (orchestrator handles):**
+- If `config.open_dashboard` is true AND (DISPLAY env var is set OR running on macOS):
+  - macOS: Run `open "http://localhost:3456"`
+  - Linux: Run `xdg-open "http://localhost:3456"`
 
 #### Step 0.8: Create Feature Branch
 
@@ -559,7 +587,8 @@ EOF
     cycles_run = state.improvement.cycles_run
 
     if (previous_completed // IMPROVEMENT_MILESTONE < current_completed // IMPROVEMENT_MILESTONE
-        AND cycles_run < MAX_IMPROVEMENT_CYCLES):
+        AND cycles_run < MAX_IMPROVEMENT_CYCLES
+        AND NOT config.skip_improvement_cycles):
 
         ⚠️ STOP - DO NOT PROCEED TO NEXT GROUP
         You MUST run the improvement cycle NOW.
@@ -572,7 +601,7 @@ EOF
 # --- MANDATORY FINAL IMPROVEMENT CYCLE ---
 ⚠️ STOP - Before proceeding to Phase 4:
 
-if state.improvement.cycles_run < MAX_IMPROVEMENT_CYCLES:
+if state.improvement.cycles_run < MAX_IMPROVEMENT_CYCLES AND NOT config.skip_improvement_cycles:
     Announce: "🔄 FINAL IMPROVEMENT CYCLE - Last chance to improve workflow..."
     run_improvement_cycle()
     state.improvement.cycles_run++
@@ -593,9 +622,17 @@ Read task details from: .kit/tasks/{spec_id}.json (task id: {id})
 Read spec context from: .kit/specs/{spec_id}.md
 Read session state from: .kit/autopilot/sessions/{session_id}/state.json
 
+**Before coding, briefly outline your approach:**
+1. What files will you create or modify?
+2. What's the implementation sequence?
+3. Any edge cases to handle?
+
 Instructions:
 1. Implement the task as described
-2. Write tests if applicable
+2. Write at least one test for your implementation:
+   - For functions: unit test with basic input/output
+   - For components: render test or snapshot
+   - For API endpoints: request/response test
 3. Verify implementation compiles/runs
 4. Update task status to "done" in the task file
 5. Append observations to feedback.md
@@ -604,9 +641,29 @@ Instructions:
 Return JSON: {"success": bool, "files_modified": [], "observations": "string", "error": "string or null"}
 ```
 
+**For UI tasks, add to prompt:**
+```
+This is a UI task. After implementation:
+1. Start the dev server if not running
+2. Use dev-browser to capture a screenshot
+3. Save to: .kit/autopilot/sessions/{session_id}/visual-checks/task-{id}.png
+4. Include screenshot_path in your return JSON
+
+Return JSON: {"success": bool, "files_modified": [], "observations": "string", "error": "string or null", "screenshot_path": "string or null"}
+```
+
 #### Visual Verification (for UI Tasks)
 
-After any task with `is_ui_task: true`, invoke `/dev-browser` and write a verification script:
+After any task with `is_ui_task: true`:
+
+**Prerequisite check:**
+```
+if NOT state.integrations.dev_browser_available:
+    log("Skipping visual verification - dev-browser not available")
+    Continue to next task
+```
+
+Invoke `/dev-browser` and write a verification script:
 
 ```
 Invoke Skill: skill="dev-browser"
@@ -829,9 +886,120 @@ function write_fresh_feedback_header(path):
 
 ### Phase 4: Final Review
 
-**Purpose:** E2E testing, code review, and fix critical issues.
+**Purpose:** Build verification, E2E testing, code review, and fix critical issues.
+
+#### Step 4.0: Build Verification
+
+Before code review, verify the product builds and runs.
+
+Announce: "Running build verification..."
+
+**Build check:**
+
+```bash
+# For web apps (detect by package.json scripts)
+if grep -q '"build"' package.json 2>/dev/null; then
+  npm run build 2>&1 | tee .kit/autopilot/sessions/${session_id}/build.log
+  # Capture exit code: BUILD_EXIT=$?
+fi
+```
+
+**Orchestrator action after build:**
+- If BUILD_EXIT is 0: Announce "✓ Build succeeded"
+- If BUILD_EXIT is non-zero: Announce "⚠️ Build failed - creating fix task", then:
+  ```
+  add_task({
+    id: "fix-build",
+    title: "Fix build errors",
+    priority: 0,
+    description: "Build failed. See build.log for errors."
+  })
+  spawn_task_agent("fix-build")
+  ```
+
+**Smoke test:**
+
+Announce: "Running smoke test..."
+
+```bash
+# Start dev server briefly to check for runtime errors
+# Note: On macOS, use 'gtimeout' from coreutils if 'timeout' is unavailable
+if grep -q '"dev"' package.json 2>/dev/null; then
+  timeout 15 npm run dev 2>&1 | tee .kit/autopilot/sessions/${session_id}/dev.log &
+  DEV_PID=$!
+  sleep 8
+
+  # Try common ports to find the dev server
+  DEV_PORT=""
+  for port in 5173 3000 8080 4000; do
+    if curl -s "http://localhost:${port}" > /dev/null 2>&1; then
+      DEV_PORT=$port
+      break
+    fi
+  done
+
+  kill $DEV_PID 2>/dev/null || true
+fi
+```
+
+**Orchestrator action after smoke test:**
+- If DEV_PORT was found: Announce "✓ Dev server responding on port ${DEV_PORT}"
+- If DEV_PORT is empty: Announce "⚠️ Dev server not responding on common ports - check dev.log for errors"
+
+#### Step 4.0b: Test Verification
+
+**Check for test files:**
+
+```bash
+# Check that test files were created (exclude node_modules)
+test_files=$(find . -not -path "*/node_modules/*" \( -name "*.test.*" -o -name "*.spec.*" -o -type d -name "__tests__" \) 2>/dev/null | head -5)
+```
+
+**Orchestrator action if no tests:**
+- If `test_files` is empty: Announce "⚠️ No test files found - creating test task", then:
+  ```
+  add_task({
+    id: "add-tests",
+    title: "Add missing tests",
+    priority: 1,
+    description: "No test files found. Add basic tests for core functionality."
+  })
+  ```
+
+**Run tests:**
+
+Announce: "Running tests..."
+
+```bash
+# Run existing tests if npm test is available
+if grep -q '"test"' package.json 2>/dev/null; then
+  npm test 2>&1 | tee .kit/autopilot/sessions/${session_id}/test.log
+  TEST_EXIT=${PIPESTATUS[0]}  # Capture npm test exit code, not tee's
+fi
+```
+
+**Orchestrator action after tests:**
+- If TEST_EXIT is 0: Announce "✓ Tests passed"
+- If TEST_EXIT is non-zero: Announce "⚠️ Tests failed - creating fix task", then:
+  ```
+  add_task({
+    id: "fix-tests",
+    title: "Fix failing tests",
+    priority: 1,
+    description: "Tests failed. See test.log for errors."
+  })
+  spawn_task_agent("fix-tests")
+  ```
 
 #### Step 4.1: E2E Testing (via Dev-Browser)
+
+**Prerequisite check:**
+```
+if NOT state.integrations.dev_browser_available:
+    Announce: "⚠️ Skipping E2E tests - dev-browser not available"
+    Write to e2e-report.md: "E2E tests skipped: dev-browser server not running"
+    Skip to Step 4.2
+```
 
 Before code review, invoke `/dev-browser` for full product testing:
 
@@ -1111,6 +1279,24 @@ Write session summary to feedback.md. All metrics roll up FROM task data.
 1. Review the generated code on branch `autopilot/{session_id}`
 2. Run tests: `{test command}`
 3. Create PR: `gh pr create`
+
+### Dashboard Improvement Suggestions
+
+While managing subagents this session, the orchestrator noted:
+
+**Missing information:**
+{if had to read task files directly to understand status:}
+- Dashboard should show: task error messages
+{end if}
+{if couldn't tell which tasks were blocked:}
+- Dashboard should show: blocker_count per task
+{end if}
+{if couldn't see subagent progress:}
+- Dashboard should show: current subagent activity / files being modified
+{end if}
+
+**Suggested dashboard additions:**
+- {specific field or view that would have helped manage subagents}
 ```
 
 #### Step 5.3: Announce Completion
@@ -1183,6 +1369,11 @@ Review artifacts in .kit/autopilot/sessions/{session_id}/
     "total": 0,
     "last_commit_sha": null,
     "history": []
+  },
+
+  "integrations": {
+    "dev_browser_available": false,
+    "dashboard_available": false
   }
 }
 ```
@@ -1317,6 +1508,8 @@ autopilot:
   self_improve: true               # Generate improvement suggestions
   max_tasks: 50                    # Safety limit on total tasks
   max_duration_hours: 4            # Time limit for session
+  open_dashboard: false            # Auto-open dashboard in browser (skipped if headless)
+  skip_improvement_cycles: false   # Skip self-improvement loops (faster but less thorough)
 ```
 
 ---

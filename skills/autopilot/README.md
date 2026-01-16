@@ -15,8 +15,9 @@ Fully autonomous product development from idea to working code with milestone-ba
 3. **Breaks into atomic tasks** with parallel groups for concurrent execution
 4. **Executes tasks in parallel** where possible (multiple Task tool calls per message)
 5. **Self-improves** at milestones (MANDATORY cycles every 5 tasks, max 3 cycles)
-6. **Code reviews in parallel** by component, associates issues with tasks
-7. **Generates task-centric report** with per-task metrics and rollup summaries
+6. **Verifies build & tests** before review (runs build, smoke test, and test suite)
+7. **Code reviews in parallel** by component, associates issues with tasks
+8. **Generates task-centric report** with per-task metrics and rollup summaries
 
 ## Key Features
 
@@ -42,9 +43,12 @@ autopilot:
   checkpoint_interval: 5    # Commit every N tasks
   improvement_milestone: 5  # Run improvement cycle every N tasks
   max_improvement_cycles: 3 # Cap improvement cycles per session
+  self_improve: true        # Generate improvement suggestions
   max_tasks: 50             # Safety limit on total tasks
   max_duration_hours: 4     # Time limit for session
   feedback_rotation_interval: 10
+  open_dashboard: false     # Auto-open dashboard in browser (skipped if headless)
+  skip_improvement_cycles: false  # Skip self-improvement loops (faster but less thorough)
 ```
 
 ## Live Dashboard
