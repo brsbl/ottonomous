@@ -1,0 +1,549 @@
+{
+  "spec_id": "kanban-board-b6c649f1",
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Project setup with Vite, React, TypeScript, Tailwind",
+      "description": "Initialize a new Vite project with React and TypeScript. Configure Tailwind CSS. Set up folder structure: src/components, src/store, src/types, src/hooks, src/utils. Create basic App.tsx shell.",
+      "priority": 0,
+      "depends_on": [],
+      "status": "done",
+      "is_ui_task": false,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": "2026-01-16T12:50:41.000Z",
+        "completed_at": "2026-01-16T12:52:00.000Z",
+        "duration_ms": 79000,
+        "attempts": [],
+        "files_modified": [
+          "package.json",
+          "vite.config.ts",
+          "tsconfig.json",
+          "tsconfig.node.json",
+          "tailwind.config.js",
+          "postcss.config.js",
+          "eslint.config.js",
+          "index.html",
+          "src/main.tsx",
+          "src/App.tsx",
+          "src/index.css",
+          "src/vite-env.d.ts",
+          "src/components/.gitkeep",
+          "src/store/.gitkeep",
+          "src/types/.gitkeep",
+          "src/hooks/.gitkeep",
+          "src/utils/.gitkeep",
+          "public/vite.svg"
+        ]
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "2",
+      "title": "Define TypeScript types for Board, Column, Card, Label",
+      "description": "Create src/types/index.ts with TypeScript interfaces for Board, Column, Card, Label as defined in the spec. Include all fields with proper types.",
+      "priority": 0,
+      "depends_on": ["1"],
+      "status": "done",
+      "is_ui_task": false,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": "2026-01-16T12:55:00.000Z",
+        "completed_at": "2026-01-16T12:56:00.000Z",
+        "duration_ms": 60000,
+        "attempts": [],
+        "files_modified": [
+          "src/types/index.ts"
+        ]
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "3",
+      "title": "Implement Zustand store with board state and basic actions",
+      "description": "Create src/store/boardStore.ts with Zustand. Implement: board state, cards map, addColumn, updateColumn, deleteColumn, moveColumn, addCard, updateCard, deleteCard, moveCard actions. Initialize with default board (To Do, In Progress, Done columns).",
+      "priority": 1,
+      "depends_on": ["2"],
+      "status": "done",
+      "is_ui_task": false,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": "2026-01-16T13:00:00.000Z",
+        "completed_at": "2026-01-16T13:05:00.000Z",
+        "duration_ms": 300000,
+        "attempts": [],
+        "files_modified": [
+          "package.json",
+          "package-lock.json",
+          "src/store/boardStore.ts"
+        ]
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "4",
+      "title": "Add LocalStorage persistence to store",
+      "description": "Extend boardStore with loadFromStorage and saveToStorage functions. Use zustand persist middleware. Auto-save on every state change. Load saved state on app initialization.",
+      "priority": 1,
+      "depends_on": ["3"],
+      "status": "done",
+      "is_ui_task": false,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": "2026-01-16T12:50:41.000Z",
+        "completed_at": "2026-01-16T12:55:00.000Z",
+        "duration_ms": 259000,
+        "attempts": [],
+        "files_modified": [
+          "src/store/boardStore.ts"
+        ]
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "5",
+      "title": "Create Board layout component",
+      "description": "Create src/components/Board.tsx - horizontal flex container for columns with overflow-x-auto. Add board header with title. Style with Tailwind for full-height layout. Connect to Zustand store.",
+      "priority": 1,
+      "depends_on": ["3"],
+      "status": "done",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": "2026-01-16T13:10:00.000Z",
+        "completed_at": "2026-01-16T13:12:00.000Z",
+        "duration_ms": 120000,
+        "attempts": [],
+        "files_modified": [
+          "src/components/Board.tsx",
+          "src/App.tsx"
+        ]
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "6",
+      "title": "Create Column component with header and card list",
+      "description": "Create src/components/Column.tsx - vertical container with header (title, card count) and scrollable card list area. Include add card button. Style with Tailwind (rounded, shadow, bg-gray-100).",
+      "priority": 1,
+      "depends_on": ["5"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "7",
+      "title": "Create Card component",
+      "description": "Create src/components/Card.tsx - card display with title, optional description preview, labels as colored chips. Style with Tailwind (white bg, rounded, shadow-sm, hover state).",
+      "priority": 1,
+      "depends_on": ["6"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "8",
+      "title": "Install and configure @dnd-kit for drag-and-drop",
+      "description": "Install @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities. Create DndContext wrapper in Board component. Set up sensors for pointer and keyboard.",
+      "priority": 1,
+      "depends_on": ["7"],
+      "status": "pending",
+      "is_ui_task": false,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "9",
+      "title": "Implement card drag-and-drop between columns",
+      "description": "Make cards draggable with useSortable. Make columns droppable. Handle onDragEnd to move cards between columns. Update store on drop. Show drag overlay.",
+      "priority": 1,
+      "depends_on": ["8"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "10",
+      "title": "Implement column drag-and-drop reordering",
+      "description": "Make columns draggable and sortable. Handle column reordering in onDragEnd. Update store with new column order. Show column drag overlay.",
+      "priority": 1,
+      "depends_on": ["9"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "11",
+      "title": "Create CardModal for viewing/editing card details",
+      "description": "Create src/components/CardModal.tsx - modal overlay with card title (editable), description (textarea), labels, priority, due date. Include save and delete buttons. Close on Escape or backdrop click.",
+      "priority": 1,
+      "depends_on": ["7"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "12",
+      "title": "Add new card creation flow",
+      "description": "Add 'Add card' button to Column. On click, show inline input or quick-add modal. Create card with title, add to column. Focus input on open.",
+      "priority": 1,
+      "depends_on": ["11"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "13",
+      "title": "Add column management (add, rename, delete)",
+      "description": "Add 'Add column' button to Board. Make column titles editable (click to edit). Add column menu with delete option (confirm before delete if has cards). Update store on changes.",
+      "priority": 1,
+      "depends_on": ["6"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "14",
+      "title": "Implement WIP limits per column",
+      "description": "Add wipLimit field to column settings. Show WIP limit in column header (e.g., '3/5'). Visual warning (red border/background) when at or over limit. Add WIP limit setting in column menu.",
+      "priority": 2,
+      "depends_on": ["13"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "15",
+      "title": "Add card labels system",
+      "description": "Create labels store (predefined colors). Add label picker in CardModal. Show labels on Card component as colored chips. Allow creating custom labels.",
+      "priority": 2,
+      "depends_on": ["11"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "16",
+      "title": "Add card priority levels",
+      "description": "Add priority field to cards (low, medium, high, urgent). Add priority picker in CardModal. Show priority indicator on Card (colored left border or icon). Sort cards by priority option.",
+      "priority": 2,
+      "depends_on": ["11"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "17",
+      "title": "Implement search and filter functionality",
+      "description": "Add search bar to board header. Filter cards by title as user types. Add filter dropdown for labels and priority. Show/hide cards based on active filters.",
+      "priority": 2,
+      "depends_on": ["15", "16"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "18",
+      "title": "Implement keyboard navigation",
+      "description": "Create useKeyboardNavigation hook. Track selected column and card. Arrow keys navigate between columns/cards. Visual selection indicator (ring/outline). Store selection in app state.",
+      "priority": 2,
+      "depends_on": ["10"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "19",
+      "title": "Add keyboard shortcuts for actions",
+      "description": "Implement shortcuts: n=new card, e=edit, d=delete, Enter=open modal, Escape=close, m/M=move card, ?=help. Create KeyboardShortcutsModal showing all shortcuts.",
+      "priority": 2,
+      "depends_on": ["18"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "20",
+      "title": "Add due dates to cards",
+      "description": "Add dueDate field to cards. Add date picker in CardModal. Show due date on Card with visual indicator. Highlight overdue cards (red text/border). Show 'due soon' for items due within 24h.",
+      "priority": 2,
+      "depends_on": ["11"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "21",
+      "title": "Implement undo/redo functionality",
+      "description": "Add history stack to store (past/future arrays). Wrap state changes to push to history. Implement undo/redo actions. Add Ctrl+Z/Ctrl+Shift+Z handlers. Show undo toast notification.",
+      "priority": 2,
+      "depends_on": ["4"],
+      "status": "pending",
+      "is_ui_task": false,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "22",
+      "title": "Add dark mode toggle",
+      "description": "Create theme context/store. Add dark mode toggle button in header. Implement dark color scheme with Tailwind dark: classes. Persist theme preference. Respect system preference initially.",
+      "priority": 3,
+      "depends_on": ["5"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "23",
+      "title": "Add smooth animations",
+      "description": "Add CSS transitions for card/column movements. Animate card appearance/removal. Smooth modal open/close. Add subtle hover animations. Use Tailwind transition utilities.",
+      "priority": 3,
+      "depends_on": ["10"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "24",
+      "title": "Add empty state and onboarding",
+      "description": "Show helpful empty state when board has no cards. Add quick-start suggestions. Show tooltips for first-time users on key actions. Add welcome message with keyboard shortcut hint.",
+      "priority": 3,
+      "depends_on": ["19"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    },
+    {
+      "id": "25",
+      "title": "Add export/import JSON functionality",
+      "description": "Add export button to download board as JSON file. Add import button to load board from JSON file. Validate imported data structure. Confirm before overwriting current board.",
+      "priority": 3,
+      "depends_on": ["4"],
+      "status": "pending",
+      "is_ui_task": true,
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null,
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [],
+        "files_modified": []
+      },
+      "review": { "issues": [] }
+    }
+  ],
+  "parallel_groups": [
+    {"group": 1, "task_ids": ["1"], "after": []},
+    {"group": 2, "task_ids": ["2"], "after": ["1"]},
+    {"group": 3, "task_ids": ["3"], "after": ["2"]},
+    {"group": 4, "task_ids": ["4", "5"], "after": ["3"]},
+    {"group": 5, "task_ids": ["6", "21", "25"], "after": ["4", "5"]},
+    {"group": 6, "task_ids": ["7", "13", "22"], "after": ["6"]},
+    {"group": 7, "task_ids": ["8", "11"], "after": ["7"]},
+    {"group": 8, "task_ids": ["9", "12", "15", "16", "20"], "after": ["8", "11"]},
+    {"group": 9, "task_ids": ["10", "14"], "after": ["9", "13"]},
+    {"group": 10, "task_ids": ["17", "18", "23"], "after": ["10", "15", "16"]},
+    {"group": 11, "task_ids": ["19"], "after": ["18"]},
+    {"group": 12, "task_ids": ["24"], "after": ["19"]}
+  ]
+}

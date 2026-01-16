@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "session_id": "otto-20260116-125041-1af6",
+  "product_spec_id": "kanban-board-b6c649f1",
+  "status": "in_progress",
+  "current_phase": "execution",
+
+  "timestamps": {
+    "started_at": "2026-01-16T12:50:41Z",
+    "last_heartbeat": "2026-01-16T12:50:41Z",
+    "last_checkpoint": null
+  },
+
+  "product_tasks": {
+    "total": 25,
+    "completed": 5,
+    "skipped": 0,
+    "current_task_id": null,
+    "current_task_started_at": null
+  },
+
+  "improvement": {
+    "cycles_run": 0,
+    "max_cycles": 3,
+    "current_cycle_tasks_completed": 0,
+    "cycle_history": []
+  },
+
+  "guard_rails": {
+    "consecutive_failures": 0,
+    "total_tasks_executed": 5,
+    "feedback_rotations": 0
+  },
+
+  "recovery": {
+    "can_resume": true,
+    "last_successful_task_id": "5",
+    "last_error": null
+  },
+
+  "commits": {
+    "total": 0,
+    "last_commit_sha": null,
+    "history": []
+  },
+
+  "integrations": {
+    "dev_browser_available": true,
+    "report_available": false
+  }
+}
