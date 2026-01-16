@@ -378,10 +378,11 @@ After orchestrator completes successfully:
 
 1. **`/code-review`** - Run if not already done in Phase 4
 2. **`/semantic-review`** - Generate change documentation with HTML preview
-3. **`/worktree pr`** - Create PR (if using worktree) or `git push` manually
+3. **`gh pr create`** - Create PR via GitHub CLI
 
 See also:
 - **`/log`** - Capture any discoveries made during implementation
+- **`/autopilot`** - For fully autonomous development without manual coordination
 
 ---
 

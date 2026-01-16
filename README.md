@@ -30,7 +30,7 @@ claude --plugin-dir /path/to/claude-code-kit
 ### Development
 
 - **`/orchestrator`** — Transforms Claude into an Engineering Manager who delegates all technical work (exploration, planning, coding, review) to specialized subagents
-- **`/worktree`** — Manages git worktrees: `add`, `list`, `cleanup`, `pr`. Auto-stashes changes and handles branch naming
+- **`/autopilot`** — Fully autonomous product development from idea to working code. Spawns fresh agents per task, runs self-improvement cycles, integrates dev-browser for visual verification
 
 ### Review
 
@@ -53,7 +53,7 @@ claude-code-kit/
 │   ├── next/         # /next command
 │   ├── log/          # /log command
 │   ├── orchestrator/ # /orchestrator command
-│   ├── worktree/     # /worktree command
+│   ├── autopilot/    # /autopilot command
 │   ├── semantic-review/  # /semantic-review command
 │   ├── code-review/  # /code-review command
 │   └── dev-browser/  # /dev-browser command
