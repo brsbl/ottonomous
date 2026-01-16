@@ -1,16 +1,16 @@
 ---
-name: autopilot
-description: Fully autonomous product development loop with milestone-based self-improvement. Takes a product idea and builds it end-to-end using spec, task, and review skills. Spawns fresh subagents per task, tracks workflow feedback, rotates logs, and integrates dev-browser for visual verification. Invoke with /autopilot <product idea>.
+name: otto
+description: Fully autonomous product development loop with milestone-based self-improvement. Takes a product idea and builds it end-to-end using spec, task, and review skills. Spawns fresh subagents per task, tracks workflow feedback, rotates logs, and integrates dev-browser for visual verification. Invoke with /otto <product idea>.
 ---
 
-# Autopilot
+# Otto
 
 Fully autonomous product development from idea to working code with milestone-based self-improvement.
 
 ## Quick Start
 
 ```bash
-/autopilot Build a CLI todo app with local JSON storage and colored output
+/otto Build a CLI todo app with local JSON storage and colored output
 ```
 
 The system will autonomously:
@@ -48,15 +48,15 @@ The system will autonomously:
 #### Step 0.1: Check/Create Config
 
 ```bash
-cat .kit/config.yaml 2>/dev/null | grep "autopilot:" || echo "CONFIG_MISSING"
+cat .otto/config.yaml 2>/dev/null | grep "otto:" || echo "CONFIG_MISSING"
 ```
 
-If `CONFIG_MISSING`, create default config at `.kit/config.yaml`:
+If `CONFIG_MISSING`, create default config at `.otto/config.yaml`:
 
 ```yaml
 auto_verify: true
 auto_pick: true
-autopilot:
+otto:
   enabled: true
   mode: autonomous
   max_blockers: 3
@@ -74,18 +74,18 @@ autopilot:
 #### Step 0.2: Generate Session ID
 
 ```bash
-session_id="autopilot-$(date +%Y%m%d-%H%M%S)-$(openssl rand -hex 2)"
+session_id="otto-$(date +%Y%m%d-%H%M%S)-$(openssl rand -hex 2)"
 ```
 
 #### Step 0.3: Create Session Directory Structure
 
 ```bash
-mkdir -p .kit/autopilot/sessions/${session_id}/{research/screenshots,visual-checks}
+mkdir -p .otto/otto/sessions/${session_id}/{research/screenshots,visual-checks}
 ```
 
 #### Step 0.4: Initialize state.json
 
-Write to `.kit/autopilot/sessions/${session_id}/state.json`:
+Write to `.otto/otto/sessions/${session_id}/state.json`:
 
 ```json
 {
@@ -141,7 +141,7 @@ Write to `.kit/autopilot/sessions/${session_id}/state.json`:
 
 #### Step 0.5: Initialize feedback.md
 
-Write to `.kit/autopilot/sessions/${session_id}/feedback.md`:
+Write to `.otto/otto/sessions/${session_id}/feedback.md`:
 
 ```markdown
 ---
@@ -151,7 +151,7 @@ started: {YYYY-MM-DD HH:MM:SS}
 status: in_progress
 ---
 
-# Autopilot Session: {Product Name}
+# Otto Session: {Product Name}
 
 ## Overview
 
@@ -202,8 +202,8 @@ fi
 
 # Start server in background and verify it started
 if [ -f "skills/dev-browser/server.sh" ]; then
-  nohup skills/dev-browser/server.sh > .kit/autopilot/sessions/${session_id}/dev-browser.log 2>&1 &
-  echo $! > .kit/autopilot/sessions/${session_id}/dev-browser.pid
+  nohup skills/dev-browser/server.sh > .otto/otto/sessions/${session_id}/dev-browser.log 2>&1 &
+  echo $! > .otto/otto/sessions/${session_id}/dev-browser.pid
   sleep 3  # Wait for server to initialize
 
   # Verify server is responding
@@ -219,9 +219,9 @@ fi
 #### Step 0.7: Start Dashboard Server
 
 ```bash
-if [ -f ".kit/autopilot/dashboard-server.js" ]; then
-  node .kit/autopilot/dashboard-server.js --session ${session_id} --port 3456 &
-  echo $! > .kit/autopilot/sessions/${session_id}/dashboard.pid
+if [ -f ".otto/otto/dashboard-server.js" ]; then
+  node .otto/otto/dashboard-server.js --session ${session_id} --port 3456 &
+  echo $! > .otto/otto/sessions/${session_id}/dashboard.pid
   sleep 1
   echo "Dashboard: http://localhost:3456"
 
@@ -242,7 +242,7 @@ fi
 #### Step 0.8: Create Feature Branch
 
 ```bash
-branch_name="autopilot/${session_id}"
+branch_name="otto/${session_id}"
 git checkout -b ${branch_name}
 ```
 
@@ -274,7 +274,7 @@ Agent 3: "Search for '{product type} user complaints reddit' to find common pain
 ```
 
 Wait for all 3 to complete, then synthesize findings into:
-`.kit/autopilot/sessions/${session_id}/research/competitors.md`
+`.otto/otto/sessions/${session_id}/research/competitors.md`
 
 ```markdown
 ## Competitive Research
@@ -297,7 +297,7 @@ From the product idea, identify:
 
 #### Step 1.3: Generate Comprehensive Spec
 
-Write specification to `.kit/specs/{spec_id}.md` with THREE feature tiers:
+Write specification to `.otto/specs/{spec_id}.md` with THREE feature tiers:
 
 ```markdown
 ## Features
@@ -386,7 +386,7 @@ Append to feedback.md Phase 1 section:
 #### Step 2.1: Read Spec
 
 ```bash
-cat .kit/specs/${SPEC_ID}.md
+cat .otto/specs/${SPEC_ID}.md
 ```
 
 #### Step 2.2: Generate Tasks
@@ -459,7 +459,7 @@ Task schema with execution tracking and parallel groups:
 
 #### Step 2.3: Save Tasks
 
-Write to `.kit/tasks/${SPEC_ID}.json`
+Write to `.otto/tasks/${SPEC_ID}.json`
 
 #### Step 2.4: Update State and Feedback
 
@@ -564,7 +564,7 @@ git add -A
 
 # Commit with descriptive message (use HEREDOC for multiline)
 git commit -m "$(cat <<'EOF'
-autopilot: checkpoint - {completed}/{total} tasks complete
+otto: checkpoint - {completed}/{total} tasks complete
 
 Session: {session_id}
 Phase: execution
@@ -618,9 +618,9 @@ Example prompt:
 ```
 Execute product task {id} for session {session_id}.
 
-Read task details from: .kit/tasks/{spec_id}.json (task id: {id})
-Read spec context from: .kit/specs/{spec_id}.md
-Read session state from: .kit/autopilot/sessions/{session_id}/state.json
+Read task details from: .otto/tasks/{spec_id}.json (task id: {id})
+Read spec context from: .otto/specs/{spec_id}.md
+Read session state from: .otto/otto/sessions/{session_id}/state.json
 
 **Before coding, briefly outline your approach:**
 1. What files will you create or modify?
@@ -646,7 +646,7 @@ Return JSON: {"success": bool, "files_modified": [], "observations": "string", "
 This is a UI task. After implementation:
 1. Start the dev server if not running
 2. Use dev-browser to capture a screenshot
-3. Save to: .kit/autopilot/sessions/{session_id}/visual-checks/task-{id}.png
+3. Save to: .otto/otto/sessions/{session_id}/visual-checks/task-{id}.png
 4. Include screenshot_path in your return JSON
 
 Return JSON: {"success": bool, "files_modified": [], "observations": "string", "error": "string or null", "screenshot_path": "string or null"}
@@ -684,7 +684,7 @@ await waitForPageLoad(page);
 
 // Capture screenshot for visual verification
 await page.screenshot({
-  path: "../../.kit/autopilot/sessions/{session_id}/visual-checks/task-{id}.png",
+  path: "../../.otto/otto/sessions/{session_id}/visual-checks/task-{id}.png",
   fullPage: true
 });
 
@@ -727,7 +727,7 @@ function terminate_gracefully(reason):
     ```bash
     git add -A
     git commit -m "$(cat <<'EOF'
-    autopilot: terminated ({reason})
+    otto: terminated ({reason})
 
     Session: {session_id}
     Tasks completed: {completed}/{total}
@@ -753,10 +753,10 @@ function run_improvement_cycle():
     Use Task tool:
     - subagent_type: "general-purpose"
     - prompt: """
-        Analyze the autopilot session feedback.
+        Analyze the otto session feedback.
 
-        Read: .kit/autopilot/sessions/{session_id}/feedback.md
-        Read: .kit/tasks/{spec_id}.json (check task.execution.attempts for retries)
+        Read: .otto/otto/sessions/{session_id}/feedback.md
+        Read: .otto/tasks/{spec_id}.json (check task.execution.attempts for retries)
 
         Identify:
         1. Tasks that required retries (look at attempts array)
@@ -764,7 +764,7 @@ function run_improvement_cycle():
         3. Long-running tasks (duration_ms > average)
         4. Friction points in the workflow
 
-        Write findings to: .kit/autopilot/sessions/{session_id}/improvements.md
+        Write findings to: .otto/otto/sessions/{session_id}/improvements.md
 
         Format:
         ## Improvement Cycle {cycle_num}
@@ -781,7 +781,7 @@ function run_improvement_cycle():
     # ============================================
     # STEP 2: Verify improvements.md Created (REQUIRED)
     # ============================================
-    Read .kit/autopilot/sessions/{session_id}/improvements.md
+    Read .otto/otto/sessions/{session_id}/improvements.md
 
     If file is empty or missing:
         Write: "## Improvement Cycle {cycle_num}\n\nNo improvements identified this cycle."
@@ -796,10 +796,10 @@ function run_improvement_cycle():
         Use Task tool:
         - subagent_type: "general-purpose"
         - prompt: """
-            Read: .kit/autopilot/sessions/{session_id}/improvements.md
+            Read: .otto/otto/sessions/{session_id}/improvements.md
 
             Generate max 3 improvement tasks.
-            Save to: .kit/tasks/improvements-{cycle_num}.json
+            Save to: .otto/tasks/improvements-{cycle_num}.json
 
             Task format:
             {
@@ -812,7 +812,7 @@ function run_improvement_cycle():
     # ============================================
     # STEP 4: Execute Improvement Tasks (CONDITIONAL)
     # ============================================
-    If .kit/tasks/improvements-{cycle_num}.json exists and has tasks:
+    If .otto/tasks/improvements-{cycle_num}.json exists and has tasks:
 
         For each task (max 3):
             Use Task tool:
@@ -838,7 +838,7 @@ function run_improvement_cycle():
 ```bash
 git add -A
 git commit -m "$(cat <<'EOF'
-autopilot: improvement cycle #{cycle_num}
+otto: improvement cycle #{cycle_num}
 
 Improvements found: {improvements_found}
 Tasks executed: {tasks_executed}
@@ -854,8 +854,8 @@ EOF
 ```
 function archive_feedback_batch():
     batch_num = state.guard_rails.feedback_rotations + 1
-    source = ".kit/autopilot/sessions/{session_id}/feedback.md"
-    archive = ".kit/autopilot/sessions/{session_id}/feedback-batch-{batch_num}.md"
+    source = ".otto/otto/sessions/{session_id}/feedback.md"
+    archive = ".otto/otto/sessions/{session_id}/feedback-batch-{batch_num}.md"
 
     # Move current feedback to archive
     mv source archive
@@ -899,7 +899,7 @@ Announce: "Running build verification..."
 ```bash
 # For web apps (detect by package.json scripts)
 if grep -q '"build"' package.json 2>/dev/null; then
-  npm run build 2>&1 | tee .kit/autopilot/sessions/${session_id}/build.log
+  npm run build 2>&1 | tee .otto/otto/sessions/${session_id}/build.log
   # Capture exit code: BUILD_EXIT=$?
 fi
 ```
@@ -925,7 +925,7 @@ Announce: "Running smoke test..."
 # Start dev server briefly to check for runtime errors
 # Note: On macOS, use 'gtimeout' from coreutils if 'timeout' is unavailable
 if grep -q '"dev"' package.json 2>/dev/null; then
-  timeout 15 npm run dev 2>&1 | tee .kit/autopilot/sessions/${session_id}/dev.log &
+  timeout 15 npm run dev 2>&1 | tee .otto/otto/sessions/${session_id}/dev.log &
   DEV_PID=$!
   sleep 8
 
@@ -973,7 +973,7 @@ Announce: "Running tests..."
 ```bash
 # Run existing tests if npm test is available
 if grep -q '"test"' package.json 2>/dev/null; then
-  npm test 2>&1 | tee .kit/autopilot/sessions/${session_id}/test.log
+  npm test 2>&1 | tee .otto/otto/sessions/${session_id}/test.log
   TEST_EXIT=${PIPESTATUS[0]}  # Capture npm test exit code, not tee's
 fi
 ```
@@ -1022,7 +1022,7 @@ await waitForPageLoad(page);
 
 // Capture initial state
 await page.screenshot({
-  path: "../../.kit/autopilot/sessions/{session_id}/visual-checks/e2e-login-1-initial.png"
+  path: "../../.otto/otto/sessions/{session_id}/visual-checks/e2e-login-1-initial.png"
 });
 
 // Fill form and submit
@@ -1033,7 +1033,7 @@ await waitForPageLoad(page);
 
 // Capture final state
 await page.screenshot({
-  path: "../../.kit/autopilot/sessions/{session_id}/visual-checks/e2e-login-2-result.png"
+  path: "../../.otto/otto/sessions/{session_id}/visual-checks/e2e-login-2-result.png"
 });
 
 const success = page.url().includes('/dashboard');
@@ -1044,10 +1044,10 @@ EOF
 ```
 
 **Process:**
-1. Read user flows from spec (`.kit/specs/{spec_id}.md`)
+1. Read user flows from spec (`.otto/specs/{spec_id}.md`)
 2. Write and execute a script for each flow
 3. Capture screenshots at key steps
-4. Generate `.kit/autopilot/sessions/{session_id}/e2e-report.md` with results
+4. Generate `.otto/otto/sessions/{session_id}/e2e-report.md` with results
 
 Page naming convention: `{session_id}-e2e-{flow_name}`
 
@@ -1149,7 +1149,7 @@ If fix fails, log to feedback.md and continue (do not block).
 ```bash
 git add -A
 git commit -m "$(cat <<'EOF'
-autopilot: complete - {completed}/{total} tasks, {fixes} fixes applied
+otto: complete - {completed}/{total} tasks, {fixes} fixes applied
 
 Session: {session_id}
 Phase: review complete
@@ -1177,15 +1177,15 @@ Update `state.json`:
 
 ```bash
 # Stop dev-browser server
-if [ -f ".kit/autopilot/sessions/${session_id}/dev-browser.pid" ]; then
-  kill $(cat .kit/autopilot/sessions/${session_id}/dev-browser.pid) 2>/dev/null || true
-  rm .kit/autopilot/sessions/${session_id}/dev-browser.pid
+if [ -f ".otto/otto/sessions/${session_id}/dev-browser.pid" ]; then
+  kill $(cat .otto/otto/sessions/${session_id}/dev-browser.pid) 2>/dev/null || true
+  rm .otto/otto/sessions/${session_id}/dev-browser.pid
 fi
 
 # Stop dashboard server
-if [ -f ".kit/autopilot/sessions/${session_id}/dashboard.pid" ]; then
-  kill $(cat .kit/autopilot/sessions/${session_id}/dashboard.pid) 2>/dev/null || true
-  rm .kit/autopilot/sessions/${session_id}/dashboard.pid
+if [ -f ".otto/otto/sessions/${session_id}/dashboard.pid" ]; then
+  kill $(cat .otto/otto/sessions/${session_id}/dashboard.pid) 2>/dev/null || true
+  rm .otto/otto/sessions/${session_id}/dashboard.pid
 fi
 ```
 
@@ -1198,7 +1198,7 @@ Write session summary to feedback.md. All metrics roll up FROM task data.
 
 **Product:** {product name from spec}
 **Duration:** {total time}
-**Branch:** autopilot/{session_id}
+**Branch:** otto/{session_id}
 
 ### Session Summary
 
@@ -1270,13 +1270,13 @@ Write session summary to feedback.md. All metrics roll up FROM task data.
 | **Total** | **{n}** | **{n}** | **{n}** | |
 
 ### Artifacts
-- Spec: `.kit/specs/{spec_id}.md`
-- Tasks: `.kit/tasks/{spec_id}.json`
-- Research: `.kit/autopilot/sessions/{session_id}/research/competitors.md`
-- State: `.kit/autopilot/sessions/{session_id}/state.json`
+- Spec: `.otto/specs/{spec_id}.md`
+- Tasks: `.otto/tasks/{spec_id}.json`
+- Research: `.otto/otto/sessions/{session_id}/research/competitors.md`
+- State: `.otto/otto/sessions/{session_id}/state.json`
 
 ### Suggested Next Steps
-1. Review the generated code on branch `autopilot/{session_id}`
+1. Review the generated code on branch `otto/{session_id}`
 2. Run tests: `{test command}`
 3. Create PR: `gh pr create`
 
@@ -1306,9 +1306,9 @@ Session complete!
 - Tasks: {completed}/{total} completed, {skipped} skipped
 - Improvement cycles: {cycles}/3
 - Total duration: {time}
-- Branch: autopilot/{session_id}
+- Branch: otto/{session_id}
 
-Review artifacts in .kit/autopilot/sessions/{session_id}/
+Review artifacts in .otto/otto/sessions/{session_id}/
 ```
 
 ---
@@ -1320,7 +1320,7 @@ Review artifacts in .kit/autopilot/sessions/{session_id}/
 ```json
 {
   "schema_version": 1,
-  "session_id": "autopilot-20260115-143022-a3b2",
+  "session_id": "otto-20260115-143022-a3b2",
   "product_spec_id": "cli-todo-app-f2e1",
   "status": "in_progress | completed | terminated",
   "current_phase": "init | spec | task | execution | review | summary",
@@ -1380,7 +1380,7 @@ Review artifacts in .kit/autopilot/sessions/{session_id}/
 
 ### Recovery on Startup
 
-When `/autopilot` is invoked, check for existing session:
+When `/otto` is invoked, check for existing session:
 
 ```
 1. Check for state.json with status: "in_progress" or "terminated"
@@ -1398,7 +1398,7 @@ On resume, verify state.json matches the tasks file to detect and fix any drift:
 
 ```
 function verify_state_consistency():
-    tasks_data = readJson(".kit/tasks/{spec_id}.json")
+    tasks_data = readJson(".otto/tasks/{spec_id}.json")
     state = readJson("state.json")
 
     actual_completed = tasks_data.tasks.filter(t => t.status === "done").length
@@ -1493,11 +1493,11 @@ EOF
 ## Configuration Reference
 
 ```yaml
-# .kit/config.yaml
+# .otto/config.yaml
 auto_verify: true
 auto_pick: true
 
-autopilot:
+otto:
   enabled: true                    # Master switch
   mode: autonomous                 # autonomous | supervised
   max_blockers: 3                  # Skip task after N failures
@@ -1517,7 +1517,7 @@ autopilot:
 ## Directory Structure
 
 ```
-.kit/
+.otto/
 ├── config.yaml                           # Automation config
 ├── specs/
 │   ├── {product-spec-id}.md              # Product specification
@@ -1527,7 +1527,7 @@ autopilot:
 │   └── improvements-{cycle}.json         # Improvement tasks (generated)
 ├── reviews/
 │   └── {session-id}.md                   # Code review results
-└── autopilot/
+└── otto/
     └── sessions/
         └── {session-id}/
             ├── state.json                # Orchestrator state (for recovery)
@@ -1549,12 +1549,12 @@ autopilot:
 
 **Input:**
 ```
-/autopilot Build a CLI weather app that fetches forecasts from OpenWeatherMap API
+/otto Build a CLI weather app that fetches forecasts from OpenWeatherMap API
 ```
 
 **Output (abbreviated):**
 ```
-Starting autonomous build session: autopilot-20260115-143022-a3b2
+Starting autonomous build session: otto-20260115-143022-a3b2
 Starting dev-browser server...
 
 [Phase 1] Generating specification...
@@ -1595,9 +1595,9 @@ Session complete!
 - Tasks: 8/8 completed, 0 skipped
 - Improvement cycles: 2/3
 - Total duration: 15m
-- Branch: autopilot/autopilot-20260115-143022-a3b2
+- Branch: otto/otto-20260115-143022-a3b2
 
-Review artifacts in .kit/autopilot/sessions/autopilot-20260115-143022-a3b2/
+Review artifacts in .otto/otto/sessions/otto-20260115-143022-a3b2/
 ```
 
 ---

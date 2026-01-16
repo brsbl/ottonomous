@@ -1,11 +1,11 @@
-# Autopilot
+# Otto
 
 Fully autonomous product development from idea to working code with milestone-based self-improvement.
 
 ## Usage
 
 ```bash
-/autopilot Build a CLI todo app with local JSON storage and colored output
+/otto Build a CLI todo app with local JSON storage and colored output
 ```
 
 ## What It Does
@@ -30,13 +30,13 @@ Fully autonomous product development from idea to working code with milestone-ba
 
 ## Configuration
 
-Located in `.kit/config.yaml`:
+Located in `.otto/config.yaml`:
 
 ```yaml
 auto_verify: true
 auto_pick: true
 
-autopilot:
+otto:
   enabled: true
   mode: autonomous
   max_blockers: 3           # Skip task after N failures
@@ -53,11 +53,11 @@ autopilot:
 
 ## Live Dashboard
 
-Autopilot includes a real-time web dashboard that shows progress during execution.
+Otto includes a real-time web dashboard that shows progress during execution.
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│ 🚀 Autopilot: cli-todo-app          Session: autopilot-... │
+│ 🚀 Otto: cli-todo-app          Session: otto-... │
 │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ │
 │ Phase: [■■■■□] Execution    Duration: 2m 34s    Status: ● │
 │                                                            │
@@ -75,7 +75,7 @@ Features:
 
 ## Session Artifacts
 
-Each session creates artifacts in `.kit/autopilot/sessions/{session-id}/`:
+Each session creates artifacts in `.otto/otto/sessions/{session-id}/`:
 
 | File | Description |
 |------|-------------|
@@ -88,7 +88,7 @@ Each session creates artifacts in `.kit/autopilot/sessions/{session-id}/`:
 
 ## Dev-Browser Integration
 
-Autopilot uses `/dev-browser` for:
+Otto uses `/dev-browser` for:
 
 - **Research** (Phase 1) - Navigate reference sites, capture screenshots
 - **Visual Verification** (Phase 3) - Screenshot UI after each UI task
@@ -98,7 +98,7 @@ Autopilot uses `/dev-browser` for:
 
 ```
                     ┌─────────────────────┐
-                    │   /autopilot        │
+                    │   /otto        │
                     │   (orchestrator)    │
                     └─────────┬───────────┘
                               │
@@ -141,7 +141,7 @@ Task 6 → Task 7 → Task 8 → Task 9 → Task 10
 ## Example Output
 
 ```
-Starting autonomous build session: autopilot-20260115-143022-a3b2
+Starting autonomous build session: otto-20260115-143022-a3b2
 
 [Phase 1] Researching & generating specification...
   - Researched 3 competitors (see research/competitors.md)
@@ -169,7 +169,7 @@ Session complete!
 - Tasks: 10/10 completed, 0 skipped
 - Improvement cycles: 2/2 possible (max 3)
 - Code review: 7 issues, 2 fixed
-- Branch: autopilot/autopilot-20260115-143022-a3b2
+- Branch: otto/otto-20260115-143022-a3b2
 
 ## Task Execution Details
 
@@ -183,9 +183,9 @@ Session complete!
 
 ## Recovery
 
-If a session is interrupted, autopilot can resume:
+If a session is interrupted, otto can resume:
 
-1. Run `/autopilot` again
+1. Run `/otto` again
 2. It detects existing `state.json` with `status: "in_progress"`
 3. Offers to resume from last successful task
 4. Continues execution loop from saved state

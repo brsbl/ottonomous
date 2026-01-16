@@ -83,7 +83,7 @@ For each modified file or logical component:
 
 ### 5. Save the Review
 
-Generate filename and save to `.kit/reviews/`:
+Generate filename and save to `.otto/reviews/`:
 
 ```bash
 # Get branch name for filename
@@ -93,10 +93,10 @@ slug=$(echo "$branch" | tr '[:upper:]' '[:lower:]' | tr '/' '-' | tr ' ' '-')
 filename="${slug}-${date}"
 
 # Ensure directory exists
-mkdir -p .kit/reviews
+mkdir -p .otto/reviews
 ```
 
-Write the review with YAML frontmatter to `.kit/reviews/{filename}.md`:
+Write the review with YAML frontmatter to `.otto/reviews/{filename}.md`:
 
 ```yaml
 ---
@@ -109,7 +109,7 @@ files_changed: {count}
 {review content}
 ```
 
-Stage the file: `git add .kit/reviews/{filename}.md`
+Stage the file: `git add .otto/reviews/{filename}.md`
 
 ### 6. Convert to HTML and Open Browser
 
@@ -128,20 +128,20 @@ cd skills/semantic-review && npm install
 SKILL_DIR="skills/semantic-review"
 
 # Run the converter
-node "$SKILL_DIR/scripts/md-to-html.js" ".kit/reviews/{filename}.md" ".kit/reviews/{filename}.html"
+node "$SKILL_DIR/scripts/md-to-html.js" ".otto/reviews/{filename}.md" ".otto/reviews/{filename}.html"
 ```
 
 **Open in browser:**
 
 ```bash
 # macOS
-open .kit/reviews/{filename}.html
+open .otto/reviews/{filename}.html
 
 # Linux
-xdg-open .kit/reviews/{filename}.html
+xdg-open .otto/reviews/{filename}.html
 
 # Windows (WSL)
-wslview .kit/reviews/{filename}.html
+wslview .otto/reviews/{filename}.html
 ```
 
 The HTML output includes:
@@ -159,15 +159,15 @@ If the changes include UI modifications:
 If yes, use dev-browser to:
 - Navigate to affected pages
 - Capture before/after screenshots
-- Save to `.kit/reviews/{filename}-screenshots/`
+- Save to `.otto/reviews/{filename}-screenshots/`
 - Include screenshot references in the review documentation
 
 ### 7. Report to User
 
 Confirm:
 > "Semantic review complete!
-> - Markdown: `.kit/reviews/{filename}.md`
-> - HTML: `.kit/reviews/{filename}.html`
+> - Markdown: `.otto/reviews/{filename}.md`
+> - HTML: `.otto/reviews/{filename}.html`
 >
 > Opened in browser."
 

@@ -12,7 +12,7 @@ Review code changes for bugs and issues with prioritized, actionable feedback. F
 **Check for AUTO_MODE at the start of every workflow:**
 
 ```bash
-AUTO_MODE=$(grep -q "auto_pick: true" .kit/config.yaml 2>/dev/null && echo "true" || echo "false")
+AUTO_MODE=$(grep -q "auto_pick: true" .otto/config.yaml 2>/dev/null && echo "true" || echo "false")
 ```
 
 **When `AUTO_MODE=true`:**

@@ -382,7 +382,7 @@ After orchestrator completes successfully:
 
 See also:
 - **`/log`** - Capture any discoveries made during implementation
-- **`/autopilot`** - For fully autonomous development without manual coordination
+- **`/otto`** - For fully autonomous development without manual coordination
 
 ---
 

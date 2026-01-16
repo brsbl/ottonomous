@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "claude-code-kit",
+  "name": "ottonomous",
   "version": "1.0.0",
   "description": "Comprehensive skills toolkit for autonomous product development with structured workflows for planning, implementation, review, and self-improvement",
   "owner": {
@@ -9,7 +9,7 @@
   },
   "plugins": [
     {
-      "name": "claude-code-kit",
+      "name": "ottonomous",
       "description": "Skills for spec writing, task management, code review, semantic review, orchestration, and autonomous development",
       "source": ".",
       "version": "1.0.0",

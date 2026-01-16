@@ -31,7 +31,7 @@ Capture discoveries like:
 Search INDEX.md for the file path to find entries anchored to that file:
 
 ```bash
-grep -n "systems/log/" .kit/logs/INDEX.md
+grep -n "systems/log/" .otto/logs/INDEX.md
 ```
 
 ### Strategy 2: Topic-based search (when investigating a concept)
@@ -39,13 +39,13 @@ grep -n "systems/log/" .kit/logs/INDEX.md
 Search INDEX.md for keywords in summaries:
 
 ```bash
-grep -i "timestamp" .kit/logs/INDEX.md
+grep -i "timestamp" .otto/logs/INDEX.md
 ```
 
 For deeper content search, grep all log entries:
 
 ```bash
-grep -ri "staleness detection" .kit/logs/
+grep -ri "staleness detection" .otto/logs/
 ```
 
 ### Strategy 3: Read matching entries
@@ -53,7 +53,7 @@ grep -ri "staleness detection" .kit/logs/
 Once you find relevant entry IDs, read the full content:
 
 ```bash
-cat .kit/logs/git-timestamp-utilities-k3m9.md
+cat .otto/logs/git-timestamp-utilities-k3m9.md
 ```
 
 ---
@@ -64,9 +64,9 @@ Before trusting an entry, verify its anchors haven't changed since it was writte
 
 ```bash
 # Get entry timestamp (last commit to the entry file, fallback to mtime for uncommitted)
-entry_time=$(git log -1 --format="%ct" -- .kit/logs/{entry-id}.md 2>/dev/null)
+entry_time=$(git log -1 --format="%ct" -- .otto/logs/{entry-id}.md 2>/dev/null)
 if [ -z "$entry_time" ]; then
-  entry_time=$(stat -c %Y .kit/logs/{entry-id}.md 2>/dev/null || stat -f %m .kit/logs/{entry-id}.md)
+  entry_time=$(stat -c %Y .otto/logs/{entry-id}.md 2>/dev/null || stat -f %m .otto/logs/{entry-id}.md)
 fi
 
 # Check each anchor file (same fallback logic)
@@ -95,7 +95,7 @@ First-time setup that documents the codebase and creates baseline entries.
 **Step 1: Create directory structure**
 
 ```bash
-mkdir -p .kit/logs
+mkdir -p .otto/logs
 ```
 
 **Step 2: Read project documentation**
@@ -121,7 +121,7 @@ ls *.py *.js *.ts *.go *.rs 2>/dev/null | head -10
 
 Generate ID: `project-overview-{4-char-hash}`
 
-Write `.kit/logs/project-overview-{id}.md`:
+Write `.otto/logs/project-overview-{id}.md`:
 
 ```yaml
 ---
@@ -150,7 +150,7 @@ anchors:
 
 Generate ID: `codebase-structure-{4-char-hash}`
 
-Write `.kit/logs/codebase-structure-{id}.md`:
+Write `.otto/logs/codebase-structure-{id}.md`:
 
 ```yaml
 ---
@@ -176,7 +176,7 @@ anchors:
 
 **Step 6: Generate INDEX.md**
 
-Write `.kit/logs/INDEX.md`:
+Write `.otto/logs/INDEX.md`:
 
 ```markdown
 # Engineering Log Index
@@ -197,7 +197,7 @@ Quick reference for navigating the knowledge base.
 **Step 7: Stage and report**
 
 ```bash
-git add .kit/logs/
+git add .otto/logs/
 ```
 
 Report: "Initialized engineering log with baseline entries."
@@ -208,13 +208,13 @@ Report: "Initialized engineering log with baseline entries."
 
 ### 1. Auto-Initialize (if needed)
 
-Check if `.kit/logs/INDEX.md` exists:
+Check if `.otto/logs/INDEX.md` exists:
 
 ```bash
-if [ ! -f .kit/logs/INDEX.md ]; then
-  mkdir -p .kit/logs
-  echo "# Engineering Log Index" > .kit/logs/INDEX.md
-  git add .kit/logs/INDEX.md
+if [ ! -f .otto/logs/INDEX.md ]; then
+  mkdir -p .otto/logs
+  echo "# Engineering Log Index" > .otto/logs/INDEX.md
+  git add .otto/logs/INDEX.md
 fi
 ```
 
@@ -242,7 +242,7 @@ id="${slug}-${hash}"
 
 ### 5. Write Entry File
 
-Create `.kit/logs/{id}.md`:
+Create `.otto/logs/{id}.md`:
 
 ```yaml
 ---
@@ -263,7 +263,7 @@ anchors:
 
 ### 6. Update INDEX.md
 
-Add the new entry to `.kit/logs/INDEX.md`:
+Add the new entry to `.otto/logs/INDEX.md`:
 
 1. Determine section from primary anchor location
 2. Format section header: `### \`path/to/directory/\` (Descriptive Name)`
@@ -272,7 +272,7 @@ Add the new entry to `.kit/logs/INDEX.md`:
 ### 7. Stage Files
 
 ```bash
-git add .kit/logs/{id}.md .kit/logs/INDEX.md
+git add .otto/logs/{id}.md .otto/logs/INDEX.md
 ```
 
 ### 8. Confirm to User
@@ -283,13 +283,13 @@ git add .kit/logs/{id}.md .kit/logs/INDEX.md
 
 ## Rebuilding INDEX: `/log rebuild`
 
-Regenerate `.kit/logs/INDEX.md` from all entry files. Also detects and removes orphaned entries.
+Regenerate `.otto/logs/INDEX.md` from all entry files. Also detects and removes orphaned entries.
 
 ### Rebuild Workflow
 
 **Step 1: Collect all entries**
 
-Glob `.kit/logs/*.md` and read each one (skip INDEX.md).
+Glob `.otto/logs/*.md` and read each one (skip INDEX.md).
 
 **Step 2: Check anchors**
 
@@ -330,8 +330,8 @@ Rebuilt INDEX.md:
 If entry content is still accurate after reviewing anchor changes:
 
 ```bash
-touch .kit/logs/{entry-id}.md
-git add .kit/logs/{entry-id}.md
+touch .otto/logs/{entry-id}.md
+git add .otto/logs/{entry-id}.md
 git commit -m "verify: {entry-id}"
 ```
 
@@ -339,13 +339,13 @@ git commit -m "verify: {entry-id}"
 
 1. Edit the entry file directly
 2. Update INDEX.md if needed
-3. Stage changes: `git add .kit/logs/{entry-id}.md .kit/logs/INDEX.md`
+3. Stage changes: `git add .otto/logs/{entry-id}.md .otto/logs/INDEX.md`
 
 ## Auto-Finding Logs
 
 When exploring a file or investigating a topic:
 
-1. Check for file-based entries first: `grep "{filename}" .kit/logs/INDEX.md`
+1. Check for file-based entries first: `grep "{filename}" .otto/logs/INDEX.md`
 2. If found: Read those entries before investigating
 3. Check staleness: Verify entries are fresh
 4. Use the knowledge: Apply what previous work discovered

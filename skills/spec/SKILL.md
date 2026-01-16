@@ -12,7 +12,7 @@ Create specifications through collaborative AI-human interview.
 **Check for AUTO_MODE at the start of every workflow:**
 
 ```bash
-AUTO_MODE=$(grep -q "auto_pick: true" .kit/config.yaml 2>/dev/null && echo "true" || echo "false")
+AUTO_MODE=$(grep -q "auto_pick: true" .otto/config.yaml 2>/dev/null && echo "true" || echo "false")
 ```
 
 **When `AUTO_MODE=true`:**
@@ -30,7 +30,7 @@ AUTO_MODE=$(grep -q "auto_pick: true" .kit/config.yaml 2>/dev/null && echo "true
 **Before writing a spec**, check for existing related specs:
 
 ```bash
-ls .kit/specs/*.md 2>/dev/null
+ls .otto/specs/*.md 2>/dev/null
 ```
 
 ## Workflow
@@ -46,7 +46,7 @@ If provided:
 - Note patterns and design decisions to reference during interview
 
 **Existing specs:**
-- Glob `.kit/specs/*.md` to find related specs
+- Glob `.otto/specs/*.md` to find related specs
 - Read relevant specs to understand context
 
 **Codebase analysis:**
@@ -131,7 +131,7 @@ hash=$(echo "$name$$$(date +%s%N)" | { sha1sum 2>/dev/null || shasum; } | cut -c
 id="${slug}-${hash}"
 ```
 
-Write to `.kit/specs/{id}.md`:
+Write to `.otto/specs/{id}.md`:
 ```yaml
 ---
 id: {id}
@@ -144,9 +144,9 @@ updated: {YYYY-MM-DD}
 {spec content}
 ```
 
-Stage: `git add .kit/specs/{id}.md`
+Stage: `git add .otto/specs/{id}.md`
 
-Confirm to user: "Saved spec to .kit/specs/{id}.md"
+Confirm to user: "Saved spec to .otto/specs/{id}.md"
 
 ### 7. Next Steps
 

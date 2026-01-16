@@ -12,8 +12,8 @@ Pick and work on the next highest priority unblocked task.
 **Check for AUTO_MODE at the start of every workflow:**
 
 ```bash
-AUTO_MODE=$(grep -q "auto_pick: true" .kit/config.yaml 2>/dev/null && echo "true" || echo "false")
-MAX_BLOCKERS=$(grep "max_blockers:" .kit/config.yaml 2>/dev/null | awk '{print $2}' || echo "3")
+AUTO_MODE=$(grep -q "auto_pick: true" .otto/config.yaml 2>/dev/null && echo "true" || echo "false")
+MAX_BLOCKERS=$(grep "max_blockers:" .otto/config.yaml 2>/dev/null | awk '{print $2}' || echo "3")
 ```
 
 **When `AUTO_MODE=true`:**
@@ -25,7 +25,7 @@ MAX_BLOCKERS=$(grep "max_blockers:" .kit/config.yaml 2>/dev/null | awk '{print $
 
 ### 1. Find Tasks
 
-- Glob `.kit/tasks/*.json` to find task files
+- Glob `.otto/tasks/*.json` to find task files
 - Read each file, check for pending tasks
 - If multiple specs have pending tasks, use `AskUserQuestion`:
 
@@ -59,7 +59,7 @@ Apply the "next task" algorithm:
 ### 3. Start Work
 
 - Update task status to "in_progress" in JSON file
-- Stage: `git add .kit/tasks/{spec-id}.json`
+- Stage: `git add .otto/tasks/{spec-id}.json`
 - Tell user: "Starting task {id}: {title}"
 - Begin implementing the task
 

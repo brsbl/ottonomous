@@ -5,8 +5,8 @@
 auto_verify: true    # Auto-verify stale log entries without prompting
 auto_pick: true      # Auto-pick next task without confirmation prompts
 
-# Autopilot settings
-autopilot:
+# Otto settings
+otto:
   enabled: true
   mode: autonomous          # autonomous | supervised
 

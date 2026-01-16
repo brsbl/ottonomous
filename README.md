@@ -1,4 +1,4 @@
-# Claude Code Kit
+# Ottonomous
 
 A Claude Code plugin providing structured workflows for planning, implementation, review, and knowledge management.
 
@@ -7,22 +7,22 @@ A Claude Code plugin providing structured workflows for planning, implementation
 Install as a Claude Code plugin:
 
 ```bash
-/plugin install brsbl/claude-code-kit
+/plugin install brsbl/ottonomous
 ```
 
 Or manually clone and install:
 
 ```bash
-git clone https://github.com/brsbl/claude-code-kit.git
+git clone https://github.com/brsbl/ottonomous.git
 cd your-project
-claude --plugin-dir /path/to/claude-code-kit
+claude --plugin-dir /path/to/ottonomous
 ```
 
 ## Skills
 
 ### Planning
 
-- **`/spec`** — Interactive interview that gathers context, researches best practices, and outputs a spec to `.kit/specs/{id}.md`
+- **`/spec`** — Interactive interview that gathers context, researches best practices, and outputs a spec to `.otto/specs/{id}.md`
 - **`/task`** — Breaks specs into tasks with status (`pending` → `in_progress` → `done`), priority (0-4), and dependencies
 - **`/next`** — Finds highest priority unblocked task and starts work
 - **`/log`** — Documents discoveries anchored to files; entries marked stale when anchors change. Use `/log init` for setup, `/log rebuild` to regenerate index
@@ -30,7 +30,7 @@ claude --plugin-dir /path/to/claude-code-kit
 ### Development
 
 - **`/orchestrator`** — Transforms Claude into an Engineering Manager who delegates all technical work (exploration, planning, coding, review) to specialized subagents
-- **`/autopilot`** — Fully autonomous product development from idea to working code. Spawns fresh agents per task, runs self-improvement cycles, integrates dev-browser for visual verification
+- **`/otto`** — Fully autonomous product development from idea to working code. Spawns fresh agents per task, runs self-improvement cycles, integrates dev-browser for visual verification
 
 ### Review
 
@@ -44,7 +44,7 @@ claude --plugin-dir /path/to/claude-code-kit
 ## Plugin Structure
 
 ```
-claude-code-kit/
+ottonomous/
 ├── .claude-plugin/
 │   └── plugin.json   # Plugin metadata
 ├── skills/           # Skill definitions
@@ -53,11 +53,11 @@ claude-code-kit/
 │   ├── next/         # /next command
 │   ├── log/          # /log command
 │   ├── orchestrator/ # /orchestrator command
-│   ├── autopilot/    # /autopilot command
+│   ├── otto/         # /otto command
 │   ├── semantic-review/  # /semantic-review command
 │   ├── code-review/  # /code-review command
 │   └── dev-browser/  # /dev-browser command
-└── .kit/             # Runtime data (created in your project)
+└── .otto/             # Runtime data (created in your project)
     ├── specs/        # Specifications (*.md)
     ├── tasks/        # Tasks (*.json)
     ├── logs/         # Engineering logs with INDEX.md
@@ -67,7 +67,7 @@ claude-code-kit/
 
 ## Configuration
 
-`.kit/config.yaml`:
+`.otto/config.yaml`:
 
 ```yaml
 auto_verify: false  # Auto-verify stale log entries
