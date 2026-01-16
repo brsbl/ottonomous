@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "ottonomous",
-      "description": "Skills for spec writing, task management, code review, semantic review, orchestration, and autonomous development",
+      "description": "Skills for spec writing, task management, review, summary, delegation, testing, and autonomous development",
       "source": ".",
       "version": "1.0.0",
       "author": {
@@ -18,7 +18,7 @@
         "url": "https://github.com/brsbl"
       },
       "category": "development",
-      "tags": ["automation", "workflows", "code-review", "planning", "autonomous"]
+      "tags": ["automation", "workflows", "review", "testing", "planning", "autonomous"]
     }
   ]
 }

@@ -948,108 +948,80 @@ fi
 
 #### Step 4.0b: Test Verification
 
-**Check for test files:**
+Run automated tests using the `/test` skill with session context:
 
-```bash
-# Check that test files were created (exclude node_modules)
-test_files=$(find . -not -path "*/node_modules/*" \( -name "*.test.*" -o -name "*.spec.*" -o -type d -name "__tests__" \) 2>/dev/null | head -5)
+```
+Invoke Skill: skill="test", args="--unit --session {session_id}"
 ```
 
-**Orchestrator action if no tests:**
-- If `test_files` is empty: Announce "⚠️ No test files found - creating test task", then:
-  ```
-  add_task({
-    id: "add-tests",
-    title: "Add missing tests",
-    priority: 1,
-    description: "No test files found. Add basic tests for core functionality."
-  })
-  ```
+The `/test` skill will:
+1. Detect the test runner (npm test, pytest, etc.)
+2. Run all unit/automated tests
+3. Capture results to `.otto/test-results/`
+4. Return JSON with pass/fail status
 
-**Run tests:**
+**Orchestrator action after /test returns:**
 
-Announce: "Running tests..."
-
-```bash
-# Run existing tests if npm test is available
-if grep -q '"test"' package.json 2>/dev/null; then
-  npm test 2>&1 | tee .otto/otto/sessions/${session_id}/test.log
-  TEST_EXIT=${PIPESTATUS[0]}  # Capture npm test exit code, not tee's
-fi
+```json
+// Expected return format from /test
+{
+  "success": true,
+  "unit_tests": {
+    "passed": 15,
+    "failed": 0,
+    "skipped": 2,
+    "duration_ms": 4500
+  }
+}
 ```
 
-**Orchestrator action after tests:**
-- If TEST_EXIT is 0: Announce "✓ Tests passed"
-- If TEST_EXIT is non-zero: Announce "⚠️ Tests failed - creating fix task", then:
+- If `success` is true: Announce "✓ Tests passed ({passed}/{total})"
+- If `success` is false: Announce "⚠️ Tests failed - creating fix task", then:
   ```
   add_task({
     id: "fix-tests",
     title: "Fix failing tests",
     priority: 1,
-    description: "Tests failed. See test.log for errors."
+    description: "Tests failed. See .otto/test-results/test-output.log for errors."
   })
   spawn_task_agent("fix-tests")
   ```
 
-#### Step 4.1: E2E Testing (via Dev-Browser)
+#### Step 4.1: E2E Testing (via /test)
 
-**Prerequisite check:**
-```
-if NOT state.integrations.dev_browser_available:
-    Announce: "⚠️ Skipping E2E tests - dev-browser not available"
-    Write to e2e-report.md: "E2E tests skipped: dev-browser server not running"
-    Skip to Step 4.2
-```
-
-Before code review, invoke `/dev-browser` for full product testing:
+Run visual verification and E2E tests using the `/test` skill:
 
 ```
-Invoke Skill: skill="dev-browser"
+Invoke Skill: skill="test", args="--visual --session {session_id} --spec {spec_id}"
 ```
 
-Once the dev-browser skill is loaded, write E2E test scripts for each user flow defined in the spec. Example for a login flow:
+The `/test` skill will:
+1. Check dev-browser availability (skip if not running)
+2. Read user flows from the spec file
+3. Execute each flow with dev-browser
+4. Capture screenshots to `.otto/otto/sessions/{session_id}/visual-checks/`
+5. Generate `.otto/otto/sessions/{session_id}/e2e-report.md`
+6. Return JSON with results
 
-```bash
-cd skills/dev-browser && npx tsx <<'EOF'
-import { connect, waitForPageLoad } from "@/client.js";
+**Orchestrator action after /test --visual returns:**
 
-const client = await connect();
-const page = await client.page("{session_id}-e2e-login");
-
-// Test login flow
-await page.goto("http://localhost:3000/login");
-await waitForPageLoad(page);
-
-// Capture initial state
-await page.screenshot({
-  path: "../../.otto/otto/sessions/{session_id}/visual-checks/e2e-login-1-initial.png"
-});
-
-// Fill form and submit
-await page.fill('input[name="email"]', 'test@example.com');
-await page.fill('input[name="password"]', 'testpassword');
-await page.click('button[type="submit"]');
-await waitForPageLoad(page);
-
-// Capture final state
-await page.screenshot({
-  path: "../../.otto/otto/sessions/{session_id}/visual-checks/e2e-login-2-result.png"
-});
-
-const success = page.url().includes('/dashboard');
-console.log({ flow: "login", success, finalUrl: page.url() });
-
-await client.disconnect();
-EOF
+```json
+// Expected return format from /test --visual
+{
+  "success": true,
+  "visual_tests": {
+    "flows_tested": 3,
+    "flows_passed": 3,
+    "screenshots": [
+      ".otto/otto/sessions/{session_id}/visual-checks/flow-login-1-start.png",
+      ".otto/otto/sessions/{session_id}/visual-checks/flow-login-2-result.png"
+    ]
+  }
+}
 ```
 
-**Process:**
-1. Read user flows from spec (`.otto/specs/{spec_id}.md`)
-2. Write and execute a script for each flow
-3. Capture screenshots at key steps
-4. Generate `.otto/otto/sessions/{session_id}/e2e-report.md` with results
-
-Page naming convention: `{session_id}-e2e-{flow_name}`
+- If `success` is true: Announce "✓ E2E tests passed ({flows_passed}/{flows_tested} flows)"
+- If `success` is false: Log failures to feedback.md, continue to code review (don't block)
 
 #### Step 4.2: Code Review (Parallel by Component)
 

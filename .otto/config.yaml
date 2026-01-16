@@ -18,8 +18,15 @@ otto:
   # Self-improvement
   self_improve: true        # Generate improvement suggestions after session
   auto_implement_improvements: false  # Auto-implement suggestions (requires review)
+  improvement_milestone: 5  # Run improvement cycle every N tasks
+  max_improvement_cycles: 3 # Cap improvement cycles per session
+  skip_improvement_cycles: false  # Skip self-improvement loops
 
   # Safety limits
   max_tasks: 50             # Stop after N tasks (prevent runaway)
   max_duration_hours: 4     # Stop after N hours
   require_tests: false      # Require passing tests before completion
+
+  # Dashboard & feedback
+  feedback_rotation_interval: 10  # Rotate feedback.md every N tasks
+  open_dashboard: false     # Auto-open dashboard in browser

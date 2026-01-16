@@ -71,9 +71,10 @@ When task is done:
 
 **Next Steps:**
 > "Task complete! Next options:
-> - `/code-review` - Review changes for bugs before continuing
+> - `/test` - Run tests and visual verification
+> - `/review` - Review changes for bugs before continuing
 > - `/next` - Pick up the next task
-> - `/semantic-review` - Generate change documentation (if ready for PR)"
+> - `/summary` - Generate change documentation (if ready for PR)"
 
 ### 5. Handle Blockers (AUTO_MODE)
 

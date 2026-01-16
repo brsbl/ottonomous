@@ -27,8 +27,9 @@ Step-by-step control over each phase:
 /spec              # 1. Write specification
 /task my-spec      # 2. Break into tasks
 /next              # 3. Execute next task
-/code-review       # 4. Review for bugs
-/semantic-review   # 5. Document changes
+/test              # 4. Run tests + visual verification
+/review            # 5. Review for bugs
+/summary           # 6. Document changes
 ```
 
 ### Ottonomous Workflow
@@ -51,17 +52,22 @@ Automatically: researches → specs → tasks → executes → reviews → repor
 
 ### Development
 
-- **`/orchestrator`** — Transforms Claude into an Engineering Manager who delegates all technical work (exploration, planning, coding, review) to specialized subagents
+- **`/delegate`** — Transforms Claude into an Engineering Manager who delegates all technical work (exploration, planning, coding, review) to specialized subagents
 - **`/otto`** — Fully autonomous product development from idea to working code. Spawns fresh agents per task, runs self-improvement cycles, integrates dev-browser for visual verification
 
-### Review
+### Testing & Review
 
-- **`/semantic-review`** — Generates audience-specific walkthrough (developers, reviewers, stakeholders) with per-component analysis. Opens HTML in browser
-- **`/code-review`** — Finds bugs with priority levels: P0 (blocking), P1 (urgent), P2 (normal), P3 (low)
+- **`/test`** — Canonical testing skill: run automated tests and visual verification with dev-browser. Detects test runners, captures results, and walks through UI flows
+- **`/review`** — Finds bugs with priority levels: P0 (blocking), P1 (urgent), P2 (normal), P3 (low)
+- **`/summary`** — Generates audience-specific walkthrough (developers, reviewers, stakeholders) with per-component analysis. Opens HTML in browser
 
 ### Browser Automation
 
 - **`/dev-browser`** — Browser automation using Playwright with persistent page state. Two modes: standalone (launches Chromium) or extension (connects to existing Chrome). Use for web testing, scraping, screenshots, and form automation
+
+### Maintenance
+
+- **`/clean`** — Clean ottonomous workflow artifacts from `.otto/`. Supports selective cleaning of sessions, specs, tasks, and reviews while preserving configuration
 
 ## Workflows
 
@@ -78,9 +84,11 @@ Idea
   ↓  ⤴
   └──────→ Repeat /next until done
   ↓
-/code-review ──→ Find bugs (P0-P3)
+/test ────→ Run tests + visual verification
   ↓
-/semantic-review ─→ .otto/reviews/{id}.html
+/review ──→ Find bugs (P0-P3)
+  ↓
+/summary ─→ .otto/reviews/{id}.html
   ↓
 Done
 ```
@@ -89,11 +97,13 @@ Done
 1. **`/spec`** - Interactive interview → specification
 2. **`/task <spec-id>`** - Break spec → atomic tasks
 3. **`/next`** - Pick and execute next task (repeat)
-4. **`/code-review`** - Review for bugs
-5. **`/semantic-review`** - Generate documentation
-6. **`/log`** - Document discoveries (`.otto/logs/`)
-7. **`/dev-browser`** - Browser automation (research, testing, screenshots)
-8. **`/orchestrator`** - Delegate work to specialized subagents
+4. **`/test`** - Run tests and visual verification
+5. **`/review`** - Review for bugs
+6. **`/summary`** - Generate documentation
+7. **`/log`** - Document discoveries (`.otto/logs/`)
+8. **`/dev-browser`** - Browser automation (research, testing, screenshots)
+9. **`/delegate`** - Delegate work to specialized subagents
+10. **`/clean`** - Clean .otto artifacts (sessions, specs, tasks)
 
 **Best for:** Learning the system, complex features needing review at each step, when you want full control
 
@@ -154,10 +164,12 @@ ottonomous/
 │   ├── task/         # /task command
 │   ├── next/         # /next command
 │   ├── log/          # /log command
-│   ├── orchestrator/ # /orchestrator command
+│   ├── test/         # /test command
+│   ├── review/       # /review command
+│   ├── summary/      # /summary command
+│   ├── delegate/     # /delegate command
 │   ├── otto/         # /otto command
-│   ├── semantic-review/  # /semantic-review command
-│   ├── code-review/  # /code-review command
+│   ├── clean/        # /clean command
 │   └── dev-browser/  # /dev-browser command
 └── .otto/             # Runtime data (created in your project)
     ├── specs/        # Specifications (*.md)

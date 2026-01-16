@@ -85,10 +85,10 @@ cli-todo-app/
 
 ### Artifacts
 
-- Spec: `.kit/specs/cli-todo-app-4457.md`
-- Tasks: `.kit/tasks/cli-todo-app-4457.json`
-- State: `.kit/autopilot/sessions/autopilot-20260115-163856-4457/state.json`
-- Review: `.kit/reviews/autopilot-20260115-163856-4457.md`
+- Spec: `.otto/specs/cli-todo-app-4457.md`
+- Tasks: `.otto/tasks/cli-todo-app-4457.json`
+- State: `.otto/otto/sessions/autopilot-20260115-163856-4457/state.json`
+- Review: `.otto/reviews/autopilot-20260115-163856-4457.md`
 
 ### Usage
 

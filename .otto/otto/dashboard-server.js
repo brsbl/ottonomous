@@ -19,7 +19,14 @@ if (!sessionId || sessionId.startsWith('--')) {
   process.exit(1);
 }
 
-const kitDir = path.resolve(__dirname, '..');
+// Path traversal protection - validate session ID format
+const SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
+if (!SESSION_ID_PATTERN.test(sessionId)) {
+  console.error('Invalid session ID format. Only alphanumeric characters, hyphens, and underscores allowed.');
+  process.exit(1);
+}
+
+const ottoDir = path.resolve(__dirname, '..');
 const sessionDir = path.join(__dirname, 'sessions', sessionId);
 const statePath = path.join(sessionDir, 'state.json');
 const dashboardPath = path.join(__dirname, 'dashboard.html');
@@ -29,7 +36,7 @@ if (!fs.existsSync(sessionDir)) {
   process.exit(1);
 }
 
-const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET', 'Access-Control-Allow-Headers': 'Content-Type' };
+const cors = { 'Access-Control-Allow-Origin': `http://127.0.0.1:${port}`, 'Access-Control-Allow-Methods': 'GET', 'Access-Control-Allow-Headers': 'Content-Type' };
 const json = (res, data, code = 200) => { res.writeHead(code, { ...cors, 'Content-Type': 'application/json' }); res.end(JSON.stringify(data)); };
 const readJson = (p) => {
   try {
@@ -62,7 +69,7 @@ const server = http.createServer((req, res) => {
   if (url.pathname === '/api/tasks') {
     const state = readJson(statePath);
     if (!state?.product_spec_id) return json(res, { error: 'No spec_id in state' }, 404);
-    const tasksPath = path.join(kitDir, 'tasks', `${state.product_spec_id}.json`);
+    const tasksPath = path.join(ottoDir, 'tasks', `${state.product_spec_id}.json`);
     const tasks = readJson(tasksPath);
     return tasks ? json(res, tasks) : json(res, { error: 'Tasks not found' }, 404);
   }
@@ -86,7 +93,7 @@ const server = http.createServer((req, res) => {
             send({ type: 'state', data: state });
             // Update tasks path if we have spec_id
             if (state.product_spec_id) {
-              tasksPath = path.join(kitDir, 'tasks', `${state.product_spec_id}.json`);
+              tasksPath = path.join(ottoDir, 'tasks', `${state.product_spec_id}.json`);
             }
           }
         }

@@ -96,10 +96,10 @@ habit-tracker/
 ```
 
 ### Artifacts
-- Spec: `.kit/specs/habit-tracker-f9be1e18.md`
-- Tasks: `.kit/tasks/habit-tracker-f9be1e18.json`
-- State: `.kit/autopilot/sessions/autopilot-20260115-194615-25b2/state.json`
-- Review: `.kit/reviews/autopilot-20260115-194615-25b2.md`
+- Spec: `.otto/specs/habit-tracker-f9be1e18.md`
+- Tasks: `.otto/tasks/habit-tracker-f9be1e18.json`
+- State: `.otto/otto/sessions/autopilot-20260115-194615-25b2/state.json`
+- Review: `.otto/reviews/autopilot-20260115-194615-25b2.md`
 
 ### Suggested Next Steps
 1. Review the generated code on branch `autopilot/autopilot-20260115-194615-25b2`
