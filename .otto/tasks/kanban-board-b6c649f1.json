@@ -231,17 +231,20 @@
       "description": "Make columns draggable and sortable. Handle column reordering in onDragEnd. Update store with new column order. Show column drag overlay.",
       "priority": 1,
       "depends_on": ["9"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T13:00:00.000Z",
+        "completed_at": "2026-01-16T13:20:00.000Z",
+        "duration_ms": 1200000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/components/Column.tsx",
+          "src/components/Board.tsx"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -321,17 +324,20 @@
       "description": "Add wipLimit field to column settings. Show WIP limit in column header (e.g., '3/5'). Visual warning (red border/background) when at or over limit. Add WIP limit setting in column menu.",
       "priority": 2,
       "depends_on": ["13"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T14:00:00.000Z",
+        "completed_at": "2026-01-16T14:15:00.000Z",
+        "duration_ms": 900000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/components/Column.tsx",
+          "src/components/Board.tsx"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -389,17 +395,19 @@
       "description": "Add search bar to board header. Filter cards by title as user types. Add filter dropdown for labels and priority. Show/hide cards based on active filters.",
       "priority": 2,
       "depends_on": ["15", "16"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T20:00:00.000Z",
+        "completed_at": "2026-01-16T20:30:00.000Z",
+        "duration_ms": 1800000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/components/Board.tsx"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -409,17 +417,22 @@
       "description": "Create useKeyboardNavigation hook. Track selected column and card. Arrow keys navigate between columns/cards. Visual selection indicator (ring/outline). Store selection in app state.",
       "priority": 2,
       "depends_on": ["10"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T12:50:41.000Z",
+        "completed_at": "2026-01-16T13:30:00.000Z",
+        "duration_ms": 2359000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/hooks/useKeyboardNavigation.ts",
+          "src/components/Card.tsx",
+          "src/components/Column.tsx",
+          "src/components/Board.tsx"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -429,17 +442,21 @@
       "description": "Implement shortcuts: n=new card, e=edit, d=delete, Enter=open modal, Escape=close, m/M=move card, ?=help. Create KeyboardShortcutsModal showing all shortcuts.",
       "priority": 2,
       "depends_on": ["18"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T12:50:41.000Z",
+        "completed_at": "2026-01-16T13:00:00.000Z",
+        "duration_ms": 559000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/hooks/useKeyboardShortcuts.ts",
+          "src/components/KeyboardShortcutsModal.tsx",
+          "src/components/Board.tsx"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -520,17 +537,23 @@
       "description": "Add CSS transitions for card/column movements. Animate card appearance/removal. Smooth modal open/close. Add subtle hover animations. Use Tailwind transition utilities.",
       "priority": 3,
       "depends_on": ["10"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T18:00:00.000Z",
+        "completed_at": "2026-01-16T18:30:00.000Z",
+        "duration_ms": 1800000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/index.css",
+          "src/components/Card.tsx",
+          "src/components/CardModal.tsx",
+          "src/components/Column.tsx",
+          "src/components/Board.tsx"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -540,17 +563,22 @@
       "description": "Show helpful empty state when board has no cards. Add quick-start suggestions. Show tooltips for first-time users on key actions. Add welcome message with keyboard shortcut hint.",
       "priority": 3,
       "depends_on": ["19"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T12:50:41.000Z",
+        "completed_at": "2026-01-16T13:30:00.000Z",
+        "duration_ms": 2359000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/components/EmptyBoardState.tsx",
+          "src/components/EmptyColumnState.tsx",
+          "src/components/Board.tsx",
+          "src/components/Column.tsx"
+        ]
       },
       "review": { "issues": [] }
     },

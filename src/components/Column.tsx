@@ -1,14 +1,17 @@
 /**
  * Column component - vertical container for cards in a kanban column.
  * Displays column header with title and card count, scrollable card list,
- * and an add card button.
+ * and an add card button. Supports WIP (Work In Progress) limits with visual warnings.
+ * Supports drag-and-drop for column reordering.
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { Column as ColumnType, Card as CardType } from '../types';
 import { Card } from './Card';
+import { EmptyColumnState } from './EmptyColumnState';
 import { useBoardStore } from '../store/boardStore';
 
 interface ColumnProps {
@@ -18,30 +21,65 @@ interface ColumnProps {
   cards: CardType[];
   /** Optional callback when a card is clicked */
   onCardClick?: (cardId: string) => void;
+  /** Whether this is an overlay version (for drag preview) */
+  isOverlay?: boolean;
+  /** Index of the selected card for keyboard navigation (-1 if none) */
+  selectedCardIndex?: number;
 }
 
 /**
  * Column component that renders a vertical container with header,
- * scrollable card list, and add card button.
+ * scrollable card list, and add card button. Includes WIP limit display and warnings.
  */
-export function Column({ column, cards, onCardClick }: ColumnProps) {
-  // Make column droppable for card drag-and-drop
-  const { setNodeRef, isOver } = useDroppable({
+export function Column({ column, cards, onCardClick, isOverlay = false, selectedCardIndex = -1 }: ColumnProps) {
+  // Make column sortable for column drag-and-drop reordering
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setSortableNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: column.id,
+    data: {
+      type: 'column',
+      column,
+    },
+    disabled: isOverlay,
+  });
+
+  // Make column droppable for card drag-and-drop (for the card list area)
+  const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
+    id: `${column.id}-droppable`,
     data: {
       type: 'column',
       column,
     },
   });
 
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
   const [showMenu, setShowMenu] = useState(false);
   const [isAddingCard, setIsAddingCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
+  const [showWipSettings, setShowWipSettings] = useState(false);
+  const [wipLimitInput, setWipLimitInput] = useState(column.wipLimit?.toString() ?? '');
   const inputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const addCardInputRef = useRef<HTMLInputElement>(null);
+  const wipInputRef = useRef<HTMLInputElement>(null);
+
+  // Calculate WIP limit status
+  const cardCount = cards.length;
+  const hasWipLimit = column.wipLimit !== undefined && column.wipLimit !== null;
+  const isAtLimit = hasWipLimit && cardCount >= column.wipLimit!;
+  const isOverLimit = hasWipLimit && cardCount > column.wipLimit!;
 
   const updateColumn = useBoardStore((state) => state.updateColumn);
   const deleteColumn = useBoardStore((state) => state.deleteColumn);
@@ -78,6 +116,19 @@ export function Column({ column, cards, onCardClick }: ColumnProps) {
       addCardInputRef.current.focus();
     }
   }, [isAddingCard]);
+
+  // Focus WIP limit input when settings open
+  useEffect(() => {
+    if (showWipSettings && wipInputRef.current) {
+      wipInputRef.current.focus();
+      wipInputRef.current.select();
+    }
+  }, [showWipSettings]);
+
+  // Update local wipLimitInput when column.wipLimit changes
+  useEffect(() => {
+    setWipLimitInput(column.wipLimit?.toString() ?? '');
+  }, [column.wipLimit]);
 
   /**
    * Start editing the column title
@@ -135,6 +186,60 @@ export function Column({ column, cards, onCardClick }: ColumnProps) {
   };
 
   /**
+   * Open WIP limit settings
+   */
+  const handleOpenWipSettings = () => {
+    setShowMenu(false);
+    setWipLimitInput(column.wipLimit?.toString() ?? '');
+    setShowWipSettings(true);
+  };
+
+  /**
+   * Save the WIP limit
+   */
+  const handleSaveWipLimit = () => {
+    const trimmedInput = wipLimitInput.trim();
+    if (trimmedInput === '') {
+      // Clear WIP limit
+      updateColumn(column.id, { wipLimit: undefined });
+    } else {
+      const limit = parseInt(trimmedInput, 10);
+      if (!isNaN(limit) && limit > 0) {
+        updateColumn(column.id, { wipLimit: limit });
+      }
+    }
+    setShowWipSettings(false);
+  };
+
+  /**
+   * Clear/remove WIP limit
+   */
+  const handleClearWipLimit = () => {
+    updateColumn(column.id, { wipLimit: undefined });
+    setWipLimitInput('');
+    setShowWipSettings(false);
+  };
+
+  /**
+   * Cancel WIP limit editing
+   */
+  const handleCancelWipSettings = () => {
+    setWipLimitInput(column.wipLimit?.toString() ?? '');
+    setShowWipSettings(false);
+  };
+
+  /**
+   * Handle keyboard events for WIP limit input
+   */
+  const handleWipInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSaveWipLimit();
+    } else if (e.key === 'Escape') {
+      handleCancelWipSettings();
+    }
+  };
+
+  /**
    * Open the add card form
    */
   const handleStartAddCard = () => {
@@ -180,10 +285,54 @@ export function Column({ column, cards, onCardClick }: ColumnProps) {
     [handleAddCard, handleCancelAddCard]
   );
 
+  // Determine container styling based on WIP limit status
+  const getContainerClassName = () => {
+    let baseClass = `flex flex-col min-w-[300px] rounded-lg shadow
+      transition-all duration-200 ease-in-out
+      motion-reduce:transition-none
+      ${isDragging ? 'opacity-50 scale-[1.02]' : 'animate-column-enter'}
+      ${isOverlay ? 'shadow-xl ring-2 ring-blue-500 scale-[1.02]' : ''}`;
+    if (isOverLimit) {
+      return `${baseClass} bg-red-50 dark:bg-red-900/20 border-2 border-red-500 dark:border-red-400`;
+    } else if (isAtLimit) {
+      return `${baseClass} bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-500 dark:border-orange-400`;
+    }
+    return `${baseClass} bg-gray-100 dark:bg-gray-800`;
+  };
+
+  // Determine header styling based on WIP limit status
+  const getHeaderClassName = () => {
+    let baseClass = 'px-3 py-2 rounded-t-lg cursor-grab active:cursor-grabbing';
+    if (isOverLimit) {
+      return `${baseClass} bg-red-100 dark:bg-red-900/40`;
+    } else if (isAtLimit) {
+      return `${baseClass} bg-orange-100 dark:bg-orange-900/40`;
+    }
+    return `${baseClass} bg-gray-200 dark:bg-gray-700`;
+  };
+
+  // Determine card count badge styling based on WIP limit status
+  const getBadgeClassName = () => {
+    let baseClass = 'text-xs px-2 py-0.5 rounded-full flex items-center gap-1';
+    if (isOverLimit) {
+      return `${baseClass} text-red-700 dark:text-red-300 bg-red-200 dark:bg-red-800/50 font-semibold`;
+    } else if (isAtLimit) {
+      return `${baseClass} text-orange-700 dark:text-orange-300 bg-orange-200 dark:bg-orange-800/50 font-semibold`;
+    }
+    return `${baseClass} text-gray-500 dark:text-gray-400 bg-gray-300 dark:bg-gray-600`;
+  };
+
   return (
-    <div className="flex flex-col min-w-[300px] bg-gray-100 dark:bg-gray-800 rounded-lg shadow">
-      {/* Column Header */}
-      <div className="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-t-lg">
+    <div
+      ref={setSortableNodeRef}
+      style={style}
+      className={getContainerClassName()}
+    >
+      {/* Column Header - acts as drag handle */}
+      <div
+        {...attributes}
+        {...listeners}
+        className={getHeaderClassName()}>
         <div className="flex items-center justify-between">
           {isEditing ? (
             <input
@@ -205,8 +354,27 @@ export function Column({ column, cards, onCardClick }: ColumnProps) {
             </h2>
           )}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">
-              {cards.length}
+            {/* Card count badge with optional WIP limit display */}
+            <span
+              className={getBadgeClassName()}
+              title={hasWipLimit ? `${cardCount} of ${column.wipLimit} cards (WIP limit)` : `${cardCount} cards`}
+            >
+              {/* Warning icon when at or over limit */}
+              {isAtLimit && (
+                <svg
+                  className={`w-3 h-3 ${isOverLimit ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+              {/* Show "current/limit" format when WIP limit is set, otherwise just show count */}
+              {hasWipLimit ? `${cardCount}/${column.wipLimit}` : cardCount}
             </span>
             {/* Column Menu Button */}
             <div className="relative" ref={menuRef}>
@@ -226,7 +394,7 @@ export function Column({ column, cards, onCardClick }: ColumnProps) {
               </button>
               {/* Dropdown Menu */}
               {showMenu && (
-                <div className="absolute right-0 top-full mt-1 w-36 bg-white dark:bg-gray-700 rounded-md shadow-lg border border-gray-200 dark:border-gray-600 z-10">
+                <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-gray-700 rounded-md shadow-lg border border-gray-200 dark:border-gray-600 z-10">
                   <button
                     type="button"
                     onClick={handleStartEdit}
@@ -246,6 +414,26 @@ export function Column({ column, cards, onCardClick }: ColumnProps) {
                       />
                     </svg>
                     Rename
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleOpenWipSettings}
+                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                      />
+                    </svg>
+                    WIP Limit
                   </button>
                   <button
                     type="button"
@@ -274,24 +462,81 @@ export function Column({ column, cards, onCardClick }: ColumnProps) {
         </div>
       </div>
 
+      {/* WIP Limit Settings Modal */}
+      {showWipSettings && (
+        <div className="px-3 py-2 bg-gray-50 dark:bg-gray-750 border-b border-gray-200 dark:border-gray-600">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-medium text-gray-600 dark:text-gray-300">
+              Work In Progress Limit
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                ref={wipInputRef}
+                type="number"
+                min="1"
+                value={wipLimitInput}
+                onChange={(e) => setWipLimitInput(e.target.value)}
+                onKeyDown={handleWipInputKeyDown}
+                placeholder="No limit"
+                className="flex-1 px-2 py-1 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                type="button"
+                onClick={handleSaveWipLimit}
+                className="px-2 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                Save
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              {hasWipLimit && (
+                <button
+                  type="button"
+                  onClick={handleClearWipLimit}
+                  className="text-xs text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                >
+                  Remove limit
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleCancelWipSettings}
+                className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 ml-auto"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Scrollable Card List Area - droppable zone with SortableContext */}
       <div
-        ref={setNodeRef}
-        className={`flex-1 p-2 overflow-y-auto min-h-[200px] space-y-2 transition-colors ${
-          isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-        }`}
+        ref={setDroppableNodeRef}
+        className={`flex-1 p-2 overflow-y-auto min-h-[200px] space-y-2
+          transition-colors duration-200 ease-in-out
+          motion-reduce:transition-none
+          ${isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
       >
         <SortableContext
           items={cards.map((card) => card.id)}
           strategy={verticalListSortingStrategy}
         >
-          {cards.map((card) => (
-            <Card
-              key={card.id}
-              card={card}
-              onClick={() => onCardClick?.(card.id)}
+          {cards.length === 0 ? (
+            <EmptyColumnState
+              columnName={column.title}
+              onAddCard={handleStartAddCard}
             />
-          ))}
+          ) : (
+            cards.map((card, index) => (
+              <Card
+                key={card.id}
+                card={card}
+                onClick={() => onCardClick?.(card.id)}
+                isSelected={selectedCardIndex === index}
+              />
+            ))
+          )}
         </SortableContext>
       </div>
 
@@ -332,7 +577,10 @@ export function Column({ column, cards, onCardClick }: ColumnProps) {
           <button
             type="button"
             onClick={handleStartAddCard}
-            className="w-full flex items-center justify-center gap-1 py-2 px-3 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+            className="w-full flex items-center justify-center gap-1 py-2 px-3 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded
+              transition-all duration-200 ease-in-out
+              hover:shadow-sm
+              motion-reduce:transition-none"
           >
             <svg
               className="w-4 h-4"

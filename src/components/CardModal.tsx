@@ -169,7 +169,8 @@ export function CardModal({ card, onSave, onDelete, onClose }: CardModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 dark:bg-opacity-70"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 dark:bg-opacity-70
+        animate-backdrop-fade-in motion-reduce:animate-none"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
@@ -177,7 +178,9 @@ export function CardModal({ card, onSave, onDelete, onClose }: CardModalProps) {
     >
       <div
         ref={modalRef}
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto
+          animate-modal-scale-in motion-reduce:animate-none
+          transition-all duration-200 ease-out"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}

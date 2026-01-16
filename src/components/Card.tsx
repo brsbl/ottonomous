@@ -33,6 +33,8 @@ interface CardProps {
   onClick?: () => void;
   /** Whether to show just the overlay version (no drag) */
   isOverlay?: boolean;
+  /** Whether this card is currently selected via keyboard navigation */
+  isSelected?: boolean;
 }
 
 /**
@@ -65,7 +67,7 @@ function getDueDateStatus(dueDate: string): {
  * Card component that renders a task card with title, optional description preview,
  * colored label chips, and due date indicator. Supports drag-and-drop via @dnd-kit/sortable.
  */
-export function Card({ card, onClick, isOverlay = false }: CardProps) {
+export function Card({ card, onClick, isOverlay = false, isSelected = false }: CardProps) {
   const {
     attributes,
     listeners,
@@ -100,9 +102,14 @@ export function Card({ card, onClick, isOverlay = false }: CardProps) {
       style={style}
       {...attributes}
       {...listeners}
-      className={`bg-white dark:bg-gray-700 rounded-md shadow-sm p-3 cursor-pointer hover:shadow-md transition-shadow ${
-        isDragging ? 'opacity-50' : ''
-      } ${isOverlay ? 'shadow-lg ring-2 ring-blue-500' : ''} ${getPriorityBorderClass(card.priority)}`}
+      className={`bg-white dark:bg-gray-700 rounded-md shadow-sm p-3 cursor-pointer
+        transition-all duration-200 ease-in-out
+        hover:shadow-lg hover:-translate-y-0.5
+        motion-reduce:transition-none motion-reduce:hover:transform-none
+        ${isDragging ? 'opacity-50 scale-105' : 'animate-card-enter'}
+        ${isOverlay ? 'shadow-xl ring-2 ring-blue-500 scale-105' : ''}
+        ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-100 dark:ring-offset-gray-800 shadow-lg' : ''}
+        ${getPriorityBorderClass(card.priority)}`}
       onClick={onClick}
       role="button"
       tabIndex={0}
