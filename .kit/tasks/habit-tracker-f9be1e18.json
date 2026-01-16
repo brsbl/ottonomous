@@ -161,13 +161,13 @@
       "description": "Create src/components/HabitCard.tsx displaying habit name, description, StreakBadge, WeeklyHeatmap, and completion toggle button. Include edit and delete buttons.",
       "priority": 2,
       "depends_on": ["8", "10", "11"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "duration_ms": null,
-      "completed_at": null
+      "completed_at": "2026-01-15T19:54:30Z"
     },
     {
       "id": "13",
@@ -175,13 +175,13 @@
       "description": "Create src/components/HabitForm.tsx as a modal for adding/editing habits. Include name (required) and description fields. Support create and edit modes.",
       "priority": 2,
       "depends_on": ["8"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "duration_ms": null,
-      "completed_at": null
+      "completed_at": "2026-01-15T19:55:00Z"
     },
     {
       "id": "14",
@@ -189,13 +189,13 @@
       "description": "Create src/components/HabitList.tsx that renders all habits using HabitCard. Include empty state message when no habits exist.",
       "priority": 2,
       "depends_on": ["12"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "duration_ms": null,
-      "completed_at": null
+      "completed_at": "2026-01-15T19:55:30Z"
     },
     {
       "id": "15",
@@ -203,13 +203,13 @@
       "description": "Update src/App.tsx to compose all components: Header, HabitList, HabitForm. Wrap with HabitProvider. Add 'Add Habit' button to trigger form.",
       "priority": 3,
       "depends_on": ["9", "13", "14"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "duration_ms": null,
-      "completed_at": null
+      "completed_at": "2026-01-15T19:56:30Z"
     },
     {
       "id": "16",
@@ -217,13 +217,13 @@
       "description": "Add confirmation dialog when deleting a habit. Prevent accidental deletion of habits with history.",
       "priority": 3,
       "depends_on": ["12"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "duration_ms": null,
-      "completed_at": null
+      "completed_at": "2026-01-15T19:56:00Z"
     },
     {
       "id": "17",
@@ -231,13 +231,13 @@
       "description": "Test all user flows manually. Fix any styling issues. Ensure responsive design works on mobile. Verify localStorage persistence.",
       "priority": 3,
       "depends_on": ["15", "16"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "duration_ms": null,
-      "completed_at": null
+      "completed_at": "2026-01-15T19:57:00Z"
     }
   ]
 }

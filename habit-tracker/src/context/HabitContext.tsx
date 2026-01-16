@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef, type ReactNode } from 'react';
 import type { Habit, AppState, HabitAction } from '../types';
 import { saveHabits, loadHabits } from '../utils/storage';
 
@@ -80,6 +80,9 @@ function habitReducer(state: AppState, action: HabitAction): AppState {
   }
 }
 
+// Internal action type for tracking initialization
+type InternalAction = HabitAction | { type: '__INITIALIZED__' };
+
 // Context type
 interface HabitContextType {
   state: AppState;
@@ -97,6 +100,7 @@ interface HabitProviderProps {
 // HabitProvider component
 export function HabitProvider({ children }: HabitProviderProps) {
   const [state, dispatch] = useReducer(habitReducer, initialState);
+  const isInitialized = useRef(false);
 
   // Load habits from localStorage on mount
   useEffect(() => {
@@ -104,10 +108,16 @@ export function HabitProvider({ children }: HabitProviderProps) {
     if (habits.length > 0) {
       dispatch({ type: 'LOAD_HABITS', payload: habits });
     }
+    // Mark as initialized after loading
+    isInitialized.current = true;
   }, []);
 
-  // Save habits to localStorage on state change
+  // Save habits to localStorage on state change (only after initialization)
   useEffect(() => {
+    // Skip saving on initial mount to prevent overwriting stored data
+    if (!isInitialized.current) {
+      return;
+    }
     saveHabits(state.habits);
   }, [state.habits]);
 

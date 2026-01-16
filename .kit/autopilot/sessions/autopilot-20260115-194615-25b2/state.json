@@ -3,17 +3,17 @@
   "session_id": "autopilot-20260115-194615-25b2",
   "product_spec_id": "habit-tracker-f9be1e18",
   "status": "in_progress",
-  "current_phase": "execution",
+  "current_phase": "review",
 
   "timestamps": {
     "started_at": "2026-01-15T19:46:15Z",
     "last_heartbeat": "2026-01-15T19:47:00Z",
-    "last_checkpoint": null
+    "last_checkpoint": "2026-01-15T19:50:00Z"
   },
 
   "product_tasks": {
     "total": 17,
-    "completed": 7,
+    "completed": 17,
     "skipped": 0,
     "current_task_id": null,
     "current_task_started_at": null
@@ -27,13 +27,13 @@
 
   "guard_rails": {
     "consecutive_failures": 0,
-    "total_tasks_executed": 7,
+    "total_tasks_executed": 17,
     "feedback_rotations": 0
   },
 
   "recovery": {
     "can_resume": true,
-    "last_successful_task_id": "9",
+    "last_successful_task_id": "17",
     "last_error": null
   }
 }
