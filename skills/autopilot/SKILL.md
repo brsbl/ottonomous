@@ -99,23 +99,27 @@ Write to `.kit/autopilot/sessions/${session_id}/state.json`:
     "last_checkpoint": null
   },
 
+  // Product task counters - SOURCE OF TRUTH for product build progress
   "product_tasks": {
-    "total": 0,
-    "completed": 0,
-    "skipped": 0,
+    "total": 0,           // Total product tasks from spec
+    "completed": 0,       // SOURCE OF TRUTH: Count of product tasks with status "done"
+    "skipped": 0,         // Count of product tasks skipped due to blockers
     "current_task_id": null,
     "current_task_started_at": null
   },
 
+  // Improvement cycle tracking - separate from product tasks
   "improvement": {
     "cycles_run": 0,
     "max_cycles": 3,
-    "current_cycle_tasks_completed": 0
+    "current_cycle_tasks_completed": 0,  // Tracks improvement tasks only (resets each cycle)
+    "cycle_history": []
   },
 
+  // Guard rails - includes ALL execution attempts for safety limits
   "guard_rails": {
     "consecutive_failures": 0,
-    "total_tasks_executed": 0,
+    "total_tasks_executed": 0,  // Includes retries + improvement tasks (for max_tasks limit)
     "feedback_rotations": 0
   },
 
@@ -196,14 +200,25 @@ if [ -f "skills/dev-browser/server.sh" ]; then
 fi
 ```
 
-#### Step 0.7: Create Feature Branch
+#### Step 0.7: Start Dashboard Server
+
+```bash
+if [ -f ".kit/autopilot/dashboard-server.js" ]; then
+  node .kit/autopilot/dashboard-server.js --session ${session_id} --port 3456 &
+  echo $! > .kit/autopilot/sessions/${session_id}/dashboard.pid
+  sleep 1
+  echo "Dashboard: http://localhost:3456"
+fi
+```
+
+#### Step 0.8: Create Feature Branch
 
 ```bash
 branch_name="autopilot/${session_id}"
 git checkout -b ${branch_name}
 ```
 
-#### Step 0.8: Update State
+#### Step 0.9: Update State
 
 Update `state.json`:
 - `status`: "in_progress"
@@ -216,38 +231,33 @@ Announce: "Starting autonomous build session: {session_id}"
 
 ### Phase 1: Auto-Spec
 
-**Purpose:** Generate a complete specification without human interaction.
+**Purpose:** Generate a comprehensive specification with competitive research.
 
-#### Step 1.1: Research (Optional, via Dev-Browser)
+#### MANDATORY: Step 1.1 - Research Similar Products (Parallel)
 
-If the product idea involves UI or web technologies, invoke `/dev-browser` for research:
+Before generating spec, you MUST research competitors using WebSearch. Launch 2-3 search agents IN PARALLEL in a single message:
 
 ```
-Invoke Skill: skill="dev-browser"
+Use Task tool with subagent_type: "Explore" - launch all 3 in ONE message:
+
+Agent 1: "Search for 'best {product type} tools 2026' and list top 3 with their key features"
+Agent 2: "Search for '{product type} comparison' and summarize pros/cons of popular options"
+Agent 3: "Search for '{product type} user complaints reddit' to find common pain points"
 ```
 
-Once the dev-browser skill is loaded, write a script to research similar products:
+Wait for all 3 to complete, then synthesize findings into:
+`.kit/autopilot/sessions/${session_id}/research/competitors.md`
 
-```bash
-cd skills/dev-browser && npx tsx <<'EOF'
-import { connect, waitForPageLoad } from "@/client.js";
+```markdown
+## Competitive Research
 
-const client = await connect();
-const page = await client.page("{session_id}-research");
+| Product | Key Features | User Praise | User Complaints |
+|---------|--------------|-------------|-----------------|
+| {name} | {features} | {praise} | {complaints} |
 
-// Navigate to reference/competitor sites
-await page.goto("https://example-reference-site.com");
-await waitForPageLoad(page);
-
-// Capture screenshot for reference
-await page.screenshot({ path: "../../.kit/autopilot/sessions/{session_id}/research/screenshots/reference-1.png" });
-
-console.log({ title: await page.title(), url: page.url() });
-await client.disconnect();
-EOF
+### Differentiation Opportunity
+{How our product can be better}
 ```
-
-Save research artifacts to `.kit/autopilot/sessions/${session_id}/research/`
 
 #### Step 1.2: Extract Key Concepts
 
@@ -257,19 +267,69 @@ From the product idea, identify:
 - Technical constraints mentioned
 - Target users/use cases
 
-#### Step 1.3: Generate Spec Directly
+#### Step 1.3: Generate Comprehensive Spec
 
-Write a complete specification to `.kit/specs/{spec_id}.md` covering:
+Write specification to `.kit/specs/{spec_id}.md` with THREE feature tiers:
+
+```markdown
+## Features
+
+### Tier 1: Core (Must Have)
+Essential functionality that defines the product. Without these, it doesn't work.
+
+### Tier 2: Expected (Should Have)
+Features users would expect from a polished product. Missing these feels incomplete.
+
+### Tier 3: Delightful (Nice to Have)
+Features that differentiate from competitors. Surprise and delight users.
+```
+
+**Feature Categories to Consider by Product Type:**
+
+For CLI Tools:
+- [ ] Configuration file support (~/.{app}rc or config.yaml)
+- [ ] Environment variable overrides
+- [ ] Multiple output formats (table, json, csv)
+- [ ] Filtering and sorting options
+- [ ] Import/export functionality
+- [ ] Quiet/verbose flags
+
+For Web Apps:
+- [ ] User preferences/settings
+- [ ] Search and filtering
+- [ ] Loading states and error handling
+- [ ] Keyboard shortcuts
+- [ ] Dark mode
+
+For APIs:
+- [ ] Pagination
+- [ ] Filtering/sorting query params
+- [ ] Error response format
+- [ ] Health check endpoint
+
+**Spec must also include:**
 - Overview and goals
-- Core features (MVP scope)
 - Technical architecture
-- Data model
+- Data model with all fields
 - API/interface design
-- User flows (for dev-browser E2E testing later)
+- At least 3 user flows (for E2E testing)
+- Future Considerations (NOT "Non-Goals")
 
 Set `status: approved` in frontmatter.
 
-#### Step 1.4: Update State and Feedback
+#### Step 1.4: Spec Completeness Check
+
+⚠️ **STOP** - Before proceeding, verify spec has:
+- [ ] At least 8-12 distinct features (not just basic CRUD)
+- [ ] Configuration/customization options
+- [ ] Error handling strategy documented
+- [ ] At least 3 user flows
+- [ ] Data model with all fields
+- [ ] Edge cases identified
+
+**If spec has fewer than 8 features, expand it before continuing.**
+
+#### Step 1.5: Update State and Feedback
 
 Update `state.json`:
 - `product_spec_id`: "{spec_id}"
@@ -282,9 +342,10 @@ Append to feedback.md Phase 1 section:
 - **Duration:** {time}
 - **Outcome:** SUCCESS
 - **Spec ID:** {spec_id}
-- **Research:** {dev-browser invoked: yes/no}
+- **Research:** Analyzed {n} competitors (see research/competitors.md)
+- **Features:** {n} total ({tier1} core, {tier2} expected, {tier3} delightful)
 - **Observations:**
-  - Auto-selected {n} architectural decisions
+  - Differentiation: {key differentiator from research}
   - Identified {n} user flows for E2E testing
 ```
 
@@ -309,7 +370,7 @@ Create tasks following these principles:
 - **Prioritized:** P0 (setup) -> P1 (core) -> P2 (enhancement)
 - **UI-tagged:** Mark tasks that modify UI for visual verification
 
-Task schema with blocker support:
+Task schema with execution tracking and parallel groups:
 
 ```json
 {
@@ -326,12 +387,47 @@ Task schema with blocker support:
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
-      "duration_ms": null,
-      "completed_at": null
+
+      "execution": {
+        "started_at": null,
+        "completed_at": null,
+        "duration_ms": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "status": "success | failed",
+            "error": "string or null",
+            "started_at": "ISO8601",
+            "completed_at": "ISO8601",
+            "duration_ms": 45000
+          }
+        ],
+        "files_modified": []
+      },
+
+      "review": {
+        "issues": [
+          {
+            "severity": "P0 | P1 | P2 | P3",
+            "description": "Issue description",
+            "file": "path/to/file.ts",
+            "line": 15,
+            "suggested_fix": "Add null check",
+            "status": "pending | fixed | deferred"
+          }
+        ]
+      }
     }
+  ],
+
+  "parallel_groups": [
+    {"group": 1, "task_ids": ["2", "3"], "after": ["1"]},
+    {"group": 2, "task_ids": ["4", "5", "6", "7", "8"], "after": ["2", "3"]}
   ]
 }
 ```
+
+**Parallel Groups:** Explicitly identify which tasks can run concurrently. During execution, launch all tasks in a group with multiple Task tool calls in a single message.
 
 #### Step 2.3: Save Tasks
 
@@ -368,88 +464,116 @@ MAX_IMPROVEMENT_CYCLES = 3  # from config: max_improvement_cycles
 FEEDBACK_ROTATION_INTERVAL = 10  # from config: feedback_rotation_interval
 ```
 
-#### Main Execution Loop
+#### Main Execution Loop (Parallel Groups)
+
+Execute tasks by parallel groups. For each group, launch ALL tasks in a SINGLE message with multiple Task tool calls.
 
 ```
-while (product_tasks_remaining):
+for group in parallel_groups (sorted by group number):
 
     # --- GUARD RAILS ---
-    check_time_limit()      # Enforce max_duration_hours
-    check_task_limit()      # Enforce max_tasks
-    check_stall()           # Detect consecutive failures (5+)
+    check_time_limit()
+    check_task_limit()
+    check_stall()
 
-    # --- UPDATE HEARTBEAT ---
-    state.timestamps.last_heartbeat = now()
+    # --- WAIT FOR DEPENDENCIES ---
+    wait_for_tasks(group.after)  # Ensure prerequisite tasks completed
+
+    tasks_completed_before_group = state.product_tasks.completed  # Capture BEFORE execution
+
+    # --- EXECUTE GROUP IN PARALLEL ---
+    # Launch ALL tasks in this group with multiple Task tool calls in ONE message
+    tasks_in_group = get_tasks(group.task_ids)
+
+    Announce: "Executing parallel group {group.group}: tasks {group.task_ids}"
+
+    # Use Task tool multiple times in SINGLE message:
+    results = []
+    for task in tasks_in_group:
+        # Each of these Task tool calls goes in the SAME message
+        result = Task(subagent_type="general-purpose", prompt="Execute task {task.id}...")
+        results.append(result)
+
+    # --- PROCESS RESULTS ---
+    for task, result in zip(tasks_in_group, results):
+        task.execution.completed_at = now()
+        task.execution.duration_ms = result.duration
+
+        if result.success:
+            task.status = "done"
+            task.execution.files_modified = result.files_modified
+            task.execution.attempts.append({"attempt": 1, "status": "success"})
+            state.product_tasks.completed++
+            state.recovery.last_successful_task_id = task.id
+
+            if task.is_ui_task:
+                invoke_visual_verification(task)
+        else:
+            task.blocker_count++
+            task.execution.attempts.append({"attempt": 1, "status": "failed", "error": result.error})
+
+            if task.blocker_count >= max_blockers:
+                task.skipped = true
+                task.skip_reason = result.error
+                state.product_tasks.skipped++
+
+    state.guard_rails.total_tasks_executed += len(tasks_in_group)
+
+    save_tasks()
     save_state()
 
-    # --- SELECT NEXT TASK ---
-    task = select_next_product_task()  # lowest priority, then lowest ID, unblocked
+    # --- CHECKPOINT COMMIT ---
+    if state.product_tasks.completed % checkpoint_interval == 0:
+        perform_checkpoint_commit()
 
-    if task is None:
-        if all_tasks_done_or_skipped:
-            break
-        if all_remaining_blocked:
-            analyze_blockers()
-            break
+#### Checkpoint Commit
 
-    # --- SPAWN FRESH AGENT FOR TASK ---
-    state.product_tasks.current_task_id = task.id
-    state.product_tasks.current_task_started_at = now()
-    save_state()
+**IMPORTANT:** Only the orchestrator commits - subagents only stage changes. This prevents race conditions.
 
-    result = spawn_task_agent(task)
+```bash
+# Stage all changes from parallel group
+git add -A
 
-    # --- PROCESS RESULT ---
-    if result.success:
-        mark_task_done(task)
-        state.product_tasks.completed++
-        state.guard_rails.consecutive_failures = 0
-        state.recovery.last_successful_task_id = task.id
-        log_success_to_feedback(task, result)
+# Commit with descriptive message (use HEREDOC for multiline)
+git commit -m "$(cat <<'EOF'
+autopilot: checkpoint - {completed}/{total} tasks complete
 
-        # --- VISUAL VERIFICATION FOR UI TASKS ---
-        if task.is_ui_task:
-            invoke_visual_verification(task)
+Session: {session_id}
+Phase: execution
+Group: {group_number}
 
-        # --- CHECKPOINT COMMIT ---
-        if state.product_tasks.completed % checkpoint_interval == 0:
-            git_commit("checkpoint: completed {n} tasks")
-            state.timestamps.last_checkpoint = now()
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)" || true
+```
 
-    else:
-        task.blocker_count++
-        state.guard_rails.consecutive_failures++
-        log_failure_to_feedback(task, result.error)
+    # --- FEEDBACK ROTATION CHECK ---
+    if state.guard_rails.total_tasks_executed % FEEDBACK_ROTATION_INTERVAL == 0:
+        archive_feedback_batch()
+        state.guard_rails.feedback_rotations++
 
-        if task.blocker_count >= max_blockers:
-            task.skipped = true
-            task.skip_reason = result.error
-            state.product_tasks.skipped++
-            log_skip_to_feedback(task)
-
-    state.guard_rails.total_tasks_executed++
-    save_state()
-
-    # --- MILESTONE CHECK ---
-    tasks_completed = state.product_tasks.completed
+    # --- MANDATORY IMPROVEMENT CYCLE CHECK ---
+    # Track tasks_before_group at start of each group execution
+    previous_completed = tasks_completed_before_group
+    current_completed = state.product_tasks.completed
     cycles_run = state.improvement.cycles_run
 
-    if (tasks_completed % IMPROVEMENT_MILESTONE == 0
-        AND tasks_completed > 0
+    if (previous_completed // IMPROVEMENT_MILESTONE < current_completed // IMPROVEMENT_MILESTONE
         AND cycles_run < MAX_IMPROVEMENT_CYCLES):
 
+        ⚠️ STOP - DO NOT PROCEED TO NEXT GROUP
+        You MUST run the improvement cycle NOW.
+
+        Announce: "🔄 IMPROVEMENT CYCLE #{cycles_run + 1} - Analyzing workflow..."
         run_improvement_cycle()
         state.improvement.cycles_run++
         save_state()
 
-        # --- FEEDBACK ROTATION ---
-        if tasks_completed % FEEDBACK_ROTATION_INTERVAL == 0:
-            archive_feedback_batch()
-            state.guard_rails.feedback_rotations++
-            save_state()
+# --- MANDATORY FINAL IMPROVEMENT CYCLE ---
+⚠️ STOP - Before proceeding to Phase 4:
 
-# --- FINAL IMPROVEMENT CYCLE ---
 if state.improvement.cycles_run < MAX_IMPROVEMENT_CYCLES:
+    Announce: "🔄 FINAL IMPROVEMENT CYCLE - Last chance to improve workflow..."
     run_improvement_cycle()
     state.improvement.cycles_run++
     save_state()
@@ -541,48 +665,131 @@ function terminate_gracefully(reason):
     state.recovery.can_resume = true
     save_state()
     generate_partial_summary()
-    git_commit("autopilot: terminated ({reason})")
+
+    # Termination commit
+    ```bash
+    git add -A
+    git commit -m "$(cat <<'EOF'
+    autopilot: terminated ({reason})
+
+    Session: {session_id}
+    Tasks completed: {completed}/{total}
+    Can resume: true
+
+    Co-Authored-By: Claude <noreply@anthropic.com>
+    EOF
+    )" || true
+    ```
+
     announce("Session terminated: {reason}. Can resume from state.json.")
 ```
 
-#### Improvement Cycle
+#### Improvement Cycle (MUST Complete All Steps)
 
 ```
 function run_improvement_cycle():
     cycle_num = state.improvement.cycles_run + 1
-    announce("Running improvement cycle #{cycle_num}")
 
-    # 1. Analyze feedback (only if enough data)
-    if state.product_tasks.completed >= 3:
-        spawn_agent("""
-            Analyze .kit/autopilot/sessions/{session_id}/feedback.md
-            Identify:
-            - Friction points (retries, long operations)
-            - Repeated error patterns
-            - Missing capabilities
-            Generate .kit/autopilot/sessions/{session_id}/improvements.md
-        """)
+    # ============================================
+    # STEP 1: Analyze Feedback (REQUIRED)
+    # ============================================
+    Use Task tool:
+    - subagent_type: "general-purpose"
+    - prompt: """
+        Analyze the autopilot session feedback.
 
-    # 2. Validate improvements are actionable
-    improvements = read(".kit/autopilot/sessions/{session_id}/improvements.md")
-    if improvements has concrete suggestions:
+        Read: .kit/autopilot/sessions/{session_id}/feedback.md
+        Read: .kit/tasks/{spec_id}.json (check task.execution.attempts for retries)
 
-        # 3. Generate improvement tasks
-        spawn_agent("""
-            Read .kit/autopilot/sessions/{session_id}/improvements.md
-            Generate tasks for actionable improvements
-            Save to .kit/tasks/improvements-{cycle_num}.json
-            Limit to 5 tasks maximum
-        """)
+        Identify:
+        1. Tasks that required retries (look at attempts array)
+        2. Repeated error patterns
+        3. Long-running tasks (duration_ms > average)
+        4. Friction points in the workflow
 
-        # 4. Execute improvement tasks (max 5 per cycle)
-        improvement_tasks = read(".kit/tasks/improvements-{cycle_num}.json")
-        for task in improvement_tasks[:5]:
-            spawn_agent("Execute improvement task {id} from improvements-{cycle_num}.json")
-            state.improvement.current_cycle_tasks_completed++
-            save_state()
+        Write findings to: .kit/autopilot/sessions/{session_id}/improvements.md
 
-    state.improvement.current_cycle_tasks_completed = 0
+        Format:
+        ## Improvement Cycle {cycle_num}
+
+        ### Issues Found
+        | Issue | Affected Tasks | Severity |
+        |-------|----------------|----------|
+
+        ### Suggested Improvements
+        1. {actionable improvement}
+        2. {actionable improvement}
+      """
+
+    # ============================================
+    # STEP 2: Verify improvements.md Created (REQUIRED)
+    # ============================================
+    Read .kit/autopilot/sessions/{session_id}/improvements.md
+
+    If file is empty or missing:
+        Write: "## Improvement Cycle {cycle_num}\n\nNo improvements identified this cycle."
+        Log to state: {"cycle": cycle_num, "improvements_found": 0}
+        RETURN (cycle complete with no improvements)
+
+    # ============================================
+    # STEP 3: Generate Improvement Tasks (CONDITIONAL)
+    # ============================================
+    If improvements.md has actionable items:
+
+        Use Task tool:
+        - subagent_type: "general-purpose"
+        - prompt: """
+            Read: .kit/autopilot/sessions/{session_id}/improvements.md
+
+            Generate max 3 improvement tasks.
+            Save to: .kit/tasks/improvements-{cycle_num}.json
+
+            Task format:
+            {
+              "tasks": [
+                {"id": "imp-1", "title": "...", "description": "..."}
+              ]
+            }
+          """
+
+    # ============================================
+    # STEP 4: Execute Improvement Tasks (CONDITIONAL)
+    # ============================================
+    If .kit/tasks/improvements-{cycle_num}.json exists and has tasks:
+
+        For each task (max 3):
+            Use Task tool:
+            - subagent_type: "general-purpose"
+            - prompt: "Execute improvement task {id}: {description}"
+
+        Log results to feedback.md
+
+    # ============================================
+    # STEP 5: Update State (REQUIRED)
+    # ============================================
+    Add to state.improvement.cycle_history:
+    {
+      "cycle": cycle_num,
+      "triggered_after_task": state.product_tasks.completed,
+      "improvements_found": {count from improvements.md},
+      "tasks_executed": {count executed}
+    }
+```
+
+#### Improvement Cycle Commit
+
+```bash
+git add -A
+git commit -m "$(cat <<'EOF'
+autopilot: improvement cycle #{cycle_num}
+
+Improvements found: {improvements_found}
+Tasks executed: {tasks_executed}
+Session: {session_id}
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)" || true
 ```
 
 #### Feedback Rotation
@@ -600,6 +807,22 @@ function archive_feedback_batch():
     write_fresh_feedback_header(source)
 
     log("Rotated feedback.md to feedback-batch-{batch_num}.md")
+
+function write_fresh_feedback_header(path):
+    Write to {path}:
+    ---
+    session_id: {session_id}
+    product_idea: "{product_idea}"
+    started: {timestamp}
+    status: in_progress
+    batch: {batch_num + 1}
+    ---
+
+    # Feedback (continued)
+
+    ## Workflow Timeline
+    | Time | Task | Status | Duration | Notes |
+    |------|------|--------|----------|-------|
 ```
 
 ---
@@ -660,28 +883,77 @@ EOF
 
 Page naming convention: `{session_id}-e2e-{flow_name}`
 
-#### Step 4.2: Code Review
+#### Step 4.2: Code Review (Parallel by Component)
 
-Spawn fresh agent for code review:
+Launch multiple review agents IN PARALLEL in a single message, split by file groups:
 
 ```
-Execute code review for session {session_id}.
+# Get list of modified files
+files = git diff --name-only main...HEAD
 
-Scope: git diff main...HEAD
-Mode: AUTO_MODE (auto-approve P0/P1 fixes)
+# Group files by component
+command_files = files matching src/commands/*
+storage_files = files matching src/storage* or src/types*
+util_files = files matching src/utils/*
+other_files = remaining files
 
-Process:
-1. Run code review on branch diff
-2. For P0 issues: Attempt fix immediately
-3. For P1 issues: Attempt fix immediately
-4. For P2/P3 issues: Log as known issues, skip
-5. Save review to .kit/reviews/{session_id}.md
-6. Stage changes: git add -A
+# Launch parallel review agents in ONE message:
+Use Task tool (multiple calls in single message):
 
-Return: {"p0_fixed": n, "p1_fixed": n, "p2_deferred": n, "p3_deferred": n}
+Agent 1: "Review {command_files} for code issues. Return JSON with issues array."
+Agent 2: "Review {storage_files} for code issues. Return JSON with issues array."
+Agent 3: "Review {util_files} for code issues. Return JSON with issues array."
+
+# Wait for all to complete, then merge results
 ```
 
-#### Step 4.3: Auto-Fix Critical Issues
+Each agent returns:
+```json
+{
+  "issues": [
+    {
+      "file": "src/commands/add.ts",
+      "line": 15,
+      "severity": "P1",
+      "description": "Missing null check",
+      "suggested_fix": "Add if (!text) return"
+    }
+  ]
+}
+```
+
+#### Helper: find_task_by_file
+
+```
+function find_task_by_file(file_path):
+    for task in tasks:
+        if file_path in task.execution.files_modified:
+            return task
+    return null  # Orphan issue - file not tracked to any task
+```
+
+#### Step 4.3: Associate Issues with Tasks
+
+For each issue found, link it to the task that created the file:
+
+```
+for issue in all_issues:
+    task = find_task_by_file(issue.file)
+    if task is None:
+        # Orphan issue - log to session-level review
+        session_orphan_issues.append(issue)
+        continue
+    task.review.issues.append({
+      "severity": issue.severity,
+      "description": issue.description,
+      "line": issue.line,
+      "status": "pending"
+    })
+
+save_tasks()
+```
+
+#### Step 4.4: Auto-Fix P0/P1 Issues
 
 For each P0/P1 issue, spawn a fresh agent:
 
@@ -701,16 +973,26 @@ Instructions:
 Return: {"success": bool, "error": "string or null"}
 ```
 
+If fix succeeds, update the task's review issue status to "fixed".
 If fix fails, log to feedback.md and continue (do not block).
 
-#### Step 4.4: Final Commit
+#### Step 4.5: Final Commit
 
 ```bash
 git add -A
-git commit -m "autopilot: complete - {completed}/{total} tasks, {fixes} fixes applied"
+git commit -m "$(cat <<'EOF'
+autopilot: complete - {completed}/{total} tasks, {fixes} fixes applied
+
+Session: {session_id}
+Phase: review complete
+Improvement cycles: {cycles_run}/{max_cycles}
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
 ```
 
-#### Step 4.5: Update State
+#### Step 4.6: Update State
 
 Update `state.json`:
 - `status`: "completed"
@@ -723,18 +1005,25 @@ Update `state.json`:
 
 **Purpose:** Generate final summary and cleanup.
 
-#### Step 5.1: Stop Dev-Browser Server
+#### Step 5.1: Stop Servers
 
 ```bash
+# Stop dev-browser server
 if [ -f ".kit/autopilot/sessions/${session_id}/dev-browser.pid" ]; then
   kill $(cat .kit/autopilot/sessions/${session_id}/dev-browser.pid) 2>/dev/null || true
   rm .kit/autopilot/sessions/${session_id}/dev-browser.pid
 fi
+
+# Stop dashboard server
+if [ -f ".kit/autopilot/sessions/${session_id}/dashboard.pid" ]; then
+  kill $(cat .kit/autopilot/sessions/${session_id}/dashboard.pid) 2>/dev/null || true
+  rm .kit/autopilot/sessions/${session_id}/dashboard.pid
+fi
 ```
 
-#### Step 5.2: Generate Summary
+#### Step 5.2: Generate Task-Centric Summary
 
-Write session summary to feedback.md:
+Write session summary to feedback.md. All metrics roll up FROM task data.
 
 ```markdown
 ## Session Complete
@@ -743,37 +1032,85 @@ Write session summary to feedback.md:
 **Duration:** {total time}
 **Branch:** autopilot/{session_id}
 
-### Results
+### Session Summary
+
 | Metric | Value |
 |--------|-------|
-| Tasks completed | {n}/{total} |
-| Tasks skipped | {n} |
-| Improvement cycles | {n}/3 |
-| Code review findings | P0:{n} P1:{n} P2:{n} P3:{n} |
-| Fixes applied | {n} |
-| Visual verifications | {n} |
-| E2E tests | {pass}/{total} |
+| Tasks | {completed}/{total} completed, {skipped} skipped |
+| Duration | {total time} |
+| Improvement cycles | {cycles_run}/{possible_cycles} possible (max 3) |
+| Code review | {total_issues} issues found, {fixed_count} fixed |
+| Commits | {n} |
 
-### Files Created/Modified
-{list of significant files from git diff --stat}
+### Task Execution Details
+
+| # | Task | Status | Duration | Retries | Review Issues | Notes |
+|---|------|--------|----------|---------|---------------|-------|
+{for each task in tasks:}
+| {id} | {title} | {status_icon} | {duration} | {attempts.length - 1} | {review.issues summary} | {notes} |
+{end for}
+
+**Legend:** ✓ = completed, ✗ = failed, ⊘ = skipped
+
+### Tasks with Issues (Expanded)
+
+{for each task with retries > 0 or review.issues.length > 0:}
+
+#### Task {id}: {title}
+
+| Metric | Value |
+|--------|-------|
+| Status | {status} |
+| Duration | {duration} |
+| Files modified | {files list} |
+
+{if attempts.length > 1:}
+**Retry Details:**
+{for each attempt:}
+- Attempt {n}: {status} - {error if failed}
+{end for}
+{end if}
+
+{if review.issues.length > 0:}
+**Code Review Issues:**
+| Severity | Issue | Status |
+|----------|-------|--------|
+{for each issue:}
+| {severity} | {description} | {status} |
+{end for}
+{end if}
+
+---
+{end for}
+
+### Improvement Cycles
+
+| Cycle | Triggered After | Improvements Found | Tasks Executed |
+|-------|-----------------|-------------------|----------------|
+{for each cycle in cycle_history:}
+| {cycle} | Task {triggered_after_task} | {improvements_found} | {tasks_executed} |
+{end for}
+
+### Code Review Summary
+
+| Severity | Found | Fixed | Deferred | Tasks Affected |
+|----------|-------|-------|----------|----------------|
+| P0 (Critical) | {n} | {n} | {n} | {task_ids} |
+| P1 (High) | {n} | {n} | {n} | {task_ids} |
+| P2 (Medium) | {n} | {n} | {n} | {task_ids} |
+| P3 (Low) | {n} | {n} | {n} | {task_ids} |
+| **Total** | **{n}** | **{n}** | **{n}** | |
 
 ### Artifacts
 - Spec: `.kit/specs/{spec_id}.md`
 - Tasks: `.kit/tasks/{spec_id}.json`
+- Research: `.kit/autopilot/sessions/{session_id}/research/competitors.md`
 - State: `.kit/autopilot/sessions/{session_id}/state.json`
-- Feedback: `.kit/autopilot/sessions/{session_id}/feedback.md`
-- Improvements: `.kit/autopilot/sessions/{session_id}/improvements.md`
-- E2E Report: `.kit/autopilot/sessions/{session_id}/e2e-report.md`
-- Review: `.kit/reviews/{session_id}.md`
-- Visual Checks: `.kit/autopilot/sessions/{session_id}/visual-checks/`
-- Research: `.kit/autopilot/sessions/{session_id}/research/`
 
 ### Suggested Next Steps
 1. Review the generated code on branch `autopilot/{session_id}`
 2. Run tests: `{test command}`
-3. Review E2E report for visual regressions
-4. Review improvement suggestions in `improvements.md`
-5. Create PR: `gh pr create`
+3. Create PR: `gh pr create`
 ```
 
 #### Step 5.3: Announce Completion
@@ -819,7 +1156,15 @@ Review artifacts in .kit/autopilot/sessions/{session_id}/
   "improvement": {
     "cycles_run": 1,
     "max_cycles": 3,
-    "current_cycle_tasks_completed": 0
+    "current_cycle_tasks_completed": 0,
+    "cycle_history": [
+      {
+        "cycle": 1,
+        "triggered_after_task": 5,
+        "improvements_found": 2,
+        "tasks_executed": 2
+      }
+    ]
   },
 
   "guard_rails": {
@@ -832,6 +1177,12 @@ Review artifacts in .kit/autopilot/sessions/{session_id}/
     "can_resume": true,
     "last_successful_task_id": "3",
     "last_error": null
+  },
+
+  "commits": {
+    "total": 0,
+    "last_commit_sha": null,
+    "history": []
   }
 }
 ```
@@ -846,8 +1197,34 @@ When `/autopilot` is invoked, check for existing session:
    - Task likely hung, reset current task to "pending"
 3. If recovery.can_resume is true:
    - Offer to resume from last_successful_task_id
-4. Resume execution loop from saved state
+4. Run state consistency verification
+5. Resume execution loop from saved state
 ```
+
+### State Consistency Verification
+
+On resume, verify state.json matches the tasks file to detect and fix any drift:
+
+```
+function verify_state_consistency():
+    tasks_data = readJson(".kit/tasks/{spec_id}.json")
+    state = readJson("state.json")
+
+    actual_completed = tasks_data.tasks.filter(t => t.status === "done").length
+    actual_skipped = tasks_data.tasks.filter(t => t.skipped === true).length
+
+    if actual_completed != state.product_tasks.completed:
+        log.warn("State inconsistency: completed count mismatch (state: {state}, actual: {actual})")
+        state.product_tasks.completed = actual_completed
+
+    if actual_skipped != state.product_tasks.skipped:
+        log.warn("State inconsistency: skipped count mismatch")
+        state.product_tasks.skipped = actual_skipped
+
+    save_state()
+```
+
+Run this check during Phase 0 if resuming an existing session, before continuing execution.
 
 ---
 

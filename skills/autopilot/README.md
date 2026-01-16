@@ -10,14 +10,13 @@ Fully autonomous product development from idea to working code with milestone-ba
 
 ## What It Does
 
-1. **Generates specification** from your product idea (with optional research via dev-browser)
-2. **Breaks into atomic tasks** with dependencies and priorities
-3. **Executes tasks** with fresh subagents (isolated context per task)
-4. **Self-improves** at milestones (every 5 tasks, max 3 cycles)
-5. **Verifies UI changes** with dev-browser screenshots
-6. **Runs E2E tests** via dev-browser before final review
-7. **Code reviews** and auto-fixes P0/P1 issues
-8. **Generates summary** with artifacts and next steps
+1. **Researches competitors** via web search (MANDATORY - finds 2+ similar products)
+2. **Generates comprehensive spec** with 3 feature tiers (Core/Expected/Delightful)
+3. **Breaks into atomic tasks** with parallel groups for concurrent execution
+4. **Executes tasks in parallel** where possible (multiple Task tool calls per message)
+5. **Self-improves** at milestones (MANDATORY cycles every 5 tasks, max 3 cycles)
+6. **Code reviews in parallel** by component, associates issues with tasks
+7. **Generates task-centric report** with per-task metrics and rollup summaries
 
 ## Key Features
 
@@ -45,7 +44,30 @@ autopilot:
   max_improvement_cycles: 3 # Cap improvement cycles per session
   max_tasks: 50             # Safety limit on total tasks
   max_duration_hours: 4     # Time limit for session
+  feedback_rotation_interval: 10
 ```
+
+## Live Dashboard
+
+Autopilot includes a real-time web dashboard that shows progress during execution.
+
+```
+┌────────────────────────────────────────────────────────────┐
+│ 🚀 Autopilot: cli-todo-app          Session: autopilot-... │
+│ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ │
+│ Phase: [■■■■□] Execution    Duration: 2m 34s    Status: ● │
+│                                                            │
+│ Tasks: 7/10 ████████░░  Cycles: 1/2  Issues: 3 found, 1 fix│
+└────────────────────────────────────────────────────────────┘
+```
+
+The dashboard starts automatically and is available at `http://localhost:3456`
+
+Features:
+- Real-time task progress with status indicators
+- Improvement cycle tracking
+- Code review issue summary
+- Per-task drill-down for retries and issues
 
 ## Session Artifacts
 
@@ -54,11 +76,11 @@ Each session creates artifacts in `.kit/autopilot/sessions/{session-id}/`:
 | File | Description |
 |------|-------------|
 | `state.json` | Orchestrator state (for recovery) |
-| `feedback.md` | Workflow observations |
+| `feedback.md` | Task-centric execution report |
 | `improvements.md` | Generated improvement suggestions |
+| `research/competitors.md` | Competitive research from web search |
 | `e2e-report.md` | E2E test results |
 | `visual-checks/` | UI verification screenshots |
-| `research/` | Research screenshots |
 
 ## Dev-Browser Integration
 
@@ -117,34 +139,42 @@ Task 6 → Task 7 → Task 8 → Task 9 → Task 10
 ```
 Starting autonomous build session: autopilot-20260115-143022-a3b2
 
-[Phase 1] Generating specification...
-  - Product type: CLI application
+[Phase 1] Researching & generating specification...
+  - Researched 3 competitors (see research/competitors.md)
+  - Features: 12 total (5 core, 4 expected, 3 delightful)
   - Generated spec: cli-weather-app-f2e1
 
 [Phase 2] Breaking into tasks...
-  - Created 8 tasks (5 parallel, 3 sequential)
+  - Created 10 tasks
+  - Parallel groups: [2,3] [4,5,6,7,8]
 
 [Phase 3] Executing tasks...
-  - Task 1: Set up project structure... SUCCESS
-  - Task 2: Implement API client... SUCCESS
-  - Task 3: Implement CLI parser... SUCCESS
-  - Task 4: Implement display... SUCCESS
-  - Task 5: Add color output... SUCCESS
-    [MILESTONE] Running improvement cycle #1
-
-  - Task 6: Add error handling... SUCCESS
-  - Task 7: Add loading spinner... SUCCESS
-    [UI task] Visual verification captured
-  - Task 8: Add help command... SUCCESS
+  - Group 0: Task 1 (setup)... SUCCESS (45s)
+  - Group 1: Tasks 2,3 (parallel)... SUCCESS (38s, 42s)
+  - Group 2: Tasks 4,5,6,7,8 (parallel)... SUCCESS
+    🔄 IMPROVEMENT CYCLE #1 - Analyzing workflow...
+    - Found 2 issues, executed 2 improvements
+  - Group 3: Tasks 9,10 (parallel)... SUCCESS
+    🔄 FINAL IMPROVEMENT CYCLE - Last chance to improve...
 
 [Phase 4] Running final review...
-  - E2E testing: 3/3 flows passed
-  - Code review: P0:0 P1:1 P2:2 P3:1
-  - Fixed P1: Missing null check
+  - Code review (3 parallel agents): 7 issues found
+  - Fixed 2/2 P0+P1 issues, deferred 5 P2/P3
 
 Session complete!
-- Tasks: 8/8 completed
+- Tasks: 10/10 completed, 0 skipped
+- Improvement cycles: 2/2 possible (max 3)
+- Code review: 7 issues, 2 fixed
 - Branch: autopilot/autopilot-20260115-143022-a3b2
+
+## Task Execution Details
+
+| # | Task | Status | Duration | Retries | Review Issues |
+|---|------|--------|----------|---------|---------------|
+| 1 | Initialize project | ✓ | 45s | 0 | - |
+| 2 | Implement types | ✓ | 38s | 0 | - |
+| 3 | Implement storage | ✓ | 42s | 1 | P2: validation |
+| ... | ... | ... | ... | ... | ... |
 ```
 
 ## Recovery
