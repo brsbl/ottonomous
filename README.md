@@ -32,7 +32,8 @@ Step-by-step control over each phase:
 /next              # 3. Execute next task
 /test              # 4. Run tests + visual verification
 /review            # 5. Review for bugs
-/summary           # 6. Document changes
+/summary           # 6. Overview of changes
+/log           # 6. Document changes
 ```
 
 ### Ottonomous Workflow
