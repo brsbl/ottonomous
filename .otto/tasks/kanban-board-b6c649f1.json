@@ -183,17 +183,21 @@
       "description": "Install @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities. Create DndContext wrapper in Board component. Set up sensors for pointer and keyboard.",
       "priority": 1,
       "depends_on": ["7"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": false,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T12:50:41.000Z",
+        "completed_at": "2026-01-16T12:55:00.000Z",
+        "duration_ms": 259000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "package.json",
+          "package-lock.json",
+          "src/components/Board.tsx"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -203,17 +207,21 @@
       "description": "Make cards draggable with useSortable. Make columns droppable. Handle onDragEnd to move cards between columns. Update store on drop. Show drag overlay.",
       "priority": 1,
       "depends_on": ["8"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T13:55:00.000Z",
+        "completed_at": "2026-01-16T14:10:00.000Z",
+        "duration_ms": 900000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/components/Card.tsx",
+          "src/components/Column.tsx",
+          "src/components/Board.tsx"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -243,17 +251,20 @@
       "description": "Create src/components/CardModal.tsx - modal overlay with card title (editable), description (textarea), labels, priority, due date. Include save and delete buttons. Close on Escape or backdrop click.",
       "priority": 1,
       "depends_on": ["7"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T13:00:00.000Z",
+        "completed_at": "2026-01-16T13:10:00.000Z",
+        "duration_ms": 600000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/components/CardModal.tsx",
+          "src/components/Board.tsx"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -263,17 +274,20 @@
       "description": "Add 'Add card' button to Column. On click, show inline input or quick-add modal. Create card with title, add to column. Focus input on open.",
       "priority": 1,
       "depends_on": ["11"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T13:45:00.000Z",
+        "completed_at": "2026-01-16T13:50:00.000Z",
+        "duration_ms": 300000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/components/Column.tsx",
+          "src/components/Board.tsx"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -327,17 +341,21 @@
       "description": "Create labels store (predefined colors). Add label picker in CardModal. Show labels on Card component as colored chips. Allow creating custom labels.",
       "priority": 2,
       "depends_on": ["11"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T13:50:00.000Z",
+        "completed_at": "2026-01-16T13:55:00.000Z",
+        "duration_ms": 300000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/store/boardStore.ts",
+          "src/components/CardModal.tsx",
+          "src/components/Board.tsx"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -347,17 +365,21 @@
       "description": "Add priority field to cards (low, medium, high, urgent). Add priority picker in CardModal. Show priority indicator on Card (colored left border or icon). Sort cards by priority option.",
       "priority": 2,
       "depends_on": ["11"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T13:45:00.000Z",
+        "completed_at": "2026-01-16T13:55:00.000Z",
+        "duration_ms": 600000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/components/CardModal.tsx",
+          "src/components/Card.tsx",
+          "src/components/Board.tsx"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -427,17 +449,20 @@
       "description": "Add dueDate field to cards. Add date picker in CardModal. Show due date on Card with visual indicator. Highlight overdue cards (red text/border). Show 'due soon' for items due within 24h.",
       "priority": 2,
       "depends_on": ["11"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T13:40:00.000Z",
+        "completed_at": "2026-01-16T13:50:00.000Z",
+        "duration_ms": 600000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/components/CardModal.tsx",
+          "src/components/Card.tsx"
+        ]
       },
       "review": { "issues": [] }
     },

@@ -1,22 +1,88 @@
 /**
  * Card component - displays a single kanban card with title, description preview,
- * and labels.
+ * labels, due date indicator, and priority indicator.
  */
 
-import type { Card as CardType } from '../types';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import type { Card as CardType, Priority } from '../types';
+
+/**
+ * Get the left border color class based on priority level
+ * Colors: green=low, yellow=medium, orange=high, red=urgent
+ */
+function getPriorityBorderClass(priority: Priority | undefined): string {
+  switch (priority) {
+    case 'low':
+      return 'border-l-4 border-l-green-500';
+    case 'medium':
+      return 'border-l-4 border-l-yellow-500';
+    case 'high':
+      return 'border-l-4 border-l-orange-500';
+    case 'urgent':
+      return 'border-l-4 border-l-red-500';
+    default:
+      return '';
+  }
+}
 
 interface CardProps {
   /** The card data to display */
   card: CardType;
   /** Callback when the card is clicked */
   onClick?: () => void;
+  /** Whether to show just the overlay version (no drag) */
+  isOverlay?: boolean;
+}
+
+/**
+ * Get due date status and styling information
+ */
+function getDueDateStatus(dueDate: string): {
+  isOverdue: boolean;
+  isDueSoon: boolean;
+  formattedDate: string;
+} {
+  const due = new Date(dueDate + 'T23:59:59'); // End of the due day
+  const now = new Date();
+  const diffMs = due.getTime() - now.getTime();
+  const diffHours = diffMs / (1000 * 60 * 60);
+
+  const isOverdue = diffMs < 0;
+  const isDueSoon = !isOverdue && diffHours <= 24;
+
+  // Format date as "Jan 20" style
+  const dateObj = new Date(dueDate);
+  const formattedDate = dateObj.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+
+  return { isOverdue, isDueSoon, formattedDate };
 }
 
 /**
  * Card component that renders a task card with title, optional description preview,
- * and colored label chips.
+ * colored label chips, and due date indicator. Supports drag-and-drop via @dnd-kit/sortable.
  */
-export function Card({ card, onClick }: CardProps) {
+export function Card({ card, onClick, isOverlay = false }: CardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: card.id,
+    disabled: isOverlay,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   /**
    * Truncate text to a maximum length, adding ellipsis if truncated.
    */
@@ -25,9 +91,18 @@ export function Card({ card, onClick }: CardProps) {
     return text.slice(0, maxLength).trim() + '...';
   };
 
+  // Calculate due date status if present
+  const dueDateStatus = card.dueDate ? getDueDateStatus(card.dueDate) : null;
+
   return (
     <div
-      className="bg-white dark:bg-gray-700 rounded-md shadow-sm p-3 cursor-pointer hover:shadow-md transition-shadow"
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`bg-white dark:bg-gray-700 rounded-md shadow-sm p-3 cursor-pointer hover:shadow-md transition-shadow ${
+        isDragging ? 'opacity-50' : ''
+      } ${isOverlay ? 'shadow-lg ring-2 ring-blue-500' : ''} ${getPriorityBorderClass(card.priority)}`}
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -63,6 +138,53 @@ export function Card({ card, onClick }: CardProps) {
               {label.name}
             </span>
           ))}
+        </div>
+      )}
+
+      {/* Due Date indicator */}
+      {dueDateStatus && (
+        <div className="mt-2 flex items-center gap-1">
+          <svg
+            className={`w-3.5 h-3.5 ${
+              dueDateStatus.isOverdue
+                ? 'text-red-500 dark:text-red-400'
+                : dueDateStatus.isDueSoon
+                ? 'text-orange-500 dark:text-orange-400'
+                : 'text-gray-400 dark:text-gray-500'
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          <span
+            className={`text-xs font-medium ${
+              dueDateStatus.isOverdue
+                ? 'text-red-600 dark:text-red-400'
+                : dueDateStatus.isDueSoon
+                ? 'text-orange-600 dark:text-orange-400'
+                : 'text-gray-500 dark:text-gray-400'
+            }`}
+            title={
+              dueDateStatus.isOverdue
+                ? 'Overdue'
+                : dueDateStatus.isDueSoon
+                ? 'Due soon'
+                : `Due ${dueDateStatus.formattedDate}`
+            }
+          >
+            {dueDateStatus.isOverdue
+              ? `Overdue: ${dueDateStatus.formattedDate}`
+              : dueDateStatus.isDueSoon
+              ? `Due soon: ${dueDateStatus.formattedDate}`
+              : `Due ${dueDateStatus.formattedDate}`}
+          </span>
         </div>
       )}
     </div>

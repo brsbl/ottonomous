@@ -4,10 +4,24 @@
  */
 
 import { useRef, useState, useEffect } from 'react';
+import {
+  DndContext,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+} from '@dnd-kit/core';
 import { useBoardStore } from '../store/boardStore';
 import { useThemeStore, initializeTheme } from '../store/themeStore';
 import { Column } from './Column';
+import { CardModal } from './CardModal';
+import { Card as CardComponent } from './Card';
 import { exportBoard, importBoard } from '../utils/exportImport';
+import type { Card } from '../types';
 
 /**
  * Board layout component that renders the board header and columns container.
@@ -17,13 +31,118 @@ export function Board() {
   const board = useBoardStore((state) => state.board);
   const cards = useBoardStore((state) => state.cards);
   const addColumn = useBoardStore((state) => state.addColumn);
+  const updateCard = useBoardStore((state) => state.updateCard);
+  const deleteCard = useBoardStore((state) => state.deleteCard);
+  const moveCard = useBoardStore((state) => state.moveCard);
   const theme = useThemeStore((state) => state.theme);
   const toggleTheme = useThemeStore((state) => state.toggleTheme);
+
+  // State for tracking selected card for modal
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const selectedCard: Card | null = selectedCardId ? cards[selectedCardId] ?? null : null;
+
+  // State for tracking the currently dragging card for DragOverlay
+  const [activeCardId, setActiveCardId] = useState<string | null>(null);
+  const activeCard: Card | null = activeCardId ? cards[activeCardId] ?? null : null;
 
   // Initialize theme on mount
   useEffect(() => {
     initializeTheme();
   }, []);
+
+  // Configure drag-and-drop sensors for pointer and keyboard interactions
+  const pointerSensor = useSensor(PointerSensor, {
+    activationConstraint: {
+      distance: 8, // Require 8px movement before drag starts (prevents accidental drags)
+    },
+  });
+  const keyboardSensor = useSensor(KeyboardSensor);
+  const sensors = useSensors(pointerSensor, keyboardSensor);
+
+  /**
+   * Find which column a card belongs to
+   */
+  const findColumnForCard = (cardId: string): string | null => {
+    for (const column of board.columns) {
+      if (column.cardIds.includes(cardId)) {
+        return column.id;
+      }
+    }
+    return null;
+  };
+
+  /**
+   * Handle drag start event - track the active dragging card for overlay
+   */
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveCardId(active.id as string);
+  };
+
+  /**
+   * Handle drag end event - move card to new position/column
+   */
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    // Clear the active card for overlay
+    setActiveCardId(null);
+
+    if (!over) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // Find source column for the dragged card
+    const sourceColumnId = findColumnForCard(activeId);
+    if (!sourceColumnId) return;
+
+    // Determine the destination column and index
+    let destinationColumnId: string;
+    let destinationIndex: number;
+
+    // Check if dropping over another card
+    const overCardColumnId = findColumnForCard(overId);
+    if (overCardColumnId) {
+      // Dropping over a card - insert at that card's position
+      destinationColumnId = overCardColumnId;
+      const targetColumn = board.columns.find((col) => col.id === overCardColumnId);
+      if (targetColumn) {
+        destinationIndex = targetColumn.cardIds.indexOf(overId);
+        // If dragging down within the same column, adjust index
+        if (sourceColumnId === destinationColumnId) {
+          const sourceIndex = targetColumn.cardIds.indexOf(activeId);
+          if (sourceIndex < destinationIndex) {
+            destinationIndex = destinationIndex;
+          }
+        }
+      } else {
+        return;
+      }
+    } else {
+      // Dropping over a column (empty area)
+      destinationColumnId = overId;
+      const targetColumn = board.columns.find((col) => col.id === overId);
+      if (targetColumn) {
+        // Append to end of column
+        destinationIndex = targetColumn.cardIds.length;
+      } else {
+        return;
+      }
+    }
+
+    // Only move if something changed
+    if (
+      sourceColumnId === destinationColumnId &&
+      board.columns.find((c) => c.id === sourceColumnId)?.cardIds.indexOf(activeId) ===
+        destinationIndex
+    ) {
+      return;
+    }
+
+    // Move the card
+    moveCard(activeId, sourceColumnId, destinationColumnId, destinationIndex);
+  };
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isAddingColumn, setIsAddingColumn] = useState(false);
@@ -41,9 +160,40 @@ export function Board() {
    * Get cards for a specific column by resolving card IDs to Card objects.
    */
   const getColumnCards = (cardIds: string[]) => {
-    return cardIds
-      .map((id) => cards[id])
-      .filter((card) => card !== undefined);
+    return cardIds.map((id) => cards[id]).filter((card) => card !== undefined);
+  };
+
+  /**
+   * Handle card click - open the card modal
+   */
+  const handleCardClick = (cardId: string) => {
+    setSelectedCardId(cardId);
+  };
+
+  /**
+   * Handle card modal close
+   */
+  const handleCloseModal = () => {
+    setSelectedCardId(null);
+  };
+
+  /**
+   * Handle card save from modal
+   */
+  const handleSaveCard = (updates: Partial<Card>) => {
+    if (selectedCardId) {
+      updateCard(selectedCardId, updates);
+    }
+  };
+
+  /**
+   * Handle card delete from modal
+   */
+  const handleDeleteCard = () => {
+    if (selectedCardId) {
+      deleteCard(selectedCardId);
+      setSelectedCardId(null);
+    }
   };
 
   /**
@@ -164,12 +314,7 @@ export function Board() {
               aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
             >
               {theme === 'light' ? (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -178,12 +323,7 @@ export function Board() {
                   />
                 </svg>
               ) : (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -199,12 +339,7 @@ export function Board() {
               className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors"
               title="Export board as JSON"
             >
-              <svg
-                className="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -220,12 +355,7 @@ export function Board() {
               className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors"
               title="Import board from JSON"
             >
-              <svg
-                className="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -290,8 +420,8 @@ export function Board() {
               Import Board?
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-              This will replace your current board and all its cards with the imported data.
-              This action cannot be undone.
+              This will replace your current board and all its cards with the imported data. This
+              action cannot be undone.
             </p>
             {pendingImportData && (
               <div className="bg-gray-50 dark:bg-gray-700 rounded p-3 mb-4 text-sm">
@@ -322,72 +452,88 @@ export function Board() {
         </div>
       )}
 
-      {/* Columns Container - horizontal scroll */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
-        <div className="flex gap-4 h-full min-w-max">
-          {board.columns.map((column) => (
-            <Column
-              key={column.id}
-              column={column}
-              cards={getColumnCards(column.cardIds)}
-            />
-          ))}
+      {/* Columns Container - horizontal scroll with DndContext wrapper */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
+          <div className="flex gap-4 h-full min-w-max">
+            {board.columns.map((column) => (
+              <Column
+                key={column.id}
+                column={column}
+                cards={getColumnCards(column.cardIds)}
+                onCardClick={handleCardClick}
+              />
+            ))}
 
-          {/* Add Column Button/Form */}
-          <div className="flex-shrink-0 w-[300px]">
-            {isAddingColumn ? (
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg shadow p-3">
-                <input
-                  ref={newColumnInputRef}
-                  type="text"
-                  value={newColumnTitle}
-                  onChange={(e) => setNewColumnTitle(e.target.value)}
-                  onKeyDown={handleNewColumnKeyDown}
-                  placeholder="Enter column title..."
-                  className="w-full px-3 py-2 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-500"
-                />
-                <div className="flex gap-2 mt-2">
-                  <button
-                    type="button"
-                    onClick={handleAddColumn}
-                    className="flex-1 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
-                  >
-                    Add Column
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCancelAddColumn}
-                    className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setIsAddingColumn(true)}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
+            {/* Add Column Button/Form */}
+            <div className="flex-shrink-0 w-[300px]">
+              {isAddingColumn ? (
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-lg shadow p-3">
+                  <input
+                    ref={newColumnInputRef}
+                    type="text"
+                    value={newColumnTitle}
+                    onChange={(e) => setNewColumnTitle(e.target.value)}
+                    onKeyDown={handleNewColumnKeyDown}
+                    placeholder="Enter column title..."
+                    className="w-full px-3 py-2 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-500"
                   />
-                </svg>
-                Add Column
-              </button>
-            )}
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={handleAddColumn}
+                      className="flex-1 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
+                    >
+                      Add Column
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelAddColumn}
+                      className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsAddingColumn(true)}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  Add Column
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+
+        {/* Drag Overlay - shows card preview while dragging */}
+        <DragOverlay>{activeCard ? <CardComponent card={activeCard} isOverlay /> : null}</DragOverlay>
+      </DndContext>
+
+      {/* Card Modal for viewing/editing card details */}
+      {selectedCard && (
+        <CardModal
+          card={selectedCard}
+          onSave={handleSaveCard}
+          onDelete={handleDeleteCard}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }

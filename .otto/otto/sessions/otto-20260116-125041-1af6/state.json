@@ -13,14 +13,14 @@
 
   "product_tasks": {
     "total": 25,
-    "completed": 11,
+    "completed": 18,
     "skipped": 0,
     "current_task_id": null,
     "current_task_started_at": null
   },
 
   "improvement": {
-    "cycles_run": 1,
+    "cycles_run": 2,
     "max_cycles": 3,
     "current_cycle_tasks_completed": 0,
     "cycle_history": [
@@ -29,19 +29,25 @@
         "triggered_after_task": 5,
         "improvements_found": 5,
         "tasks_executed": 0
+      },
+      {
+        "cycle": 2,
+        "triggered_after_task": 10,
+        "improvements_found": 4,
+        "tasks_executed": 0
       }
     ]
   },
 
   "guard_rails": {
     "consecutive_failures": 0,
-    "total_tasks_executed": 11,
+    "total_tasks_executed": 18,
     "feedback_rotations": 0
   },
 
   "recovery": {
     "can_resume": true,
-    "last_successful_task_id": "22",
+    "last_successful_task_id": "20",
     "last_error": null
   },
 

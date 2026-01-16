@@ -4,7 +4,9 @@
  * and an add card button.
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import type { Column as ColumnType, Card as CardType } from '../types';
 import { Card } from './Card';
 import { useBoardStore } from '../store/boardStore';
@@ -23,14 +25,27 @@ interface ColumnProps {
  * scrollable card list, and add card button.
  */
 export function Column({ column, cards, onCardClick }: ColumnProps) {
+  // Make column droppable for card drag-and-drop
+  const { setNodeRef, isOver } = useDroppable({
+    id: column.id,
+    data: {
+      type: 'column',
+      column,
+    },
+  });
+
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
   const [showMenu, setShowMenu] = useState(false);
+  const [isAddingCard, setIsAddingCard] = useState(false);
+  const [newCardTitle, setNewCardTitle] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const addCardInputRef = useRef<HTMLInputElement>(null);
 
   const updateColumn = useBoardStore((state) => state.updateColumn);
   const deleteColumn = useBoardStore((state) => state.deleteColumn);
+  const addCard = useBoardStore((state) => state.addCard);
 
   // Focus input when editing starts
   useEffect(() => {
@@ -56,6 +71,13 @@ export function Column({ column, cards, onCardClick }: ColumnProps) {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showMenu]);
+
+  // Focus add card input when form opens
+  useEffect(() => {
+    if (isAddingCard && addCardInputRef.current) {
+      addCardInputRef.current.focus();
+    }
+  }, [isAddingCard]);
 
   /**
    * Start editing the column title
@@ -111,6 +133,52 @@ export function Column({ column, cards, onCardClick }: ColumnProps) {
 
     deleteColumn(column.id);
   };
+
+  /**
+   * Open the add card form
+   */
+  const handleStartAddCard = () => {
+    setIsAddingCard(true);
+    setNewCardTitle('');
+  };
+
+  /**
+   * Create a new card with the entered title
+   */
+  const handleAddCard = useCallback(() => {
+    const trimmedTitle = newCardTitle.trim();
+    if (trimmedTitle) {
+      addCard(column.id, {
+        title: trimmedTitle,
+        labels: [],
+      });
+      setNewCardTitle('');
+      // Keep form open for quick multiple card creation
+    }
+  }, [addCard, column.id, newCardTitle]);
+
+  /**
+   * Cancel adding a new card
+   */
+  const handleCancelAddCard = useCallback(() => {
+    setIsAddingCard(false);
+    setNewCardTitle('');
+  }, []);
+
+  /**
+   * Handle keyboard events for add card input
+   */
+  const handleAddCardKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleAddCard();
+      } else if (e.key === 'Escape') {
+        handleCancelAddCard();
+      }
+    },
+    [handleAddCard, handleCancelAddCard]
+  );
 
   return (
     <div className="flex flex-col min-w-[300px] bg-gray-100 dark:bg-gray-800 rounded-lg shadow">
@@ -206,39 +274,83 @@ export function Column({ column, cards, onCardClick }: ColumnProps) {
         </div>
       </div>
 
-      {/* Scrollable Card List Area */}
-      <div className="flex-1 p-2 overflow-y-auto min-h-[200px] space-y-2">
-        {cards.map((card) => (
-          <Card
-            key={card.id}
-            card={card}
-            onClick={() => onCardClick?.(card.id)}
-          />
-        ))}
+      {/* Scrollable Card List Area - droppable zone with SortableContext */}
+      <div
+        ref={setNodeRef}
+        className={`flex-1 p-2 overflow-y-auto min-h-[200px] space-y-2 transition-colors ${
+          isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+        }`}
+      >
+        <SortableContext
+          items={cards.map((card) => card.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {cards.map((card) => (
+            <Card
+              key={card.id}
+              card={card}
+              onClick={() => onCardClick?.(card.id)}
+            />
+          ))}
+        </SortableContext>
       </div>
 
-      {/* Add Card Button */}
+      {/* Add Card Section */}
       <div className="p-2 border-t border-gray-200 dark:border-gray-600">
-        <button
-          type="button"
-          className="w-full flex items-center justify-center gap-1 py-2 px-3 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
+        {isAddingCard ? (
+          /* Inline Add Card Form */
+          <div className="space-y-2">
+            <input
+              ref={addCardInputRef}
+              type="text"
+              value={newCardTitle}
+              onChange={(e) => setNewCardTitle(e.target.value)}
+              onKeyDown={handleAddCardKeyDown}
+              placeholder="Enter card title..."
+              className="w-full px-3 py-2 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-500"
             />
-          </svg>
-          Add card
-        </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleAddCard}
+                disabled={!newCardTitle.trim()}
+                className="flex-1 py-1.5 px-3 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Add
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelAddCard}
+                className="py-1.5 px-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Add Card Button */
+          <button
+            type="button"
+            onClick={handleStartAddCard}
+            className="w-full flex items-center justify-center gap-1 py-2 px-3 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add card
+          </button>
+        )}
       </div>
     </div>
   );

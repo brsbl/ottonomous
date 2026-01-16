@@ -7,7 +7,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Board, Card, Column } from '../types';
+import type { Board, Card, Column, Label } from '../types';
 
 /**
  * Generate a unique ID using crypto.randomUUID()
@@ -31,6 +31,18 @@ interface HistorySnapshot {
   board: Board;
   cards: Record<string, Card>;
 }
+
+/**
+ * Predefined label colors for the kanban board
+ */
+const DEFAULT_LABELS: Label[] = [
+  { id: 'label-red', name: 'Red', color: '#ef4444' },
+  { id: 'label-orange', name: 'Orange', color: '#f97316' },
+  { id: 'label-yellow', name: 'Yellow', color: '#eab308' },
+  { id: 'label-green', name: 'Green', color: '#22c55e' },
+  { id: 'label-blue', name: 'Blue', color: '#3b82f6' },
+  { id: 'label-purple', name: 'Purple', color: '#a855f7' },
+];
 
 /**
  * Create initial default board with 3 columns
@@ -70,6 +82,7 @@ interface BoardState {
   // State
   board: Board;
   cards: Record<string, Card>;
+  labels: Label[];
 
   // History for undo/redo
   past: HistorySnapshot[];
@@ -105,6 +118,9 @@ interface BoardState {
     toColumnId: string,
     toIndex: number
   ) => void;
+
+  // Label actions
+  addLabel: (label: Omit<Label, 'id'>) => void;
 }
 
 /**
@@ -143,6 +159,7 @@ export const useBoardStore = create<BoardState>()(
       // Initial state
       board: createDefaultBoard(),
       cards: {},
+      labels: DEFAULT_LABELS,
       past: [],
       future: [],
 
@@ -383,13 +400,26 @@ export const useBoardStore = create<BoardState>()(
             },
           };
         }),
+
+      // Add a new custom label
+      addLabel: (labelData: Omit<Label, 'id'>) =>
+        set((state) => {
+          const newLabel: Label = {
+            ...labelData,
+            id: generateId(),
+          };
+          return {
+            labels: [...state.labels, newLabel],
+          };
+        }),
     }),
     {
       name: STORAGE_KEY,
-      // Persist board, cards, and history state
+      // Persist board, cards, labels, and history state
       partialize: (state) => ({
         board: state.board,
         cards: state.cards,
+        labels: state.labels,
         past: state.past,
         future: state.future,
       }),
