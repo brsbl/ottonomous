@@ -7,6 +7,25 @@ description: Review code changes for bugs with prioritized, actionable feedback.
 
 Review code changes for bugs and issues with prioritized, actionable feedback. For large changesets, distributes review across multiple subagents for thorough coverage.
 
+## Auto Mode
+
+**Check for AUTO_MODE at the start of every workflow:**
+
+```bash
+AUTO_MODE=$(grep -q "auto_pick: true" .kit/config.yaml 2>/dev/null && echo "true" || echo "false")
+```
+
+**When `AUTO_MODE=true`:**
+- **Phase 0 (Config):** Skip agent selection prompt, use defaults or existing config
+- **Phase 1 (Scope):** Default to "Branch diff" (`git diff main...HEAD`), skip scope selection
+- **Phase 4 (Fix Plan):** Auto-approve fix plan for P0 and P1 issues only
+  - P0/P1: Implement fixes
+  - P2/P3: Log as known issues, skip implementation
+  - Log: `[AUTO] Auto-approved {n} fixes (P0: {n}, P1: {n})`
+- **Phase 5 (Implement):** If any fix fails, log the failure and continue with remaining fixes
+  - Do not block on any single fix failure
+  - Log: `[AUTO] Fix failed for {issue}: {error}. Continuing...`
+
 ## Workflow Overview
 
 | Phase | Purpose | Subagents Used |
@@ -418,6 +437,18 @@ If yes, launch a single `senior-code-reviewer` subagent to review only the fix c
 ```bash
 git diff HEAD~1  # Review only the fix commit
 ```
+
+### Visual Verification (Optional)
+
+For UI changes, offer visual verification:
+
+> "Should I use `/dev-browser` to visually verify the UI changes are correct?"
+
+If yes:
+- Launch browser to affected pages
+- Capture screenshots of the changes
+- Compare against expected behavior
+- Include findings in review report
 
 ---
 

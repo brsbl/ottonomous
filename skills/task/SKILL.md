@@ -9,6 +9,19 @@ Generate implementation tasks from an approved spec.
 
 **Usage:** `/task <spec-id>`
 
+## Auto Mode
+
+**Check for AUTO_MODE at the start of every workflow:**
+
+```bash
+AUTO_MODE=$(grep -q "auto_pick: true" .kit/config.yaml 2>/dev/null && echo "true" || echo "false")
+```
+
+**When `AUTO_MODE=true`:**
+- Skip `AskUserQuestion` confirmation in Phase 3
+- Save tasks immediately after generation
+- Log: `[AUTO] Tasks auto-confirmed: {task_ids}`
+
 ## Quick Start
 
 **Check for pending tasks** before starting new work:
@@ -90,11 +103,19 @@ Write to `.kit/tasks/{spec-id}.json`:
       "description": "Success: [what done looks like]. Touches: [files]. Scope: [estimate]",
       "status": "pending",
       "priority": 1,
-      "depends_on": []
+      "depends_on": [],
+      "blocker_count": 0,
+      "skipped": false,
+      "skip_reason": null
     }
   ]
 }
 ```
+
+**Blocker metadata fields:**
+- `blocker_count`: Number of consecutive failures (incremented by `/next` on failure)
+- `skipped`: Set to `true` when task is skipped due to max blockers
+- `skip_reason`: Reason the task was skipped (set when `skipped: true`)
 
 Stage: `git add .kit/tasks/{spec-id}.json`
 

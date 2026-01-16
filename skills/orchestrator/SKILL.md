@@ -263,6 +263,7 @@ Review the changes for:
 | Quality check | `senior-code-reviewer` | After implementation, before commit |
 | Architecture check | `architect-reviewer` | After structural changes |
 | Claude Code features | `claude-code-expert` | Skills, hooks, MCP, Agent SDK, creating extensions |
+| Browser automation | `/dev-browser` | Web testing, scraping, screenshots, form filling |
 
 ---
 

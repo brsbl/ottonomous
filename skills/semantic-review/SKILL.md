@@ -118,14 +118,14 @@ Use the bundled conversion script to transform markdown to styled HTML with synt
 **First-time setup** (if dependencies not installed):
 
 ```bash
-cd .claude/skills/semantic-review && npm install
+cd skills/semantic-review && npm install
 ```
 
 **Convert to HTML:**
 
 ```bash
 # Get the skill directory (where the converter lives)
-SKILL_DIR=".claude/skills/semantic-review"
+SKILL_DIR="skills/semantic-review"
 
 # Run the converter
 node "$SKILL_DIR/scripts/md-to-html.js" ".kit/reviews/{filename}.md" ".kit/reviews/{filename}.html"
@@ -149,6 +149,18 @@ The HTML output includes:
 - Syntax highlighting for code blocks (via highlight.js)
 - Automatic dark mode support (via `prefers-color-scheme`)
 - Responsive design for mobile viewing
+
+### 6b. Capture Visual Changes (Optional)
+
+If the changes include UI modifications:
+
+> "Would you like me to capture screenshots of the UI changes using `/dev-browser`?"
+
+If yes, use dev-browser to:
+- Navigate to affected pages
+- Capture before/after screenshots
+- Save to `.kit/reviews/{filename}-screenshots/`
+- Include screenshot references in the review documentation
 
 ### 7. Report to User
 

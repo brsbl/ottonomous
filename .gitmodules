@@ -1,0 +1,3 @@
+[submodule "skills/dev-browser"]
+	path = skills/dev-browser
+	url = https://github.com/SawyerHood/dev-browser.git

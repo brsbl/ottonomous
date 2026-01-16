@@ -7,6 +7,20 @@ description: Pick and work on the next highest priority unblocked task. Invoke w
 
 Pick and work on the next highest priority unblocked task.
 
+## Auto Mode
+
+**Check for AUTO_MODE at the start of every workflow:**
+
+```bash
+AUTO_MODE=$(grep -q "auto_pick: true" .kit/config.yaml 2>/dev/null && echo "true" || echo "false")
+MAX_BLOCKERS=$(grep "max_blockers:" .kit/config.yaml 2>/dev/null | awk '{print $2}' || echo "3")
+```
+
+**When `AUTO_MODE=true`:**
+- Skip `AskUserQuestion` when multiple specs have pending tasks
+- Auto-select spec with highest priority pending task (tie-break by task count)
+- Log: `[AUTO] Selected spec {id} with {n} pending tasks`
+
 ## Workflow
 
 ### 1. Find Tasks
@@ -60,3 +74,40 @@ When task is done:
 > - `/code-review` - Review changes for bugs before continuing
 > - `/next` - Pick up the next task
 > - `/semantic-review` - Generate change documentation (if ready for PR)"
+
+### 5. Handle Blockers (AUTO_MODE)
+
+When task execution fails in AUTO_MODE:
+
+1. **Increment blocker_count** in the task JSON:
+   ```json
+   {
+     "blocker_count": 1
+   }
+   ```
+
+2. **Check against MAX_BLOCKERS:**
+   - If `blocker_count < MAX_BLOCKERS`: Retry the task
+   - If `blocker_count >= MAX_BLOCKERS`: Skip the task
+
+3. **On skip, update task:**
+   ```json
+   {
+     "skipped": true,
+     "skip_reason": "Exceeded max blocker attempts: {error_message}"
+   }
+   ```
+
+4. **Log the outcome:**
+   - Retry: `[BLOCKER] Task {id} failed ({blocker_count}/{MAX_BLOCKERS}): {error}. Retrying...`
+   - Skip: `[SKIPPED] Task {id} skipped after {MAX_BLOCKERS} failures: {error}`
+
+5. **Return to task selection** to pick the next unblocked task.
+
+**Blocker categories:**
+| Type | Examples | Response |
+|------|----------|----------|
+| `build` | TypeScript error, missing import | Attempt fix once, then skip |
+| `test` | Unit test fails | Log, continue |
+| `dependency` | Missing package | Try install, skip if fails |
+| `external` | API timeout, rate limit | Retry 2x, then skip |

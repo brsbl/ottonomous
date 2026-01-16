@@ -1,0 +1,24 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "claude-code-kit",
+  "version": "1.0.0",
+  "description": "Comprehensive skills toolkit for autonomous product development with structured workflows for planning, implementation, review, and self-improvement",
+  "owner": {
+    "name": "brsbl",
+    "url": "https://github.com/brsbl"
+  },
+  "plugins": [
+    {
+      "name": "claude-code-kit",
+      "description": "Skills for spec writing, task management, code review, semantic review, orchestration, and autonomous development",
+      "source": ".",
+      "version": "1.0.0",
+      "author": {
+        "name": "brsbl",
+        "url": "https://github.com/brsbl"
+      },
+      "category": "development",
+      "tags": ["automation", "workflows", "code-review", "planning", "autonomous"]
+    }
+  ]
+}

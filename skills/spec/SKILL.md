@@ -7,6 +7,24 @@ description: Writes specifications through collaborative interview. Activates wh
 
 Create specifications through collaborative AI-human interview.
 
+## Auto Mode
+
+**Check for AUTO_MODE at the start of every workflow:**
+
+```bash
+AUTO_MODE=$(grep -q "auto_pick: true" .kit/config.yaml 2>/dev/null && echo "true" || echo "false")
+```
+
+**When `AUTO_MODE=true`:**
+- Skip all `AskUserQuestion` calls
+- Auto-select "(Recommended)" options at each decision point
+- If no recommendation exists, select the option that:
+  - Aligns with industry standards
+  - Maximizes simplicity for MVP
+  - Has the most web search support
+- Auto-approve the spec after generation (skip approval loop)
+- Log: `[AUTO] Spec auto-approved with {n} decisions made`
+
 ## Quick Start
 
 **Before writing a spec**, check for existing related specs:
@@ -41,6 +59,10 @@ Use `WebSearch` to find:
 - Industry best practices for the feature type
 - Common pitfalls and recommendations
 - How popular projects solve similar problems
+
+**For web-based research requiring interaction:**
+- Use `/dev-browser` to navigate sites, fill forms, or capture screenshots
+- Useful for exploring reference implementations or competitor products
 
 ### 3. Interview
 

@@ -1,8 +1,0 @@
-{
-  "name": "claude-code-kit",
-  "description": "A comprehensive skills toolkit for Claude Code providing structured workflows for planning, implementation, review, and knowledge management throughout the software development lifecycle",
-  "author": {
-    "name": "brsbl",
-    "url": "https://github.com/brsbl"
-  }
-}

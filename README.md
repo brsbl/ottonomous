@@ -37,6 +37,10 @@ claude --plugin-dir /path/to/claude-code-kit
 - **`/semantic-review`** — Generates audience-specific walkthrough (developers, reviewers, stakeholders) with per-component analysis. Opens HTML in browser
 - **`/code-review`** — Finds bugs with priority levels: P0 (blocking), P1 (urgent), P2 (normal), P3 (low)
 
+### Browser Automation
+
+- **`/dev-browser`** — Browser automation using Playwright with persistent page state. Two modes: standalone (launches Chromium) or extension (connects to existing Chrome). Use for web testing, scraping, screenshots, and form automation
+
 ## Plugin Structure
 
 ```
@@ -51,7 +55,8 @@ claude-code-kit/
 │   ├── orchestrator/ # /orchestrator command
 │   ├── worktree/     # /worktree command
 │   ├── semantic-review/  # /semantic-review command
-│   └── code-review/  # /code-review command
+│   ├── code-review/  # /code-review command
+│   └── dev-browser/  # /dev-browser command
 └── .kit/             # Runtime data (created in your project)
     ├── specs/        # Specifications (*.md)
     ├── tasks/        # Tasks (*.json)
