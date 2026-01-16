@@ -13,35 +13,42 @@
 
   "product_tasks": {
     "total": 25,
-    "completed": 5,
+    "completed": 11,
     "skipped": 0,
     "current_task_id": null,
     "current_task_started_at": null
   },
 
   "improvement": {
-    "cycles_run": 0,
+    "cycles_run": 1,
     "max_cycles": 3,
     "current_cycle_tasks_completed": 0,
-    "cycle_history": []
+    "cycle_history": [
+      {
+        "cycle": 1,
+        "triggered_after_task": 5,
+        "improvements_found": 5,
+        "tasks_executed": 0
+      }
+    ]
   },
 
   "guard_rails": {
     "consecutive_failures": 0,
-    "total_tasks_executed": 5,
+    "total_tasks_executed": 11,
     "feedback_rotations": 0
   },
 
   "recovery": {
     "can_resume": true,
-    "last_successful_task_id": "5",
+    "last_successful_task_id": "22",
     "last_error": null
   },
 
   "commits": {
-    "total": 0,
-    "last_commit_sha": null,
-    "history": []
+    "total": 1,
+    "last_commit_sha": "70f1dd0",
+    "history": ["otto: checkpoint - 5/25 tasks complete"]
   },
 
   "integrations": {

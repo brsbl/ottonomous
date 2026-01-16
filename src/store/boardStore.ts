@@ -2,6 +2,7 @@
  * Zustand store for the Kanban Board application.
  * Manages board state, cards, and all CRUD operations.
  * Includes LocalStorage persistence via Zustand persist middleware.
+ * Includes undo/redo functionality with history stack.
  */
 
 import { create } from 'zustand';
@@ -17,6 +18,19 @@ const generateId = (): string => crypto.randomUUID();
  * Get current ISO timestamp
  */
 const now = (): string => new Date().toISOString();
+
+/**
+ * Maximum number of history states to keep (prevents memory bloat)
+ */
+const MAX_HISTORY_SIZE = 50;
+
+/**
+ * Snapshot of board and cards state for undo/redo
+ */
+interface HistorySnapshot {
+  board: Board;
+  cards: Record<string, Card>;
+}
 
 /**
  * Create initial default board with 3 columns
@@ -57,6 +71,18 @@ interface BoardState {
   board: Board;
   cards: Record<string, Card>;
 
+  // History for undo/redo
+  past: HistorySnapshot[];
+  future: HistorySnapshot[];
+
+  // Computed properties for undo/redo
+  canUndo: () => boolean;
+  canRedo: () => boolean;
+
+  // History actions
+  undo: () => void;
+  redo: () => void;
+
   // Board actions
   setBoard: (board: Board) => void;
 
@@ -87,204 +113,285 @@ interface BoardState {
 const STORAGE_KEY = 'kanban-board';
 
 /**
+ * Helper to create a snapshot of the current state
+ */
+const createSnapshot = (state: { board: Board; cards: Record<string, Card> }): HistorySnapshot => ({
+  board: JSON.parse(JSON.stringify(state.board)),
+  cards: JSON.parse(JSON.stringify(state.cards)),
+});
+
+/**
+ * Helper to push current state to history before making changes
+ */
+const pushToHistory = (state: { board: Board; cards: Record<string, Card>; past: HistorySnapshot[] }): HistorySnapshot[] => {
+  const snapshot = createSnapshot(state);
+  const newPast = [...state.past, snapshot];
+  // Limit history size to prevent memory bloat
+  if (newPast.length > MAX_HISTORY_SIZE) {
+    return newPast.slice(-MAX_HISTORY_SIZE);
+  }
+  return newPast;
+};
+
+/**
  * Zustand store for board state management
  * Uses persist middleware to automatically save to and load from LocalStorage
  */
 export const useBoardStore = create<BoardState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       // Initial state
       board: createDefaultBoard(),
       cards: {},
+      past: [],
+      future: [],
+
+      // Computed properties for undo/redo
+      canUndo: () => get().past.length > 0,
+      canRedo: () => get().future.length > 0,
+
+      // Undo: pop from past, push current to future, restore
+      undo: () =>
+        set((state) => {
+          if (state.past.length === 0) return state;
+
+          const newPast = [...state.past];
+          const previousState = newPast.pop()!;
+          const currentSnapshot = createSnapshot(state);
+
+          return {
+            board: previousState.board,
+            cards: previousState.cards,
+            past: newPast,
+            future: [currentSnapshot, ...state.future].slice(0, MAX_HISTORY_SIZE),
+          };
+        }),
+
+      // Redo: pop from future, push current to past, restore
+      redo: () =>
+        set((state) => {
+          if (state.future.length === 0) return state;
+
+          const newFuture = [...state.future];
+          const nextState = newFuture.shift()!;
+          const currentSnapshot = createSnapshot(state);
+
+          return {
+            board: nextState.board,
+            cards: nextState.cards,
+            past: [...state.past, currentSnapshot].slice(-MAX_HISTORY_SIZE),
+            future: newFuture,
+          };
+        }),
 
       // Set entire board
       setBoard: (board: Board) =>
-        set(() => ({
+        set((state) => ({
+          past: pushToHistory(state),
+          future: [], // Clear future on new action
           board,
         })),
 
-  // Add a new column to the board
-  addColumn: (title: string) =>
-    set((state) => {
-      const newColumn: Column = {
-        id: generateId(),
-        title,
-        cardIds: [],
-      };
-      return {
-        board: {
-          ...state.board,
-          columns: [...state.board.columns, newColumn],
-          updatedAt: now(),
-        },
-      };
-    }),
+      // Add a new column to the board
+      addColumn: (title: string) =>
+        set((state) => {
+          const newColumn: Column = {
+            id: generateId(),
+            title,
+            cardIds: [],
+          };
+          return {
+            past: pushToHistory(state),
+            future: [], // Clear future on new action
+            board: {
+              ...state.board,
+              columns: [...state.board.columns, newColumn],
+              updatedAt: now(),
+            },
+          };
+        }),
 
-  // Update an existing column
-  updateColumn: (id: string, updates: Partial<Column>) =>
-    set((state) => ({
-      board: {
-        ...state.board,
-        columns: state.board.columns.map((column) =>
-          column.id === id ? { ...column, ...updates } : column
-        ),
-        updatedAt: now(),
-      },
-    })),
-
-  // Delete a column and remove its cards
-  deleteColumn: (id: string) =>
-    set((state) => {
-      const column = state.board.columns.find((c) => c.id === id);
-      const cardIdsToDelete = column?.cardIds ?? [];
-
-      // Create new cards object without the deleted column's cards
-      const newCards = { ...state.cards };
-      cardIdsToDelete.forEach((cardId) => {
-        delete newCards[cardId];
-      });
-
-      return {
-        board: {
-          ...state.board,
-          columns: state.board.columns.filter((column) => column.id !== id),
-          updatedAt: now(),
-        },
-        cards: newCards,
-      };
-    }),
-
-  // Move a column from one position to another
-  moveColumn: (fromIndex: number, toIndex: number) =>
-    set((state) => {
-      const columns = [...state.board.columns];
-      const [movedColumn] = columns.splice(fromIndex, 1);
-      columns.splice(toIndex, 0, movedColumn);
-
-      return {
-        board: {
-          ...state.board,
-          columns,
-          updatedAt: now(),
-        },
-      };
-    }),
-
-  // Add a new card to a column
-  addCard: (
-    columnId: string,
-    cardData: Omit<Card, 'id' | 'createdAt' | 'updatedAt'>
-  ) =>
-    set((state) => {
-      const timestamp = now();
-      const newCard: Card = {
-        ...cardData,
-        id: generateId(),
-        createdAt: timestamp,
-        updatedAt: timestamp,
-      };
-
-      return {
-        cards: {
-          ...state.cards,
-          [newCard.id]: newCard,
-        },
-        board: {
-          ...state.board,
-          columns: state.board.columns.map((column) =>
-            column.id === columnId
-              ? { ...column, cardIds: [...column.cardIds, newCard.id] }
-              : column
-          ),
-          updatedAt: timestamp,
-        },
-      };
-    }),
-
-  // Update an existing card
-  updateCard: (id: string, updates: Partial<Card>) =>
-    set((state) => {
-      if (!state.cards[id]) return state;
-
-      return {
-        cards: {
-          ...state.cards,
-          [id]: {
-            ...state.cards[id],
-            ...updates,
+      // Update an existing column
+      updateColumn: (id: string, updates: Partial<Column>) =>
+        set((state) => ({
+          past: pushToHistory(state),
+          future: [], // Clear future on new action
+          board: {
+            ...state.board,
+            columns: state.board.columns.map((column) =>
+              column.id === id ? { ...column, ...updates } : column
+            ),
             updatedAt: now(),
           },
-        },
-        board: {
-          ...state.board,
-          updatedAt: now(),
-        },
-      };
-    }),
+        })),
 
-  // Delete a card from the board
-  deleteCard: (id: string) =>
-    set((state) => {
-      const newCards = { ...state.cards };
-      delete newCards[id];
+      // Delete a column and remove its cards
+      deleteColumn: (id: string) =>
+        set((state) => {
+          const column = state.board.columns.find((c) => c.id === id);
+          const cardIdsToDelete = column?.cardIds ?? [];
 
-      return {
-        cards: newCards,
-        board: {
-          ...state.board,
-          columns: state.board.columns.map((column) => ({
-            ...column,
-            cardIds: column.cardIds.filter((cardId) => cardId !== id),
-          })),
-          updatedAt: now(),
-        },
-      };
-    }),
+          // Create new cards object without the deleted column's cards
+          const newCards = { ...state.cards };
+          cardIdsToDelete.forEach((cardId) => {
+            delete newCards[cardId];
+          });
 
-  // Move a card between columns or within the same column
-  moveCard: (
-    cardId: string,
-    fromColumnId: string,
-    toColumnId: string,
-    toIndex: number
-  ) =>
-    set((state) => {
-      const columns = state.board.columns.map((column) => {
-        if (column.id === fromColumnId && column.id === toColumnId) {
-          // Moving within the same column
-          const cardIds = column.cardIds.filter((id) => id !== cardId);
-          cardIds.splice(toIndex, 0, cardId);
-          return { ...column, cardIds };
-        } else if (column.id === fromColumnId) {
-          // Remove from source column
           return {
-            ...column,
-            cardIds: column.cardIds.filter((id) => id !== cardId),
+            past: pushToHistory(state),
+            future: [], // Clear future on new action
+            board: {
+              ...state.board,
+              columns: state.board.columns.filter((column) => column.id !== id),
+              updatedAt: now(),
+            },
+            cards: newCards,
           };
-        } else if (column.id === toColumnId) {
-          // Add to target column at specified index
-          const cardIds = [...column.cardIds];
-          cardIds.splice(toIndex, 0, cardId);
-          return { ...column, cardIds };
-        }
-        return column;
-      });
+        }),
 
-      return {
-        board: {
-          ...state.board,
-          columns,
-          updatedAt: now(),
-        },
-      };
-    }),
+      // Move a column from one position to another
+      moveColumn: (fromIndex: number, toIndex: number) =>
+        set((state) => {
+          const columns = [...state.board.columns];
+          const [movedColumn] = columns.splice(fromIndex, 1);
+          columns.splice(toIndex, 0, movedColumn);
+
+          return {
+            past: pushToHistory(state),
+            future: [], // Clear future on new action
+            board: {
+              ...state.board,
+              columns,
+              updatedAt: now(),
+            },
+          };
+        }),
+
+      // Add a new card to a column
+      addCard: (
+        columnId: string,
+        cardData: Omit<Card, 'id' | 'createdAt' | 'updatedAt'>
+      ) =>
+        set((state) => {
+          const timestamp = now();
+          const newCard: Card = {
+            ...cardData,
+            id: generateId(),
+            createdAt: timestamp,
+            updatedAt: timestamp,
+          };
+
+          return {
+            past: pushToHistory(state),
+            future: [], // Clear future on new action
+            cards: {
+              ...state.cards,
+              [newCard.id]: newCard,
+            },
+            board: {
+              ...state.board,
+              columns: state.board.columns.map((column) =>
+                column.id === columnId
+                  ? { ...column, cardIds: [...column.cardIds, newCard.id] }
+                  : column
+              ),
+              updatedAt: timestamp,
+            },
+          };
+        }),
+
+      // Update an existing card
+      updateCard: (id: string, updates: Partial<Card>) =>
+        set((state) => {
+          if (!state.cards[id]) return state;
+
+          return {
+            past: pushToHistory(state),
+            future: [], // Clear future on new action
+            cards: {
+              ...state.cards,
+              [id]: {
+                ...state.cards[id],
+                ...updates,
+                updatedAt: now(),
+              },
+            },
+            board: {
+              ...state.board,
+              updatedAt: now(),
+            },
+          };
+        }),
+
+      // Delete a card from the board
+      deleteCard: (id: string) =>
+        set((state) => {
+          const newCards = { ...state.cards };
+          delete newCards[id];
+
+          return {
+            past: pushToHistory(state),
+            future: [], // Clear future on new action
+            cards: newCards,
+            board: {
+              ...state.board,
+              columns: state.board.columns.map((column) => ({
+                ...column,
+                cardIds: column.cardIds.filter((cardId) => cardId !== id),
+              })),
+              updatedAt: now(),
+            },
+          };
+        }),
+
+      // Move a card between columns or within the same column
+      moveCard: (
+        cardId: string,
+        fromColumnId: string,
+        toColumnId: string,
+        toIndex: number
+      ) =>
+        set((state) => {
+          const columns = state.board.columns.map((column) => {
+            if (column.id === fromColumnId && column.id === toColumnId) {
+              // Moving within the same column
+              const cardIds = column.cardIds.filter((id) => id !== cardId);
+              cardIds.splice(toIndex, 0, cardId);
+              return { ...column, cardIds };
+            } else if (column.id === fromColumnId) {
+              // Remove from source column
+              return {
+                ...column,
+                cardIds: column.cardIds.filter((id) => id !== cardId),
+              };
+            } else if (column.id === toColumnId) {
+              // Add to target column at specified index
+              const cardIds = [...column.cardIds];
+              cardIds.splice(toIndex, 0, cardId);
+              return { ...column, cardIds };
+            }
+            return column;
+          });
+
+          return {
+            past: pushToHistory(state),
+            future: [], // Clear future on new action
+            board: {
+              ...state.board,
+              columns,
+              updatedAt: now(),
+            },
+          };
+        }),
     }),
     {
       name: STORAGE_KEY,
-      // Persist both board and cards state
+      // Persist board, cards, and history state
       partialize: (state) => ({
         board: state.board,
         cards: state.cards,
+        past: state.past,
+        future: state.future,
       }),
     }
   )

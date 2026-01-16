@@ -137,17 +137,20 @@
       "description": "Create src/components/Column.tsx - vertical container with header (title, card count) and scrollable card list area. Include add card button. Style with Tailwind (rounded, shadow, bg-gray-100).",
       "priority": 1,
       "depends_on": ["5"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T12:55:00.000Z",
+        "completed_at": "2026-01-16T12:58:00.000Z",
+        "duration_ms": 180000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/components/Column.tsx",
+          "src/components/Board.tsx"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -157,17 +160,20 @@
       "description": "Create src/components/Card.tsx - card display with title, optional description preview, labels as colored chips. Style with Tailwind (white bg, rounded, shadow-sm, hover state).",
       "priority": 1,
       "depends_on": ["6"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T12:50:41.000Z",
+        "completed_at": "2026-01-16T13:15:00.000Z",
+        "duration_ms": 60000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/components/Card.tsx",
+          "src/components/Column.tsx"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -277,17 +283,21 @@
       "description": "Add 'Add column' button to Board. Make column titles editable (click to edit). Add column menu with delete option (confirm before delete if has cards). Update store on changes.",
       "priority": 1,
       "depends_on": ["6"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T13:30:00.000Z",
+        "completed_at": "2026-01-16T13:35:00.000Z",
+        "duration_ms": 300000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/components/Column.tsx",
+          "src/components/Board.tsx",
+          "src/store/themeStore.ts"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -437,17 +447,19 @@
       "description": "Add history stack to store (past/future arrays). Wrap state changes to push to history. Implement undo/redo actions. Add Ctrl+Z/Ctrl+Shift+Z handlers. Show undo toast notification.",
       "priority": 2,
       "depends_on": ["4"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": false,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T12:50:41.000Z",
+        "completed_at": "2026-01-16T12:55:00.000Z",
+        "duration_ms": 259000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/store/boardStore.ts"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -457,17 +469,23 @@
       "description": "Create theme context/store. Add dark mode toggle button in header. Implement dark color scheme with Tailwind dark: classes. Persist theme preference. Respect system preference initially.",
       "priority": 3,
       "depends_on": ["5"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T12:50:41.000Z",
+        "completed_at": "2026-01-16T13:00:00.000Z",
+        "duration_ms": 559000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "tailwind.config.js",
+          "src/store/themeStore.ts",
+          "src/components/Board.tsx",
+          "src/components/Column.tsx",
+          "src/components/Card.tsx"
+        ]
       },
       "review": { "issues": [] }
     },
@@ -517,17 +535,20 @@
       "description": "Add export button to download board as JSON file. Add import button to load board from JSON file. Validate imported data structure. Confirm before overwriting current board.",
       "priority": 3,
       "depends_on": ["4"],
-      "status": "pending",
+      "status": "done",
       "is_ui_task": true,
       "blocker_count": 0,
       "skipped": false,
       "skip_reason": null,
       "execution": {
-        "started_at": null,
-        "completed_at": null,
-        "duration_ms": null,
+        "started_at": "2026-01-16T12:50:41.000Z",
+        "completed_at": "2026-01-16T13:05:00.000Z",
+        "duration_ms": 859000,
         "attempts": [],
-        "files_modified": []
+        "files_modified": [
+          "src/utils/exportImport.ts",
+          "src/components/Board.tsx"
+        ]
       },
       "review": { "issues": [] }
     }
