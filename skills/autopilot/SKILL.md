@@ -220,16 +220,34 @@ Announce: "Starting autonomous build session: {session_id}"
 
 #### Step 1.1: Research (Optional, via Dev-Browser)
 
-If the product idea involves UI or web technologies, invoke dev-browser for research:
+If the product idea involves UI or web technologies, invoke `/dev-browser` for research:
 
 ```
-Use Skill tool: skill="dev-browser", args="research {product_type}"
+Invoke Skill: skill="dev-browser"
 ```
 
-The dev-browser skill will:
-- Navigate to reference URLs for the product type
-- Capture screenshots of similar products
-- Save artifacts to `.kit/autopilot/sessions/${session_id}/research/`
+Once the dev-browser skill is loaded, write a script to research similar products:
+
+```bash
+cd skills/dev-browser && npx tsx <<'EOF'
+import { connect, waitForPageLoad } from "@/client.js";
+
+const client = await connect();
+const page = await client.page("{session_id}-research");
+
+// Navigate to reference/competitor sites
+await page.goto("https://example-reference-site.com");
+await waitForPageLoad(page);
+
+// Capture screenshot for reference
+await page.screenshot({ path: "../../.kit/autopilot/sessions/{session_id}/research/screenshots/reference-1.png" });
+
+console.log({ title: await page.title(), url: page.url() });
+await client.disconnect();
+EOF
+```
+
+Save research artifacts to `.kit/autopilot/sessions/${session_id}/research/`
 
 #### Step 1.2: Extract Key Concepts
 
@@ -464,16 +482,42 @@ Return JSON: {"success": bool, "files_modified": [], "observations": "string", "
 
 #### Visual Verification (for UI Tasks)
 
-After any task with `is_ui_task: true`:
+After any task with `is_ui_task: true`, invoke `/dev-browser` and write a verification script:
 
 ```
-Use Skill tool: skill="dev-browser", args="verify {session_id}-task-{id}"
+Invoke Skill: skill="dev-browser"
 ```
 
-The dev-browser skill will:
-- Navigate to the local dev server
-- Capture screenshot to `.kit/autopilot/sessions/{session_id}/visual-checks/task-{id}.png`
-- Return verification result
+Once the dev-browser skill is loaded, write a verification script:
+
+```bash
+cd skills/dev-browser && npx tsx <<'EOF'
+import { connect, waitForPageLoad } from "@/client.js";
+
+const client = await connect();
+const page = await client.page("{session_id}-task-{id}-verify");
+
+// Navigate to local dev server
+await page.goto("http://localhost:3000");  // Adjust port as needed
+await waitForPageLoad(page);
+
+// Capture screenshot for visual verification
+await page.screenshot({
+  path: "../../.kit/autopilot/sessions/{session_id}/visual-checks/task-{id}.png",
+  fullPage: true
+});
+
+console.log({
+  url: page.url(),
+  title: await page.title(),
+  verified: true
+});
+
+await client.disconnect();
+EOF
+```
+
+Log verification result to feedback.md.
 
 #### Guard Rail Functions
 
@@ -566,16 +610,53 @@ function archive_feedback_batch():
 
 #### Step 4.1: E2E Testing (via Dev-Browser)
 
-Before code review, invoke dev-browser for full product testing:
+Before code review, invoke `/dev-browser` for full product testing:
 
 ```
-Use Skill tool: skill="dev-browser", args="e2e {session_id}"
+Invoke Skill: skill="dev-browser"
 ```
 
-The dev-browser skill will:
+Once the dev-browser skill is loaded, write E2E test scripts for each user flow defined in the spec. Example for a login flow:
+
+```bash
+cd skills/dev-browser && npx tsx <<'EOF'
+import { connect, waitForPageLoad } from "@/client.js";
+
+const client = await connect();
+const page = await client.page("{session_id}-e2e-login");
+
+// Test login flow
+await page.goto("http://localhost:3000/login");
+await waitForPageLoad(page);
+
+// Capture initial state
+await page.screenshot({
+  path: "../../.kit/autopilot/sessions/{session_id}/visual-checks/e2e-login-1-initial.png"
+});
+
+// Fill form and submit
+await page.fill('input[name="email"]', 'test@example.com');
+await page.fill('input[name="password"]', 'testpassword');
+await page.click('button[type="submit"]');
+await waitForPageLoad(page);
+
+// Capture final state
+await page.screenshot({
+  path: "../../.kit/autopilot/sessions/{session_id}/visual-checks/e2e-login-2-result.png"
+});
+
+const success = page.url().includes('/dashboard');
+console.log({ flow: "login", success, finalUrl: page.url() });
+
+await client.disconnect();
+EOF
+```
+
+**Process:**
 1. Read user flows from spec (`.kit/specs/{spec_id}.md`)
-2. Test each flow with screenshots
-3. Generate `.kit/autopilot/sessions/{session_id}/e2e-report.md`
+2. Write and execute a script for each flow
+3. Capture screenshots at key steps
+4. Generate `.kit/autopilot/sessions/{session_id}/e2e-report.md` with results
 
 Page naming convention: `{session_id}-e2e-{flow_name}`
 
@@ -772,6 +853,14 @@ When `/autopilot` is invoked, check for existing session:
 
 ## Dev-Browser Integration
 
+Dev-browser provides browser automation with persistent page state using Playwright. When invoked, the skill loads instructions for writing automation scripts.
+
+### How to Use
+
+1. **Invoke the skill:** `Invoke Skill: skill="dev-browser"`
+2. **Write a script:** Use the dev-browser API to navigate, interact, and screenshot
+3. **Capture results:** Save screenshots and log outcomes
+
 ### Page Naming Convention
 
 Prevent conflicts with unique page names:
@@ -781,11 +870,42 @@ Prevent conflicts with unique page names:
 
 ### Integration Points
 
-| Phase | Trigger | Skill Invocation |
-|-------|---------|------------------|
-| Phase 1 | UI/web product | `skill="dev-browser", args="research {type}"` |
-| Phase 3 | `is_ui_task: true` | `skill="dev-browser", args="verify {session}-task-{id}"` |
-| Phase 4 | Before review | `skill="dev-browser", args="e2e {session_id}"` |
+| Phase | Trigger | Action |
+|-------|---------|--------|
+| Phase 1 | UI/web product | Navigate reference sites, capture screenshots |
+| Phase 3 | `is_ui_task: true` | Navigate local dev server, capture verification screenshot |
+| Phase 4 | Before review | Test each user flow, capture screenshots at key steps |
+
+### Script Pattern
+
+All dev-browser scripts follow this pattern:
+
+```bash
+cd skills/dev-browser && npx tsx <<'EOF'
+import { connect, waitForPageLoad } from "@/client.js";
+
+const client = await connect();
+const page = await client.page("unique-page-name");
+
+await page.goto("https://target-url.com");
+await waitForPageLoad(page);
+await page.screenshot({ path: "path/to/screenshot.png" });
+
+console.log({ url: page.url(), title: await page.title() });
+await client.disconnect();
+EOF
+```
+
+### Key APIs
+
+- `client.page("name")` - Get or create named page (persists across scripts)
+- `client.getAISnapshot("name")` - Get accessibility tree for element discovery
+- `client.selectSnapshotRef("name", "e5")` - Select element by ref from snapshot
+- `page.goto(url)` - Navigate to URL
+- `page.screenshot({ path })` - Capture screenshot
+- `page.click(selector)` - Click element
+- `page.fill(selector, value)` - Fill input field
+- `waitForPageLoad(page)` - Wait for navigation to complete
 
 ---
 
