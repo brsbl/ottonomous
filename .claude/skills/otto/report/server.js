@@ -42,7 +42,7 @@ if (!fs.existsSync(sessionDir)) {
   process.exit(1);
 }
 
-const cors = { 'Access-Control-Allow-Origin': `http://127.0.0.1:${port}`, 'Access-Control-Allow-Methods': 'GET', 'Access-Control-Allow-Headers': 'Content-Type' };
+const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET', 'Access-Control-Allow-Headers': 'Content-Type' };
 const json = (res, data, code = 200) => { res.writeHead(code, { ...cors, 'Content-Type': 'application/json' }); res.end(JSON.stringify(data)); };
 const readJson = (p) => {
   try {
