@@ -1,4 +1,4 @@
-<img width="1536" height="1024" alt="ChatGPT Image Jan 15, 2026, 11_41_34 PM" src="https://github.com/user-attachments/assets/4339ba68-c0eb-426b-a685-19b495c5eab5" />
+<img width="1536" height="714" alt="thinner" src="https://github.com/user-attachments/assets/e9f5b293-8033-47aa-ae51-fd37a965cd66" />
 
 # Claude Code Kit
 
