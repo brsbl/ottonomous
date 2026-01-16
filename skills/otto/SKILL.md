@@ -67,7 +67,7 @@ otto:
   max_tasks: 50
   max_duration_hours: 4
   feedback_rotation_interval: 10
-  open_dashboard: false           # Auto-open dashboard in browser (skipped if headless)
+  open_report: false               # Auto-open report in browser (skipped if headless)
   skip_improvement_cycles: false  # Skip self-improvement loops (faster but less thorough)
 ```
 
@@ -134,7 +134,7 @@ Write to `.otto/otto/sessions/${session_id}/state.json`:
   // Integration availability - set during Phase 0 initialization
   "integrations": {
     "dev_browser_available": false,
-    "dashboard_available": false
+    "report_available": false
   }
 }
 ```
@@ -216,26 +216,26 @@ fi
 - If curl succeeded: Set `state.integrations.dev_browser_available = true`, announce "✓ Dev-browser server running"
 - If curl failed: Set `state.integrations.dev_browser_available = false`, announce "⚠️ Dev-browser server failed to start - visual verification disabled"
 
-#### Step 0.7: Start Dashboard Server
+#### Step 0.7: Start Report Server
 
 ```bash
-if [ -f ".otto/otto/dashboard-server.js" ]; then
-  node .otto/otto/dashboard-server.js --session ${session_id} --port 3456 &
-  echo $! > .otto/otto/sessions/${session_id}/dashboard.pid
+if [ -f "skills/otto/report/server.js" ]; then
+  node skills/otto/report/server.js --session ${session_id} --port 3456 &
+  echo $! > .otto/otto/sessions/${session_id}/report.pid
   sleep 1
-  echo "Dashboard: http://localhost:3456"
+  echo "Report: http://localhost:3456"
 
-  # Verify dashboard is responding
+  # Verify report server is responding
   curl -s http://localhost:3456 > /dev/null
 fi
 ```
 
-**Orchestrator action after dashboard start:**
-- If curl succeeded: Set `state.integrations.dashboard_available = true`
-- If curl failed: Set `state.integrations.dashboard_available = false`, announce "⚠️ Dashboard server failed to start"
+**Orchestrator action after report start:**
+- If curl succeeded: Set `state.integrations.report_available = true`
+- If curl failed: Set `state.integrations.report_available = false`, announce "⚠️ Report server failed to start"
 
 **Auto-open logic (orchestrator handles):**
-- If `config.open_dashboard` is true AND (DISPLAY env var is set OR running on macOS):
+- If `config.open_report` is true AND (DISPLAY env var is set OR running on macOS):
   - macOS: Run `open "http://localhost:3456"`
   - Linux: Run `xdg-open "http://localhost:3456"`
 
@@ -1154,10 +1154,10 @@ if [ -f ".otto/otto/sessions/${session_id}/dev-browser.pid" ]; then
   rm .otto/otto/sessions/${session_id}/dev-browser.pid
 fi
 
-# Stop dashboard server
-if [ -f ".otto/otto/sessions/${session_id}/dashboard.pid" ]; then
-  kill $(cat .otto/otto/sessions/${session_id}/dashboard.pid) 2>/dev/null || true
-  rm .otto/otto/sessions/${session_id}/dashboard.pid
+# Stop report server
+if [ -f ".otto/otto/sessions/${session_id}/report.pid" ]; then
+  kill $(cat .otto/otto/sessions/${session_id}/report.pid) 2>/dev/null || true
+  rm .otto/otto/sessions/${session_id}/report.pid
 fi
 ```
 
@@ -1252,22 +1252,22 @@ Write session summary to feedback.md. All metrics roll up FROM task data.
 2. Run tests: `{test command}`
 3. Create PR: `gh pr create`
 
-### Dashboard Improvement Suggestions
+### Report Improvement Suggestions
 
 While managing subagents this session, the orchestrator noted:
 
 **Missing information:**
 {if had to read task files directly to understand status:}
-- Dashboard should show: task error messages
+- Report should show: task error messages
 {end if}
 {if couldn't tell which tasks were blocked:}
-- Dashboard should show: blocker_count per task
+- Report should show: blocker_count per task
 {end if}
 {if couldn't see subagent progress:}
-- Dashboard should show: current subagent activity / files being modified
+- Report should show: current subagent activity / files being modified
 {end if}
 
-**Suggested dashboard additions:**
+**Suggested report additions:**
 - {specific field or view that would have helped manage subagents}
 ```
 
@@ -1345,7 +1345,7 @@ Review artifacts in .otto/otto/sessions/{session_id}/
 
   "integrations": {
     "dev_browser_available": false,
-    "dashboard_available": false
+    "report_available": false
   }
 }
 ```
@@ -1480,7 +1480,7 @@ otto:
   self_improve: true               # Generate improvement suggestions
   max_tasks: 50                    # Safety limit on total tasks
   max_duration_hours: 4            # Time limit for session
-  open_dashboard: false            # Auto-open dashboard in browser (skipped if headless)
+  open_report: false               # Auto-open report in browser (skipped if headless)
   skip_improvement_cycles: false   # Skip self-improvement loops (faster but less thorough)
 ```
 

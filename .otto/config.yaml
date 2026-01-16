@@ -27,6 +27,6 @@ otto:
   max_duration_hours: 4     # Stop after N hours
   require_tests: false      # Require passing tests before completion
 
-  # Dashboard & feedback
+  # Report & feedback
   feedback_rotation_interval: 10  # Rotate feedback.md every N tasks
-  open_dashboard: false     # Auto-open dashboard in browser
+  open_report: false        # Auto-open report in browser

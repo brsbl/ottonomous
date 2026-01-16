@@ -15,7 +15,7 @@ if (isNaN(port) || port < 1 || port > 65535) {
 }
 
 if (!sessionId || sessionId.startsWith('--')) {
-  console.error('Usage: node dashboard-server.js --session <session_id> [--port 3456]');
+  console.error('Usage: node server.js --session <session_id> [--port 3456]');
   process.exit(1);
 }
 
@@ -26,10 +26,10 @@ if (!SESSION_ID_PATTERN.test(sessionId)) {
   process.exit(1);
 }
 
-const ottoDir = path.resolve(__dirname, '..');
-const sessionDir = path.join(__dirname, 'sessions', sessionId);
+const ottoDir = path.resolve(__dirname, '../../../.otto');
+const sessionDir = path.join(ottoDir, 'otto', 'sessions', sessionId);
 const statePath = path.join(sessionDir, 'state.json');
-const dashboardPath = path.join(__dirname, 'dashboard.html');
+const reportPath = path.join(__dirname, 'index.html');
 
 if (!fs.existsSync(sessionDir)) {
   console.error(`Session directory not found: ${sessionDir}`);
@@ -54,10 +54,10 @@ const server = http.createServer((req, res) => {
 
   if (url.pathname === '/') {
     try {
-      const html = fs.readFileSync(dashboardPath, 'utf8');
+      const html = fs.readFileSync(reportPath, 'utf8');
       res.writeHead(200, { ...cors, 'Content-Type': 'text/html' });
       res.end(html);
-    } catch { res.writeHead(404, cors); res.end('Dashboard not found'); }
+    } catch { res.writeHead(404, cors); res.end('Report not found'); }
     return;
   }
 
@@ -129,6 +129,6 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(port, '127.0.0.1', () => {
-  console.log(`Dashboard server running at http://127.0.0.1:${port}`);
+  console.log(`Report server running at http://127.0.0.1:${port}`);
   console.log(`Session: ${sessionId}`);
 });

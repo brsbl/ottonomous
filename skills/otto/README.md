@@ -47,13 +47,13 @@ otto:
   max_tasks: 50             # Safety limit on total tasks
   max_duration_hours: 4     # Time limit for session
   feedback_rotation_interval: 10
-  open_dashboard: false     # Auto-open dashboard in browser (skipped if headless)
+  open_report: false        # Auto-open report in browser (skipped if headless)
   skip_improvement_cycles: false  # Skip self-improvement loops (faster but less thorough)
 ```
 
-## Live Dashboard
+## Live Report
 
-Otto includes a real-time web dashboard that shows progress during execution.
+Otto includes a real-time web report that shows progress during execution.
 
 ```
 ┌────────────────────────────────────────────────────────────┐
@@ -65,7 +65,7 @@ Otto includes a real-time web dashboard that shows progress during execution.
 └────────────────────────────────────────────────────────────┘
 ```
 
-The dashboard starts automatically and is available at `http://localhost:3456`
+The report server starts automatically and is available at `http://localhost:3456`
 
 Features:
 - Real-time task progress with status indicators

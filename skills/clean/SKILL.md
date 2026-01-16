@@ -15,7 +15,7 @@ When ottonomous is installed as a Claude Code plugin, users have `.otto/` in the
 - `tasks/` - Task JSON files
 - `reviews/` - Review outputs (markdown, HTML)
 - `logs/` - Engineering logs with INDEX.md
-- `otto/sessions/` - Session state, feedback, screenshots
+- `otto/sessions/` - Session state, feedback.md, improvements.md, screenshots
 
 ## Usage
 
@@ -24,6 +24,7 @@ When ottonomous is installed as a Claude Code plugin, users have `.otto/` in the
 /clean --all        # Full reset including config.yaml
 /clean --sessions   # Clean only otto sessions
 /clean --keep-config # Clean all except config.yaml (default)
+/clean --feedback   # Clear only feedback.md files from sessions (keep state)
 ```
 
 ---
@@ -40,6 +41,7 @@ Check for flags in the user's invocation:
 | `--all` | Remove everything in .otto/ including config.yaml |
 | `--sessions` | Remove only .otto/otto/sessions/ |
 | `--keep-config` | Remove everything except config.yaml (default for non-interactive) |
+| `--feedback` | Clear only feedback.md and improvements.md from sessions (keep state) |
 
 ### Step 2: Check for Active Sessions
 
@@ -56,7 +58,7 @@ find .otto/otto/sessions -name "state.json" -exec grep -l '"status": "in_progres
 
 The session appears to be in progress. Cleaning now may cause:
 - Loss of current execution state
-- Orphaned processes (dev-browser, dashboard)
+- Orphaned processes (dev-browser, report server)
 
 Options:
 1. Stop the session first (kill processes, set status to "terminated")
@@ -73,9 +75,9 @@ if [ -f ".otto/otto/sessions/{session_id}/dev-browser.pid" ]; then
   kill $(cat .otto/otto/sessions/{session_id}/dev-browser.pid) 2>/dev/null || true
 fi
 
-# Kill dashboard if running
-if [ -f ".otto/otto/sessions/{session_id}/dashboard.pid" ]; then
-  kill $(cat .otto/otto/sessions/{session_id}/dashboard.pid) 2>/dev/null || true
+# Kill report server if running
+if [ -f ".otto/otto/sessions/{session_id}/report.pid" ]; then
+  kill $(cat .otto/otto/sessions/{session_id}/report.pid) 2>/dev/null || true
 fi
 ```
 
@@ -89,7 +91,7 @@ Use AskUserQuestion with multiSelect: true
 Question: "What would you like to clean from .otto/?"
 
 Options:
-- Sessions (.otto/otto/sessions/) - Session state, feedback, screenshots
+- Sessions (.otto/otto/sessions/) - Session state, feedback.md, improvements.md, screenshots
 - Specs (.otto/specs/) - Specification documents
 - Tasks (.otto/tasks/) - Task JSON files
 - Reviews (.otto/reviews/) - Review outputs
@@ -107,6 +109,16 @@ rm -rf .otto/otto/sessions/*
 mkdir -p .otto/otto/sessions
 touch .otto/otto/sessions/.gitkeep
 ```
+
+#### --feedback (clear feedback files only)
+```bash
+# Clear feedback.md and improvements.md files while preserving session state
+find .otto/otto/sessions -name "feedback.md" -delete
+find .otto/otto/sessions -name "feedback-batch-*.md" -delete
+find .otto/otto/sessions -name "improvements.md" -delete
+```
+
+This allows users to clear accumulated feedback without losing session state.
 
 #### --keep-config (default behavior)
 ```bash
@@ -161,6 +173,7 @@ When `auto_pick: true` is set in config:
 |------|---------------|
 | `--sessions` | Clean immediately, no confirmation |
 | `--keep-config` | Clean immediately, no confirmation |
+| `--feedback` | Clean immediately, no confirmation |
 | `--all` | ALWAYS ask for confirmation (destructive) |
 | (none) | Default to `--keep-config`, no confirmation |
 
@@ -176,6 +189,16 @@ Output:
 ```
 Cleaned 3 otto session(s).
 Session artifacts removed, ready for new session.
+```
+
+### Clean feedback files only (preserve state)
+```
+/clean --feedback
+```
+Output:
+```
+Cleaned feedback files from 3 session(s).
+Session state preserved, feedback cleared.
 ```
 
 ### Interactive cleanup
