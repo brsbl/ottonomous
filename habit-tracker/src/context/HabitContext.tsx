@@ -80,9 +80,6 @@ function habitReducer(state: AppState, action: HabitAction): AppState {
   }
 }
 
-// Internal action type for tracking initialization
-type InternalAction = HabitAction | { type: '__INITIALIZED__' };
-
 // Context type
 interface HabitContextType {
   state: AppState;
