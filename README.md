@@ -1,3 +1,5 @@
+<img width="1536" height="1024" alt="ChatGPT Image Jan 15, 2026, 11_41_34 PM" src="https://github.com/user-attachments/assets/4339ba68-c0eb-426b-a685-19b495c5eab5" />
+
 # Claude Code Kit
 
 A Claude Code plugin providing structured workflows for planning, implementation, review, and knowledge management.
