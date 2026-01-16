@@ -2,8 +2,8 @@
   "schema_version": 1,
   "session_id": "autopilot-20260115-163856-4457",
   "product_spec_id": "cli-todo-app-4457",
-  "status": "in_progress",
-  "current_phase": "review",
+  "status": "completed",
+  "current_phase": "summary",
 
   "timestamps": {
     "started_at": "2026-01-15T16:38:56Z",
