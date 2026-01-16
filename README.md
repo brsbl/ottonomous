@@ -39,7 +39,7 @@ Fully autonomous from idea to working code:
 /otto Build a CLI todo app with local JSON storage
 ```
 This workflow is essentially 2 nested loops:
-- **outter loop**: manager agent delegates to subagents to research a product idea (argument for the skill) → write a spec → generate tasks from spec → execute tasks in parallel → test & review in parallel → regularly report status to manager agent
+- **outter loop**: manager agent delegates to subagents to research a product idea (argument for the skill) → write a spec → generate tasks from spec → execute tasks in parallel → test & review in parallel → regularly report status to manager agent → document the codebase as they work
 - **inner loop**: subagents and manager agent document feedback about the workflow as they work. after each milestone, manager agent creates a plan for subagents to improve the workflow
 
 these loops run continuously until the product is built to spec (with stop hooks to validate after each task).
