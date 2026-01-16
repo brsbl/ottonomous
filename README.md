@@ -1,3 +1,5 @@
+<img width="1536" height="714" alt="thinner" src="https://github.com/user-attachments/assets/e9f5b293-8033-47aa-ae51-fd37a965cd66" />
+
 # Ottonomous
 
 A Claude Code plugin providing structured workflows for planning, implementation, review, and knowledge management.
