@@ -134,9 +134,9 @@ Idea → /otto
          ↓     │
     Milestone? ┘ (every 5 tasks: self-improve)
          ↓
-    Code Review (fix P0/P1)
+    Test (via browser automation)
          ↓
-Test changes in browser
+    Code Review (fix P0/P1)
          ↓
     Session Report
          ↓
