@@ -1,15 +1,17 @@
 /**
  * Editor component - CodeMirror 6 based Markdown editor with syntax highlighting,
- * line numbers, and One Dark theme. Provides controlled value/onChange interface.
+ * line numbers, One Dark theme, and [[wiki-link]] autocomplete.
+ * Provides controlled value/onChange interface.
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
 import { EditorView, lineNumbers, highlightActiveLine, highlightActiveLineGutter, keymap } from '@codemirror/view';
 import { EditorState, Extension } from '@codemirror/state';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { createLinkAutocomplete } from '../lib/linkAutocomplete';
 
 interface EditorProps {
   /** The current content value */
@@ -24,6 +26,10 @@ interface EditorProps {
   darkMode?: boolean;
   /** Whether the editor is read-only */
   readOnly?: boolean;
+  /** Optional array of note titles for [[link]] autocomplete */
+  noteTitles?: string[];
+  /** Optional callback when user selects "Create new note" from autocomplete */
+  onCreateNote?: (title: string) => void;
 }
 
 /**
@@ -63,12 +69,21 @@ const lightTheme = EditorView.theme({
 });
 
 /**
+ * Options for creating base editor extensions
+ */
+interface BaseExtensionOptions {
+  onChange: (value: string) => void;
+  readOnly: boolean;
+  noteTitles?: string[];
+  onCreateNote?: (title: string) => void;
+}
+
+/**
  * Create base editor extensions shared between themes
  */
-function createBaseExtensions(
-  onChange: (value: string) => void,
-  readOnly: boolean
-): Extension[] {
+function createBaseExtensions(options: BaseExtensionOptions): Extension[] {
+  const { onChange, readOnly, noteTitles, onCreateNote } = options;
+
   const extensions: Extension[] = [
     lineNumbers(),
     highlightActiveLine(),
@@ -85,6 +100,17 @@ function createBaseExtensions(
       }
     }),
   ];
+
+  // Add link autocomplete if noteTitles is provided
+  if (noteTitles) {
+    extensions.push(
+      ...createLinkAutocomplete({
+        getNoteTitles: () => noteTitles,
+        onCreateNote,
+        minChars: 0,
+      })
+    );
+  }
 
   if (readOnly) {
     extensions.push(EditorState.readOnly.of(true));
@@ -103,6 +129,8 @@ export function Editor({
   className = '',
   darkMode = true,
   readOnly = false,
+  noteTitles,
+  onCreateNote,
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EditorView | null>(null);
@@ -119,6 +147,17 @@ export function Editor({
     [onChange]
   );
 
+  // Memoize onCreateNote callback
+  const handleCreateNote = useCallback(
+    (title: string) => {
+      onCreateNote?.(title);
+    },
+    [onCreateNote]
+  );
+
+  // Memoize note titles to prevent unnecessary recreations
+  const memoizedNoteTitles = useMemo(() => noteTitles, [noteTitles]);
+
   // Initialize the editor
   useEffect(() => {
     if (!containerRef.current) return;
@@ -129,7 +168,12 @@ export function Editor({
     }
 
     const extensions = [
-      ...createBaseExtensions(handleChange, readOnly),
+      ...createBaseExtensions({
+        onChange: handleChange,
+        readOnly,
+        noteTitles: memoizedNoteTitles,
+        onCreateNote: handleCreateNote,
+      }),
       darkMode ? oneDark : lightTheme,
     ];
 
@@ -149,7 +193,7 @@ export function Editor({
       view.destroy();
       editorRef.current = null;
     };
-  }, [handleChange, darkMode, readOnly]);
+  }, [handleChange, darkMode, readOnly, memoizedNoteTitles, handleCreateNote]);
 
   // Sync external value changes
   useEffect(() => {

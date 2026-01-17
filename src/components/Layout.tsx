@@ -6,9 +6,10 @@ interface LayoutProps {
   sidebar?: ReactNode;
   editor?: ReactNode;
   preview?: ReactNode;
+  backlinks?: ReactNode;
 }
 
-export function Layout({ sidebar, editor, preview }: LayoutProps) {
+export function Layout({ sidebar, editor, preview, backlinks }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [previewOpen, setPreviewOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -106,7 +107,7 @@ export function Layout({ sidebar, editor, preview }: LayoutProps) {
           )}
         </main>
 
-        {/* Right - Preview */}
+        {/* Right - Preview and Backlinks */}
         <aside
           className={`
             ${previewOpen ? 'w-[400px]' : 'w-0 overflow-hidden'}
@@ -118,11 +119,23 @@ export function Layout({ sidebar, editor, preview }: LayoutProps) {
             shrink-0
           `}
         >
-          {preview || (
-            <div className="p-4 h-full flex items-center justify-center">
-              <p className="text-muted-foreground">Preview area</p>
+          <div className="flex flex-col h-full">
+            {/* Preview section */}
+            <div className="flex-1 overflow-y-auto">
+              {preview || (
+                <div className="p-4 h-full flex items-center justify-center">
+                  <p className="text-muted-foreground">Preview area</p>
+                </div>
+              )}
             </div>
-          )}
+
+            {/* Backlinks section */}
+            {backlinks && (
+              <div className="border-t border-border shrink-0">
+                {backlinks}
+              </div>
+            )}
+          </div>
         </aside>
       </div>
     </div>

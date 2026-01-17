@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import type Fuse from 'fuse.js';
-import type { Note, Folder, Tag, Template, SmartCollection, NoteLink } from '../types';
+import type { Note, Folder, Tag, Template, SmartCollection, NoteLink, TemplateCategory } from '../types';
 import { db } from '../lib/db';
 import { buildBacklinksIndex, getBacklinks as getBacklinksFromIndex } from '../lib/linkParser';
 import {
@@ -13,6 +13,95 @@ import {
   searchNotes as performFuseSearch,
   type SearchResult,
 } from '../lib/search';
+
+/**
+ * Built-in template definitions.
+ * These templates are seeded into the database on first load if no templates exist.
+ */
+export const BUILT_IN_TEMPLATES: Array<{ name: string; content: string; category: TemplateCategory }> = [
+  {
+    name: 'Daily Note',
+    category: 'daily',
+    content: `# {{date}}
+
+## Tasks
+- [ ]
+
+## Notes
+
+`,
+  },
+  {
+    name: 'Meeting Notes',
+    category: 'meeting',
+    content: `# Meeting: {{title}}
+
+**Date:** {{date}}
+**Attendees:**
+
+## Agenda
+
+## Notes
+
+## Action Items
+
+`,
+  },
+  {
+    name: 'Project',
+    category: 'project',
+    content: `# {{title}}
+
+## Overview
+
+## Goals
+
+## Tasks
+
+## Resources
+
+`,
+  },
+];
+
+/**
+ * Replace template placeholders with actual values.
+ * Supports: {{date}}, {{title}}
+ */
+export function replacePlaceholders(content: string, title: string = 'Untitled'): string {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  return content
+    .replace(/\{\{date\}\}/g, dateStr)
+    .replace(/\{\{title\}\}/g, title);
+}
+
+/**
+ * Seed the database with built-in templates if none exist.
+ */
+export async function seedTemplates(): Promise<Template[]> {
+  const existingTemplates = await db.templates.toArray();
+  if (existingTemplates.length > 0) {
+    return existingTemplates;
+  }
+
+  const templates: Template[] = BUILT_IN_TEMPLATES.map((t) => ({
+    id: crypto.randomUUID(),
+    name: t.name,
+    content: t.content,
+    category: t.category,
+    createdAt: new Date(),
+  }));
+
+  await db.templates.bulkAdd(templates);
+  return templates;
+}
 
 /**
  * KnowledgeBaseState interface defines the shape of the store.
@@ -66,10 +155,16 @@ export interface KnowledgeBaseActions {
   updateFolder: (id: string, updates: Partial<Omit<Folder, 'id' | 'createdAt'>>) => Promise<void>;
   deleteFolder: (id: string) => Promise<void>;
 
+  // Note organization
+  moveNote: (noteId: string, folderId: string | null) => Promise<void>;
+
   // Tag CRUD
   createTag: (tag: Omit<Tag, 'id' | 'createdAt'>) => Promise<Tag>;
   updateTag: (id: string, updates: Partial<Omit<Tag, 'id' | 'createdAt'>>) => Promise<void>;
   deleteTag: (id: string) => Promise<void>;
+  addTagToNote: (noteId: string, tagId: string) => Promise<void>;
+  removeTagFromNote: (noteId: string, tagId: string) => Promise<void>;
+  getTagById: (id: string) => Tag | undefined;
 
   // Template CRUD
   createTemplate: (template: Omit<Template, 'id' | 'createdAt'>) => Promise<Template>;
@@ -91,6 +186,10 @@ export interface KnowledgeBaseActions {
   // Backlinks
   refreshBacklinks: () => void;
   getBacklinks: (noteId: string) => NoteLink[];
+
+  // Daily Notes
+  createDailyNote: (date?: Date) => Promise<Note>;
+  getDailyNote: (date: Date) => Note | undefined;
 }
 
 /**
@@ -222,7 +321,11 @@ export const useKnowledgeBase = create<KnowledgeBaseStore>((set, get) => ({
 
   loadTemplates: async () => {
     try {
-      const templates = await db.templates.toArray();
+      let templates = await db.templates.toArray();
+      // Seed built-in templates if none exist
+      if (templates.length === 0) {
+        templates = await seedTemplates();
+      }
       set({ templates });
     } catch (error) {
       console.error('Failed to load templates:', error);
@@ -298,6 +401,27 @@ export const useKnowledgeBase = create<KnowledgeBaseStore>((set, get) => ({
   },
 
   // =========================================================================
+  // Note Organization Operations
+  // =========================================================================
+
+  moveNote: async (noteId, folderId) => {
+    const updatedNote = {
+      folderId,
+      updatedAt: new Date(),
+    };
+
+    // Persist to IndexedDB
+    await db.notes.update(noteId, updatedNote);
+
+    // Update store state
+    set((state) => ({
+      notes: state.notes.map((note) =>
+        note.id === noteId ? { ...note, ...updatedNote } : note
+      ),
+    }));
+  },
+
+  // =========================================================================
   // Tag CRUD Operations
   // =========================================================================
 
@@ -330,6 +454,58 @@ export const useKnowledgeBase = create<KnowledgeBaseStore>((set, get) => ({
     set((state) => ({
       tags: state.tags.filter((tag) => tag.id !== id),
     }));
+  },
+
+  addTagToNote: async (noteId, tagId) => {
+    const { notes } = get();
+    const note = notes.find((n) => n.id === noteId);
+    if (!note) return;
+
+    // Check if tag is already added
+    if (note.tags.includes(tagId)) return;
+
+    const updatedTags = [...note.tags, tagId];
+    const updatedNote = {
+      tags: updatedTags,
+      updatedAt: new Date(),
+    };
+
+    // Persist to IndexedDB
+    await db.notes.update(noteId, updatedNote);
+
+    // Update store state
+    set((state) => ({
+      notes: state.notes.map((n) =>
+        n.id === noteId ? { ...n, ...updatedNote } : n
+      ),
+    }));
+  },
+
+  removeTagFromNote: async (noteId, tagId) => {
+    const { notes } = get();
+    const note = notes.find((n) => n.id === noteId);
+    if (!note) return;
+
+    const updatedTags = note.tags.filter((t) => t !== tagId);
+    const updatedNote = {
+      tags: updatedTags,
+      updatedAt: new Date(),
+    };
+
+    // Persist to IndexedDB
+    await db.notes.update(noteId, updatedNote);
+
+    // Update store state
+    set((state) => ({
+      notes: state.notes.map((n) =>
+        n.id === noteId ? { ...n, ...updatedNote } : n
+      ),
+    }));
+  },
+
+  getTagById: (id) => {
+    const { tags } = get();
+    return tags.find((t) => t.id === id);
   },
 
   // =========================================================================
@@ -484,5 +660,75 @@ export const useKnowledgeBase = create<KnowledgeBaseStore>((set, get) => ({
   getBacklinks: (noteId: string) => {
     const { backlinksIndex } = get();
     return getBacklinksFromIndex(noteId, backlinksIndex);
+  },
+
+  // =========================================================================
+  // Daily Notes Operations
+  // =========================================================================
+
+  createDailyNote: async (date?: Date) => {
+    const targetDate = date || new Date();
+    const dateString = targetDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+    // Check if daily note already exists for this date
+    const { notes } = get();
+    const existingNote = notes.find(
+      (n) => n.isDaily && n.dailyDate === dateString
+    );
+
+    if (existingNote) {
+      return existingNote;
+    }
+
+    // Create daily note with template
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'];
+
+    const dayName = dayNames[targetDate.getDay()];
+    const monthName = monthNames[targetDate.getMonth()];
+    const dayOfMonth = targetDate.getDate();
+    const year = targetDate.getFullYear();
+
+    const template = `# ${dayName}, ${monthName} ${dayOfMonth}, ${year}
+
+## Tasks
+- [ ]
+
+## Notes
+
+
+## Reflections
+
+`;
+
+    const now = new Date();
+    const note: Note = {
+      id: generateId(),
+      title: dateString,
+      content: template,
+      folderId: null,
+      tags: [],
+      createdAt: now,
+      updatedAt: now,
+      isDaily: true,
+      dailyDate: dateString,
+    };
+
+    // Persist to IndexedDB
+    await db.notes.add(note);
+
+    // Update store state
+    set((state) => ({
+      notes: [...state.notes, note],
+    }));
+
+    return note;
+  },
+
+  getDailyNote: (date: Date) => {
+    const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const { notes } = get();
+    return notes.find((n) => n.isDaily && n.dailyDate === dateString);
   },
 }));
