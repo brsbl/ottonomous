@@ -72,3 +72,25 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  /* Indeterminate progress bar animation */
+  @keyframes progress-indeterminate {
+    0% {
+      width: 0%;
+      margin-left: 0%;
+    }
+    50% {
+      width: 40%;
+      margin-left: 30%;
+    }
+    100% {
+      width: 0%;
+      margin-left: 100%;
+    }
+  }
+
+  .animate-progress-indeterminate {
+    animation: progress-indeterminate 1.5s ease-in-out infinite;
+  }
+}

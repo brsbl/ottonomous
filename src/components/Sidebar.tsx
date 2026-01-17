@@ -1,4 +1,9 @@
-import { FolderOpen, Tag, Plus, ChevronRight, X } from 'lucide-react';
+import { useState } from 'react';
+import { FolderOpen, Tag as TagIcon, Plus, ChevronRight, X, Edit2 } from 'lucide-react';
+import { useProjectStore } from '../store/projectStore';
+import { TagBadge } from './TagBadge';
+import { TagManager } from './TagManager';
+import type { Tag } from '../types';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -6,9 +11,70 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  // Placeholder data - will be connected to store later
-  const folders: { id: string; name: string; projectCount: number }[] = [];
-  const tags: { id: string; name: string; color: string; projectCount: number }[] = [];
+  const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
+  const [editingTag, setEditingTag] = useState<Tag | null>(null);
+
+  // Connect to store
+  const folders = useProjectStore((state) => state.folders);
+  const tags = useProjectStore((state) => state.tags);
+  const projects = useProjectStore((state) => state.projects);
+  const filters = useProjectStore((state) => state.filters);
+  const updateFilters = useProjectStore((state) => state.updateFilters);
+
+  // Calculate tag counts from projects
+  const tagCounts = tags.map((tag) => ({
+    ...tag,
+    projectCount: projects.filter((p) => p.tags.includes(tag.id)).length,
+  }));
+
+  // Calculate folder project counts
+  const folderCounts = folders.map((folder) => ({
+    ...folder,
+    projectCount: projects.filter((p) => p.path.startsWith(folder.path)).length,
+  }));
+
+  // Handle tag click for filtering
+  const handleTagClick = (tagId: string) => {
+    const currentTagIds = filters.tagIds;
+    if (currentTagIds.includes(tagId)) {
+      // Remove tag from filter
+      updateFilters({ tagIds: currentTagIds.filter((id) => id !== tagId) });
+    } else {
+      // Add tag to filter
+      updateFilters({ tagIds: [...currentTagIds, tagId] });
+    }
+  };
+
+  // Handle folder click for filtering
+  const handleFolderClick = (folderId: string) => {
+    const currentFolderIds = filters.folderIds;
+    if (currentFolderIds.includes(folderId)) {
+      // Remove folder from filter
+      updateFilters({ folderIds: currentFolderIds.filter((id) => id !== folderId) });
+    } else {
+      // Add folder to filter
+      updateFilters({ folderIds: [...currentFolderIds, folderId] });
+    }
+  };
+
+  // Open tag manager for creating new tag
+  const handleCreateTag = () => {
+    setEditingTag(null);
+    setIsTagManagerOpen(true);
+  };
+
+  // Open tag manager for editing existing tag
+  const handleEditTag = (tag: Tag, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingTag(tag);
+    setIsTagManagerOpen(true);
+  };
+
+  // Close tag manager
+  const handleCloseTagManager = () => {
+    setIsTagManagerOpen(false);
+    setEditingTag(null);
+  };
 
   return (
     <>
@@ -59,7 +125,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </button>
             </div>
 
-            {folders.length === 0 ? (
+            {folderCounts.length === 0 ? (
               <div className="text-sm text-muted-foreground py-3 px-2 bg-secondary/50 rounded-md">
                 <p className="mb-2">No folders added yet.</p>
                 <button className="text-primary hover:underline text-xs flex items-center gap-1">
@@ -69,19 +135,40 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </div>
             ) : (
               <ul className="space-y-1">
-                {folders.map((folder) => (
-                  <li key={folder.id}>
-                    <button className="w-full flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-secondary transition-colors text-sm group">
-                      <span className="flex items-center gap-2 truncate">
-                        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
-                        <span className="truncate">{folder.name}</span>
-                      </span>
-                      <span className="text-xs text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">
-                        {folder.projectCount}
-                      </span>
-                    </button>
-                  </li>
-                ))}
+                {folderCounts.map((folder) => {
+                  const isActive = filters.folderIds.includes(folder.id);
+                  return (
+                    <li key={folder.id}>
+                      <button
+                        onClick={() => handleFolderClick(folder.id)}
+                        className={`
+                          w-full flex items-center justify-between px-2 py-1.5 rounded-md
+                          hover:bg-secondary transition-colors text-sm group
+                          ${isActive ? 'bg-primary/10 text-primary' : ''}
+                        `}
+                      >
+                        <span className="flex items-center gap-2 truncate">
+                          <ChevronRight
+                            className={`w-4 h-4 transition-colors ${
+                              isActive
+                                ? 'text-primary'
+                                : 'text-muted-foreground group-hover:text-foreground'
+                            }`}
+                          />
+                          <span className="truncate">{folder.name}</span>
+                        </span>
+                        <span
+                          className={`
+                            text-xs px-1.5 py-0.5 rounded
+                            ${isActive ? 'bg-primary/20 text-primary' : 'text-muted-foreground bg-secondary'}
+                          `}
+                        >
+                          {folder.projectCount}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
@@ -90,10 +177,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                <Tag className="w-4 h-4" />
+                <TagIcon className="w-4 h-4" />
                 Tags
               </h2>
               <button
+                onClick={handleCreateTag}
                 className="p-1 hover:bg-secondary rounded-md transition-colors text-muted-foreground hover:text-foreground"
                 aria-label="Add tag"
               >
@@ -101,33 +189,101 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </button>
             </div>
 
-            {tags.length === 0 ? (
+            {tagCounts.length === 0 ? (
               <div className="text-sm text-muted-foreground py-3 px-2 bg-secondary/50 rounded-md">
                 <p className="mb-2">No tags created yet.</p>
-                <button className="text-primary hover:underline text-xs flex items-center gap-1">
+                <button
+                  onClick={handleCreateTag}
+                  className="text-primary hover:underline text-xs flex items-center gap-1"
+                >
                   <Plus className="w-3 h-3" />
                   Create your first tag
                 </button>
               </div>
             ) : (
               <ul className="space-y-1">
-                {tags.map((tag) => (
-                  <li key={tag.id}>
-                    <button className="w-full flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-secondary transition-colors text-sm">
-                      <span className="flex items-center gap-2">
-                        <span
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: tag.color }}
-                        />
-                        <span>{tag.name}</span>
-                      </span>
-                      <span className="text-xs text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">
-                        {tag.projectCount}
-                      </span>
-                    </button>
-                  </li>
-                ))}
+                {tagCounts.map((tag) => {
+                  const isActive = filters.tagIds.includes(tag.id);
+                  return (
+                    <li key={tag.id}>
+                      <div
+                        className={`
+                          w-full flex items-center justify-between px-2 py-1.5 rounded-md
+                          hover:bg-secondary transition-colors text-sm group cursor-pointer
+                          ${isActive ? 'bg-primary/10' : ''}
+                        `}
+                        onClick={() => handleTagClick(tag.id)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleTagClick(tag.id);
+                          }
+                        }}
+                      >
+                        <span className="flex items-center gap-2 min-w-0">
+                          <span
+                            className={`
+                              w-3 h-3 rounded-full flex-shrink-0
+                              ${isActive ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''}
+                            `}
+                            style={{ backgroundColor: tag.color }}
+                          />
+                          <span className="truncate">{tag.name}</span>
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <button
+                            onClick={(e) => handleEditTag(tag, e)}
+                            className="p-1 opacity-0 group-hover:opacity-100 hover:bg-secondary/80 rounded transition-opacity"
+                            aria-label={`Edit ${tag.name} tag`}
+                          >
+                            <Edit2 className="w-3 h-3 text-muted-foreground" />
+                          </button>
+                          <span
+                            className={`
+                              text-xs px-1.5 py-0.5 rounded
+                              ${isActive ? 'bg-primary/20 text-primary' : 'text-muted-foreground bg-secondary'}
+                            `}
+                          >
+                            {tag.projectCount}
+                          </span>
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
+            )}
+
+            {/* Active filter indicator */}
+            {filters.tagIds.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-border">
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                  <span>Active filters</span>
+                  <button
+                    onClick={() => updateFilters({ tagIds: [] })}
+                    className="text-primary hover:underline"
+                  >
+                    Clear all
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {filters.tagIds.map((tagId) => {
+                    const tag = tags.find((t) => t.id === tagId);
+                    if (!tag) return null;
+                    return (
+                      <TagBadge
+                        key={tagId}
+                        tag={tag}
+                        size="sm"
+                        showRemove
+                        onRemove={() => handleTagClick(tagId)}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -135,11 +291,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Footer */}
         <div className="p-4 border-t border-border">
           <div className="text-xs text-muted-foreground">
-            <p>0 projects</p>
-            <p>0 folders</p>
+            <p>{projects.length} project{projects.length !== 1 ? 's' : ''}</p>
+            <p>{folders.length} folder{folders.length !== 1 ? 's' : ''}</p>
           </div>
         </div>
       </aside>
+
+      {/* Tag Manager Modal */}
+      <TagManager
+        isOpen={isTagManagerOpen}
+        onClose={handleCloseTagManager}
+        editTag={editingTag}
+      />
     </>
   );
 }

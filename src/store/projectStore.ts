@@ -58,7 +58,13 @@ interface ProjectState {
   setSortDirection: (direction: SortDirection) => void;
   addTag: (tag: Tag) => void;
   removeTag: (tagId: string) => void;
+  updateTag: (tagId: string, updates: Partial<Tag>) => void;
+  setTags: (tags: Tag[]) => void;
   updateProject: (projectId: string, updates: Partial<Project>) => void;
+  // Bulk actions
+  favoriteAll: (projectIds: string[]) => void;
+  unfavoriteAll: (projectIds: string[]) => void;
+  selectAll: (projectIds: string[]) => void;
 }
 
 /**
@@ -155,10 +161,37 @@ export const useProjectStore = create<ProjectState>((set) => ({
       })),
     })),
 
+  updateTag: (tagId, updates) =>
+    set((state) => ({
+      tags: state.tags.map((t) =>
+        t.id === tagId ? { ...t, ...updates } : t
+      ),
+    })),
+
+  setTags: (tags) => set({ tags }),
+
   updateProject: (projectId, updates) =>
     set((state) => ({
       projects: state.projects.map((p) =>
         p.id === projectId ? { ...p, ...updates } : p
       ),
     })),
+
+  // Bulk actions
+  favoriteAll: (projectIds) =>
+    set((state) => ({
+      projects: state.projects.map((p) =>
+        projectIds.includes(p.id) ? { ...p, favorite: true } : p
+      ),
+    })),
+
+  unfavoriteAll: (projectIds) =>
+    set((state) => ({
+      projects: state.projects.map((p) =>
+        projectIds.includes(p.id) ? { ...p, favorite: false } : p
+      ),
+    })),
+
+  selectAll: (projectIds) =>
+    set({ selectedProjectIds: projectIds }),
 }));
