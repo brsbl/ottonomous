@@ -2,100 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  box-sizing: border-box;
-}
-
-html, body, #root {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-/* Custom animations for kanban board */
-@layer utilities {
-  /* Card entrance animation - fade in and slide up */
-  @keyframes card-enter {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .animate-card-enter {
-    animation: card-enter 0.2s ease-out forwards;
-  }
-
-  /* Modal backdrop fade in */
-  @keyframes backdrop-fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  .animate-backdrop-fade-in {
-    animation: backdrop-fade-in 0.2s ease-out forwards;
-  }
-
-  /* Modal scale up animation */
-  @keyframes modal-scale-in {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  .animate-modal-scale-in {
-    animation: modal-scale-in 0.2s ease-out forwards;
-  }
-
-  /* Column entrance animation */
-  @keyframes column-enter {
-    from {
-      opacity: 0;
-      transform: translateX(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  .animate-column-enter {
-    animation: column-enter 0.25s ease-out forwards;
-  }
-}
-
-/* Respect reduced motion preference */
-@media (prefers-reduced-motion: reduce) {
-  .animate-card-enter,
-  .animate-backdrop-fade-in,
-  .animate-modal-scale-in,
-  .animate-column-enter {
-    animation: none !important;
-  }
-
-  /* Disable transitions for users who prefer reduced motion */
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -117,38 +23,44 @@ html, body, #root {
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
     --ring: 0 0% 3.9%;
+    --radius: 0.5rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
   }
+
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
+    /* Ableton-inspired dark theme */
+    --background: 0 0% 10%;           /* #1a1a1a */
+    --foreground: 0 0% 95%;
+    --card: 0 0% 16.5%;               /* #2a2a2a */
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 16.5%;            /* #2a2a2a */
+    --popover-foreground: 0 0% 95%;
+    --primary: 15 100% 65%;           /* #ff764d - Ableton orange */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 22.7%;          /* #3a3a3a */
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
+    --muted: 0 0% 22.7%;              /* #3a3a3a */
     --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 15 100% 65%;            /* #ff764d - Ableton orange */
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    --border: 0 0% 22.7%;             /* #3a3a3a */
+    --input: 0 0% 22.7%;              /* #3a3a3a */
+    --ring: 15 100% 65%;              /* #ff764d */
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    /* Sidebar specific */
+    --sidebar-bg: 0 0% 10%;           /* #1a1a1a */
+    --sidebar-border: 0 0% 22.7%;     /* #3a3a3a */
   }
 }
 
@@ -159,58 +71,4 @@ html, body, #root {
   body {
     @apply bg-background text-foreground;
   }
-}
-
-/* CodeMirror Editor Styles */
-.editor-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.editor-container .cm-editor {
-  height: 100%;
-  flex: 1;
-  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.editor-container .cm-scroller {
-  overflow: auto;
-  height: 100%;
-}
-
-.editor-container .cm-content {
-  padding: 12px 0;
-}
-
-.editor-container .cm-line {
-  padding: 0 16px;
-}
-
-/* Focus styles for editor */
-.editor-container:focus-within {
-  @apply ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-900;
-}
-
-/* Dark mode adjustments for editor */
-.dark .editor-container {
-  border-color: rgb(55 65 81);
-}
-
-/* Theme transition */
-html.theme-transitioning,
-html.theme-transitioning *,
-html.theme-transitioning *::before,
-html.theme-transitioning *::after {
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease !important;
-}
-
-/* Color scheme for browser UI elements */
-:root {
-  color-scheme: light;
-}
-
-.dark {
-  color-scheme: dark;
 }

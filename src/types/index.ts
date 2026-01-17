@@ -1,253 +1,141 @@
-/**
- * TypeScript type definitions for the Personal Knowledge Base application.
- * These types define the core data model for notes, folders, tags, templates,
- * smart collections, and graph visualization.
- */
-
-// =============================================================================
-// Personal Knowledge Base Types
-// =============================================================================
+// Type definitions for Ableton Project Manager
 
 /**
- * Note represents a single knowledge entry with Markdown content.
+ * Represents an Ableton Live project (.als file)
  */
-export interface Note {
+export interface Project {
   /** Unique identifier (UUID) */
   id: string;
-  /** Note title (also used as display name) */
-  title: string;
-  /** Markdown content */
-  content: string;
-  /** Parent folder ID, null if at root */
-  folderId: string | null;
-  /** Array of tag IDs */
-  tags: string[];
-  /** Timestamp when note was created */
+  /** File system path to the .als file */
+  path: string;
+  /** Project name (filename without .als extension) */
+  name: string;
+
+  // Extracted metadata
+  /** Project tempo in BPM */
+  bpm: number | null;
+  /** Musical key (if detectable) */
+  key: string | null;
+  /** Project length in seconds */
+  duration: number | null;
+  /** Total number of tracks */
+  trackCount: number;
+  /** Number of audio tracks */
+  audioTrackCount: number;
+  /** Number of MIDI tracks */
+  midiTrackCount: number;
+  /** Number of return tracks */
+  returnTrackCount: number;
+
+  // Plugin/instrument analysis
+  /** VST/AU plugin names used in the project */
+  plugins: string[];
+  /** Native Ableton devices used in the project */
+  abletonDevices: string[];
+  /** Sample file paths referenced in the project */
+  samples: string[];
+
+  // File info
+  /** File size in bytes */
+  fileSize: number;
+  /** File creation date */
   createdAt: Date;
-  /** Timestamp when note was last updated */
-  updatedAt: Date;
-  /** Flag indicating if this is a daily note */
-  isDaily: boolean;
-  /** Date string (YYYY-MM-DD) for daily notes */
-  dailyDate?: string;
-  /** Template ID this note was created from */
-  templateId?: string;
+  /** Last modified date */
+  modifiedAt: Date;
+  /** Ableton Live version that created the project */
+  abletonVersion: string | null;
+
+  // User data
+  /** User-assigned tag IDs */
+  tags: string[];
+  /** User notes about the project */
+  notes: string;
+  /** User rating (1-5 stars) */
+  rating: number | null;
+  /** Whether the project is marked as favorite */
+  favorite: boolean;
+  /** Last time the user viewed this project in the app */
+  lastOpenedAt: Date | null;
+
+  // Analysis status
+  /** Whether metadata has been extracted from the .als file */
+  analyzed: boolean;
+  /** Error message if parsing failed */
+  analysisError: string | null;
 }
 
 /**
- * Folder for organizing notes hierarchically.
+ * Represents a folder being monitored for Ableton projects
  */
 export interface Folder {
   /** Unique identifier */
   id: string;
+  /** File system path to the folder */
+  path: string;
   /** Folder display name */
   name: string;
-  /** Parent folder ID for nesting, null if at root */
-  parentId: string | null;
-  /** Optional folder color for visual distinction */
-  color?: string;
-  /** Timestamp when folder was created */
-  createdAt: Date;
+  /** Number of projects found in this folder */
+  projectCount: number;
+  /** Last time the folder was scanned for projects */
+  lastScanned: Date;
+  /** Whether to watch for file system changes */
+  watching: boolean;
 }
 
 /**
- * Tag for categorizing notes with colored labels.
+ * Represents a user-created tag for organizing projects
  */
 export interface Tag {
   /** Unique identifier */
   id: string;
   /** Tag display name */
   name: string;
-  /** Color for visual distinction (hex, rgb, or named color) */
+  /** Tag color (hex color code) */
   color: string;
-  /** Timestamp when tag was created */
-  createdAt: Date;
+  /** Number of projects with this tag */
+  projectCount: number;
 }
 
 /**
- * Template category types for built-in and custom templates.
+ * Represents the current state of filters in the UI
  */
-export type TemplateCategory = 'daily' | 'meeting' | 'project' | 'custom';
-
-/**
- * Template for creating notes with predefined structure.
- */
-export interface Template {
-  /** Unique identifier */
-  id: string;
-  /** Template display name */
-  name: string;
-  /** Template content with {{placeholders}} */
-  content: string;
-  /** Category for organizing templates */
-  category: TemplateCategory;
-  /** Timestamp when template was created */
-  createdAt: Date;
+export interface FilterState {
+  /** Minimum BPM for filtering (null = no minimum) */
+  bpmMin: number | null;
+  /** Maximum BPM for filtering (null = no maximum) */
+  bpmMax: number | null;
+  /** Minimum track count for filtering (null = no minimum) */
+  trackCountMin: number | null;
+  /** Maximum track count for filtering (null = no maximum) */
+  trackCountMax: number | null;
+  /** Show only favorite projects */
+  favoritesOnly: boolean;
+  /** Show only projects that have been analyzed */
+  analyzedOnly: boolean;
+  /** Filter by specific tag IDs (empty = show all) */
+  tagIds: string[];
+  /** Filter by specific folder IDs (empty = show all) */
+  folderIds: string[];
+  /** Minimum rating for filtering (null = no minimum) */
+  ratingMin: number | null;
+  /** Filter by Ableton version */
+  abletonVersion: string | null;
 }
 
 /**
- * Field types that can be used in collection rules.
+ * View mode for the project list
  */
-export type CollectionRuleField = 'tag' | 'folder' | 'createdAt' | 'content';
+export type ViewMode = 'table' | 'grid';
 
 /**
- * Operators for collection rule comparisons.
+ * Sort direction
  */
-export type CollectionRuleOperator = 'contains' | 'equals' | 'before' | 'after';
+export type SortDirection = 'asc' | 'desc';
 
 /**
- * Rule for filtering notes in smart collections.
+ * Fields that can be used for sorting projects
  */
-export interface CollectionRule {
-  /** Field to filter on */
-  field: CollectionRuleField;
-  /** Comparison operator */
-  operator: CollectionRuleOperator;
-  /** Value to compare against */
-  value: string;
-}
-
-/**
- * SmartCollection auto-filters notes based on defined rules.
- */
-export interface SmartCollection {
-  /** Unique identifier */
-  id: string;
-  /** Collection display name */
-  name: string;
-  /** Array of filter rules (combined with AND logic) */
-  rules: CollectionRule[];
-  /** Timestamp when collection was created */
-  createdAt: Date;
-}
-
-/**
- * NoteLink represents a bidirectional link between notes.
- */
-export interface NoteLink {
-  /** Note ID containing the link */
-  sourceId: string;
-  /** Note ID being linked to */
-  targetId: string;
-  /** Surrounding text context for backlink display */
-  context: string;
-}
-
-/**
- * GraphNode represents a note in the graph visualization.
- */
-export interface GraphNode {
-  /** Note ID */
-  id: string;
-  /** Note title for display */
-  title: string;
-  /** Number of connections (links) */
-  linkCount: number;
-  /** X position in graph (set by D3 force simulation) */
-  x?: number;
-  /** Y position in graph (set by D3 force simulation) */
-  y?: number;
-  /** Fixed X position (for pinned nodes) */
-  fx?: number | null;
-  /** Fixed Y position (for pinned nodes) */
-  fy?: number | null;
-}
-
-/**
- * GraphEdge represents a link between nodes in the graph.
- */
-export interface GraphEdge {
-  /** Source node ID */
-  source: string | GraphNode;
-  /** Target node ID */
-  target: string | GraphNode;
-}
-
-/**
- * GraphData contains all data needed for graph visualization.
- */
-export interface GraphData {
-  /** Array of graph nodes (one per note) */
-  nodes: GraphNode[];
-  /** Array of graph edges (one per link) */
-  edges: GraphEdge[];
-}
-
-// =============================================================================
-// Legacy Kanban Board Types (for backward compatibility)
-// =============================================================================
-
-/**
- * Priority levels for cards, ordered from lowest to highest urgency.
- */
-export type Priority = 'low' | 'medium' | 'high' | 'urgent';
-
-/**
- * Label for categorizing cards with colored tags.
- */
-export interface Label {
-  /** Unique identifier for the label */
-  id: string;
-  /** Display name of the label */
-  name: string;
-  /** Color for the label (hex, rgb, or named color) */
-  color: string;
-}
-
-/**
- * Card represents a task or work item on the board.
- */
-export interface Card {
-  /** Unique identifier for the card */
-  id: string;
-  /** Title/name of the card */
-  title: string;
-  /** Optional detailed description of the card */
-  description?: string;
-  /** Labels attached to this card for categorization */
-  labels: Label[];
-  /** Optional priority level of the card */
-  priority?: Priority;
-  /** Optional due date in ISO 8601 format */
-  dueDate?: string;
-  /** Optional assignee name or identifier */
-  assignee?: string;
-  /** ISO 8601 timestamp when the card was created */
-  createdAt: string;
-  /** ISO 8601 timestamp when the card was last updated */
-  updatedAt: string;
-}
-
-/**
- * Column represents a vertical lane on the board containing cards.
- */
-export interface Column {
-  /** Unique identifier for the column */
-  id: string;
-  /** Display title of the column */
-  title: string;
-  /** Optional work-in-progress limit; undefined means unlimited */
-  wipLimit?: number;
-  /** Optional accent color for the column header */
-  color?: string;
-  /** Ordered list of card IDs in this column */
-  cardIds: string[];
-}
-
-/**
- * Board is the top-level container for columns and represents the entire kanban board.
- */
-export interface Board {
-  /** Unique identifier for the board */
-  id: string;
-  /** Display title of the board */
-  title: string;
-  /** Optional description of the board's purpose */
-  description?: string;
-  /** Ordered list of columns on the board */
-  columns: Column[];
-  /** ISO 8601 timestamp when the board was created */
-  createdAt: string;
-  /** ISO 8601 timestamp when the board was last updated */
-  updatedAt: string;
-}
+export type SortField = keyof Pick<
+  Project,
+  'name' | 'bpm' | 'trackCount' | 'fileSize' | 'createdAt' | 'modifiedAt' | 'rating'
+>;
