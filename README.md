@@ -51,7 +51,7 @@ Automatically: researches → specs → tasks → executes → reviews → repor
 - **`/spec`** — Interactive interview that gathers context, researches best practices, and outputs a spec to `.otto/specs/{id}.md`
 - **`/task`** — Breaks specs into tasks with status (`pending` → `in_progress` → `done`), priority (0-4), and dependencies
 - **`/next`** — Finds highest priority unblocked task and starts work
-- **`/log`** — Documents discoveries anchored to files; entries marked stale when anchors change. Use `/log init` for setup, `/log rebuild` to regenerate index
+- **`/doc`** — Documents discoveries anchored to files; entries marked stale when anchors change. Use `/doc init` for setup, `/doc rebuild` to regenerate index
 
 ### Development
 
@@ -103,7 +103,7 @@ Done
 4. **`/test`** - Run tests and visual verification
 5. **`/review`** - Review for bugs
 6. **`/summary`** - Generate documentation
-7. **`/log`** - Document discoveries (`.otto/logs/`)
+7. **`/doc`** - Document discoveries (`.otto/docs/`)
 8. **`/dev-browser`** - Browser automation (research, testing, screenshots)
 9. **`/delegate`** - Delegate work to specialized subagents
 10. **`/clean`** - Clean .otto artifacts (sessions, specs, tasks)
@@ -166,7 +166,7 @@ ottonomous/
 │   ├── spec/         # /spec command
 │   ├── task/         # /task command
 │   ├── next/         # /next command
-│   ├── log/          # /log command
+│   ├── doc/          # /doc command
 │   ├── test/         # /test command
 │   ├── review/       # /review command
 │   ├── summary/      # /summary command
@@ -177,7 +177,7 @@ ottonomous/
 └── .otto/             # Runtime data (created in your project)
     ├── specs/        # Specifications (*.md)
     ├── tasks/        # Tasks (*.json)
-    ├── logs/         # Engineering logs with INDEX.md
+    ├── docs/         # Engineering docs with INDEX.md
     ├── reviews/      # Review outputs (*.md, *.html)
     └── config.yaml   # Configuration
 ```
@@ -188,7 +188,7 @@ ottonomous/
 
 ```yaml
 # Workflow automation settings
-auto_verify: true    # Auto-verify stale log entries (affects /log)
+auto_verify: true    # Auto-verify stale doc entries (affects /doc)
 auto_pick: true      # Auto-pick next task (affects /next, /task)
                      # false = manual confirmation prompts
 
@@ -217,7 +217,7 @@ otto:
 ### Config Flag Descriptions
 
 **Workflow Flags:**
-- `auto_verify` - When `true`, auto-verifies stale log entries without prompts
+- `auto_verify` - When `true`, auto-verifies stale doc entries without prompts
 - `auto_pick` - When `true`, `/next` and `/task` skip confirmation prompts
   - `false` = Manual workflow with confirmations
   - `true` = Semi-autonomous workflow

@@ -81,6 +81,7 @@ session_id="otto-$(date +%Y%m%d-%H%M%S)-$(openssl rand -hex 2)"
 
 ```bash
 mkdir -p .otto/otto/sessions/${session_id}/{research/screenshots,visual-checks}
+mkdir -p .otto/docs  # Ensure docs directory exists for learnings
 ```
 
 #### Step 0.4: Initialize state.json
@@ -142,7 +143,7 @@ Write to `.otto/otto/sessions/${session_id}/state.json`:
   "integrations": {
     "dev_browser_available": false,
     "report_available": false,
-    "log_available": false
+    "doc_available": false
   }
 }
 ```
@@ -195,28 +196,28 @@ status: in_progress
 |-------|-------|--------------|--------------|
 ```
 
-#### Step 0.6: Initialize Engineering Log
+#### Step 0.6: Initialize Engineering Docs
 
-Check if `/log` skill is available and initialize baseline for institutional memory:
+Check if `/doc` skill is available and initialize baseline for institutional memory:
 
 ```bash
-# Check if log skill exists
-if [ -f ".claude/skills/log/SKILL.md" ]; then
-  # Initialize log if not already initialized
-  if [ ! -f ".otto/logs/INDEX.md" ]; then
-    Invoke Skill: skill="log", args="init"
+# Check if doc skill exists
+if [ -f ".claude/skills/doc.md" ]; then
+  # Initialize docs if not already initialized
+  if [ ! -f ".otto/docs/INDEX.md" ]; then
+    Invoke Skill: skill="doc", args="init"
   fi
 fi
 ```
 
-**Orchestrator action after /log init:**
-- If init succeeded (`.otto/logs/INDEX.md` exists):
-  - Set `state.integrations.log_available = true`
-  - Announce "✓ Engineering log initialized"
+**Orchestrator action after /doc init:**
+- If init succeeded (`.otto/docs/INDEX.md` exists):
+  - Set `state.integrations.doc_available = true`
+  - Announce "✓ Engineering docs initialized"
 - If init failed or skill not available:
-  - Set `state.integrations.log_available = false`
-  - Append to feedback.md: "⚠️ Engineering log unavailable - continuing without institutional memory"
-  - Continue without logging (non-blocking)
+  - Set `state.integrations.doc_available = false`
+  - Append to feedback.md: "⚠️ Engineering docs unavailable - continuing without institutional memory"
+  - Continue without documentation (non-blocking)
 
 #### Step 0.7: Start Dev-Browser Server
 
@@ -614,9 +615,9 @@ for group in parallel_groups (sorted by group number):
             if task.is_ui_task:
                 invoke_visual_verification(task)
 
-            # Capture discoveries to engineering log (orchestrator responsibility)
-            if state.integrations.log_available AND result.observations contains non-obvious patterns:
-                invoke_log_capture(task, result.observations)
+            # Capture discoveries to engineering docs (orchestrator responsibility)
+            if state.integrations.doc_available AND result.observations contains non-obvious patterns:
+                invoke_doc_capture(task, result.observations)
         else:
             task.blocker_count++
             task.execution.attempts.append({"attempt": 1, "status": "failed", "error": result.error})
@@ -627,6 +628,11 @@ for group in parallel_groups (sorted by group number):
                 state.product_tasks.skipped++
 
     state.guard_rails.total_tasks_executed += len(tasks_in_group)
+
+    # --- LEARNINGS SYNTHESIS ---
+    group_learnings = collect_high_confidence_learnings(results)
+    if group_learnings.length > 0:
+        synthesize_learnings_to_docs(group_learnings)
 
     save_tasks()
     save_state()
@@ -741,8 +747,8 @@ Use the Task tool with:
 
 **Before spawning subagent, check for relevant knowledge (orchestrator responsibility):**
 
-If `state.integrations.log_available` is true:
-1. Read cached INDEX.md (refreshed at session start and each improvement milestone)
+If `state.integrations.doc_available` is true:
+1. Read cached INDEX.md from `.otto/docs/` (refreshed at session start and each improvement milestone)
 2. Grep INDEX.md for task's primary file paths or keywords
 3. If relevant entries found, read their content and include in subagent prompt:
 
@@ -754,7 +760,7 @@ If `state.integrations.log_available` is true:
 Note: This knowledge was captured from previous sessions. Use it to avoid known pitfalls.
 ```
 
-If no relevant entries found or log unavailable, skip this section.
+If no relevant entries found or docs unavailable, skip this section.
 
 Example prompt:
 ```
@@ -780,7 +786,38 @@ Instructions:
 5. Append observations to feedback.md
 6. Stage all changes with: git add -A
 
-Return JSON: {"success": bool, "files_modified": [], "observations": "string", "error": "string or null"}
+## Learnings Capture
+
+After completing your task, reflect on what you learned:
+
+1. **Gotchas**: Anything non-obvious that tripped you up?
+2. **Patterns**: Did you establish a pattern others should follow?
+3. **Workarounds**: Any hacks needed to make things work?
+4. **Decisions**: Architectural choices worth documenting?
+5. **Dependencies**: Package quirks worth noting?
+
+Include learnings in your return JSON. Only include HIGH confidence learnings
+that would help future agents working on this codebase.
+
+Return JSON:
+```json
+{
+  "success": bool,
+  "files_modified": [],
+  "observations": "string",
+  "error": "string or null",
+  "learnings": [
+    {
+      "type": "gotcha | pattern | workaround | decision | dependency",
+      "anchor": "file path this relates to",
+      "title": "short summary (< 10 words)",
+      "insight": "detailed explanation",
+      "context": "code snippet if relevant",
+      "confidence": "high | medium | low",
+      "tags": ["optional", "categorization", "tags"]
+    }
+  ]
+}
 ```
 
 **For UI tasks, add to prompt:**
@@ -885,24 +922,139 @@ If console_errors is non-empty:
 - After task 5, 10, 15, 20 (sanity check regardless of type)
 - Before each improvement cycle (baseline state)
 
-#### Function: invoke_log_capture(task, observations)
+#### Function: invoke_doc_capture(task, observations)
 
 **Trigger:** Called by orchestrator after task completion when observations contain non-obvious patterns.
 
 **Implementation:**
 ```bash
-if [ "${state_integrations_log_available}" != "true" ]; then
-  return  # Silent skip if log unavailable
+if [ "${state_integrations_doc_available}" != "true" ]; then
+  return  # Silent skip if docs unavailable
 fi
 
-# Only log if observations contain gotchas, workarounds, or non-obvious findings
+# Only document if observations contain gotchas, workarounds, or non-obvious findings
 if echo "${observations}" | grep -qiE "(gotcha|workaround|unexpected|tricky|note:|warning:|careful:|caveat|pitfall|edge.?case)"; then
-  if ! Invoke Skill: skill="log"; then
-    Append to feedback.md: "⚠️ Log capture failed for task ${task.id} - continuing without logging"
+  if ! Invoke Skill: skill="doc"; then
+    Append to feedback.md: "⚠️ Doc capture failed for task ${task.id} - continuing without documentation"
   fi
   # Anchor to modified files
   # Keep entry under 200 words
 fi
+```
+
+#### Function: collect_high_confidence_learnings(results)
+
+**Purpose:** Extract high-confidence learnings from subagent task results.
+
+```
+function collect_high_confidence_learnings(results):
+    learnings = []
+    for result in results:
+        if result and result.learnings and Array.isArray(result.learnings):
+            for learning in result.learnings:
+                if learning.confidence == "high":
+                    learnings.append(learning)
+    return learnings
+```
+
+#### Function: similarity(a, b)
+
+**Purpose:** Calculate text similarity for deduplication.
+
+**Implementation:**
+```
+function similarity(text_a, text_b):
+    # Simple word-based Jaccard similarity
+    words_a = set(text_a.lower().split())
+    words_b = set(text_b.lower().split())
+
+    intersection = words_a & words_b
+    union = words_a | words_b
+
+    return len(intersection) / len(union) if union else 0.0
+```
+
+Threshold of 0.8 means 80% word overlap = considered duplicate.
+
+#### Function: synthesize_learnings_to_docs(learnings)
+
+**Purpose:** Deduplicate and write learnings to `.otto/docs/LEARNINGS.md` and `learnings.json`.
+
+**Implementation:**
+```
+function synthesize_learnings_to_docs(learnings):
+    if not state.integrations.doc_available:
+        return
+
+    # Load existing learnings.json if present
+    existing = load_json(".otto/docs/learnings.json") or {"learnings": []}
+
+    # Group by anchor file and deduplicate
+    by_anchor = {}
+    for learning in learnings:
+        anchor = learning.anchor
+        if anchor not in by_anchor:
+            by_anchor[anchor] = []
+
+        # Skip if similar learning already exists (similarity > 0.8)
+        is_duplicate = false
+        for existing_learning in existing.learnings + by_anchor[anchor]:
+            if similarity(existing_learning.insight, learning.insight) > 0.8:
+                is_duplicate = true
+                break
+
+        if not is_duplicate:
+            by_anchor[anchor].append(learning)
+            existing.learnings.append(learning)
+
+    # Write raw learnings JSON
+    write_json(".otto/docs/learnings.json", existing)
+
+    # Generate human-readable LEARNINGS.md
+    generate_learnings_markdown(existing.learnings)
+
+    Append to feedback.md: "📚 Synthesized {len(learnings)} learnings to .otto/docs/LEARNINGS.md"
+```
+
+#### Function: generate_learnings_markdown(learnings)
+
+**Purpose:** Generate `.otto/docs/LEARNINGS.md` from raw learnings.
+
+**Output format:**
+```markdown
+# Project Learnings
+
+Auto-generated from otto session task execution.
+
+## By File
+
+### {anchor_path}
+
+#### {learning.title}
+**Type:** {type} | **Confidence:** {confidence}
+
+{learning.insight}
+
+{if learning.context:}
+```{language}
+{learning.context}
+```
+{end if}
+
+*Tags: {tags.join(", ")}*
+
+---
+
+## By Type
+
+### Gotchas
+- [{title}](#{slug})
+
+### Patterns
+- [{title}](#{slug})
+
+### Workarounds
+- [{title}](#{slug})
 ```
 
 #### Guard Rail Functions
@@ -1041,18 +1193,18 @@ function run_improvement_cycle():
     # STEP 6: Capture Improvement Insights (OPTIONAL)
     # ============================================
 
-    **Meta-pattern criteria** (log if ANY apply):
+    **Meta-pattern criteria** (document if ANY apply):
     - Same error type occurred in 2+ tasks
     - A workaround was applied that affects future tasks
     - An architectural pattern was established (e.g., "all API calls go through X")
     - A dependency or configuration issue was resolved that others should know
 
-    If state.integrations.log_available AND cycle discovered meta-patterns:
-        Invoke Skill: skill="log"
+    If state.integrations.doc_available AND cycle discovered meta-patterns:
+        Invoke Skill: skill="doc"
         - Anchor to improvement.md and relevant task files
         - Document: Pattern identified, optimization applied, rationale
         - Keep entry under 200 words
-        - If /log fails, log warning to feedback.md and continue
+        - If /doc fails, log warning to feedback.md and continue
 ```
 
 #### Improvement Cycle Commit
@@ -1410,7 +1562,7 @@ fi
 **2. Service Failure Acknowledgment**
 ```bash
 # Check each integration that was supposed to be available
-for service in dev_browser report log; do
+for service in dev_browser report doc; do
   AVAILABLE=$(jq -r ".integrations.${service}_available" state.json)
   if [ "$AVAILABLE" = "false" ]; then
     # Verify failure is documented in feedback.md
@@ -1547,6 +1699,18 @@ Write session summary to feedback.md. All metrics roll up FROM task data.
 | P3 (Low) | {n} | {n} | {n} | {task_ids} |
 | **Total** | **{n}** | **{n}** | **{n}** | |
 
+### Learnings Captured
+
+| Type | Count | Top Examples |
+|------|-------|--------------|
+| Gotchas | {n} | {top 2 titles} |
+| Patterns | {n} | {top 2 titles} |
+| Workarounds | {n} | {top 2 titles} |
+| Decisions | {n} | {top 2 titles} |
+| Dependencies | {n} | {top 2 titles} |
+
+Full learnings: `.otto/docs/LEARNINGS.md`
+
 ### Artifacts
 - Spec: `.otto/specs/{spec_id}.md`
 - Tasks: `.otto/tasks/{spec_id}.json`
@@ -1559,12 +1723,12 @@ Write session summary to feedback.md. All metrics roll up FROM task data.
 |---------|--------|-------|
 | Report server | {✓ or ✗} | {if failed: reason from feedback.md} |
 | Dev-browser | {✓ or ✗} | {if failed: reason} |
-| Engineering log | {✓ or ✗} | {if failed: reason} |
+| Engineering docs | {✓ or ✗} | {if failed: reason} |
 
 **Integration Metrics:**
 - Visual verifications performed: {count from visual-checks/ directory}
 - Dashboard snapshots captured: {count from feedback.md}
-- Log entries created: {count from .otto/logs/ if available}
+- Doc entries created: {count from .otto/docs/ if available}
 
 ### Suggested Next Steps
 1. Review the generated code on branch `otto/{session_id}`
@@ -1614,7 +1778,7 @@ Otto is designed to continue operating even when optional services fail. The orc
 |---------|------------------------|---------------------|--------|
 | Report server | Skip dashboard feedback | Set `report_available = false` | Log to feedback.md, continue execution |
 | Dev-browser | Skip visual verification | Set `dev_browser_available = false` | Log warning, use build check instead |
-| /log skill | Skip log capture | Set `log_available = false` | No institutional memory, continue |
+| /doc skill | Skip doc capture | Set `doc_available = false` | No institutional memory, continue |
 | Dev server | Skip visual verification | N/A (not a persistent service) | Log warning, continue tasks |
 
 ### Mid-Session Failure Handling
@@ -1648,7 +1812,7 @@ These services are optional and must NEVER block session progress:
 
 1. **Report server** - Dashboard is informational only
 2. **Dev-browser** - Visual verification can be skipped
-3. **/log skill** - Institutional memory is nice-to-have
+3. **/doc skill** - Institutional memory is nice-to-have
 4. **Dev server** - Only needed for visual verification
 
 ### Session Summary Service Report
@@ -1662,12 +1826,12 @@ At session end, include service availability summary:
 |---------|-----------|-------|
 | Report server | ✓ / ✗ | {reason if failed} |
 | Dev-browser | ✓ / ✗ | {reason if failed} |
-| Engineering log | ✓ / ✗ | {reason if failed} |
+| Engineering docs | ✓ / ✗ | {reason if failed} |
 
 {if any services failed}
 Visual verifications performed: {count}
 Dashboard snapshots captured: {count}
-Log entries created: {count}
+Doc entries created: {count}
 {end if}
 ```
 
@@ -1735,7 +1899,7 @@ Log entries created: {count}
   "integrations": {
     "dev_browser_available": false,
     "report_available": false,
-    "log_available": false
+    "doc_available": false
   }
 }
 ```

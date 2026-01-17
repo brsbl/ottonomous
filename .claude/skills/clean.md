@@ -14,7 +14,7 @@ When ottonomous is installed as a Claude Code plugin, users have `.otto/` in the
 - `specs/` - Specification documents
 - `tasks/` - Task JSON files
 - `reviews/` - Review outputs (markdown, HTML)
-- `logs/` - Engineering logs with INDEX.md
+- `docs/` - Engineering docs with INDEX.md
 - `otto/sessions/` - Session state, feedback.md, improvements.md, screenshots
 
 ## Usage
@@ -95,7 +95,7 @@ Options:
 - Specs (.otto/specs/) - Specification documents
 - Tasks (.otto/tasks/) - Task JSON files
 - Reviews (.otto/reviews/) - Review outputs
-- Logs (.otto/logs/) - Engineering logs
+- Docs (.otto/docs/) - Engineering docs
 - Config (.otto/config.yaml) - User settings (will reset to defaults)
 ```
 
@@ -126,13 +126,13 @@ This allows users to clear accumulated feedback without losing session state.
 find .otto -mindepth 1 -maxdepth 1 ! -name "config.yaml" -exec rm -rf {} \;
 
 # Recreate directory structure
-mkdir -p .otto/specs .otto/tasks .otto/reviews .otto/logs .otto/otto/sessions
+mkdir -p .otto/specs .otto/tasks .otto/reviews .otto/docs .otto/otto/sessions
 
 # Add .gitkeep files to preserve structure
 touch .otto/specs/.gitkeep
 touch .otto/tasks/.gitkeep
 touch .otto/reviews/.gitkeep
-touch .otto/logs/.gitkeep
+touch .otto/docs/.gitkeep
 touch .otto/otto/sessions/.gitkeep
 ```
 
@@ -157,7 +157,7 @@ Cleaned:
 - {n} spec(s) removed
 - {n} task file(s) removed
 - {n} review(s) removed
-- {n} log entries removed
+- {n} doc entries removed
 {if config removed: "- Config reset (will use defaults)"}
 
 Directory structure preserved. Ready for new otto session.
@@ -212,7 +212,7 @@ What would you like to clean from .otto/?
 [x] Tasks (2 items)
 [ ] Specs (1 item)
 [ ] Reviews (0 items)
-[ ] Logs (5 entries)
+[ ] Docs (5 entries)
 [ ] Config
 
 Cleaned:
@@ -251,7 +251,7 @@ After `--keep-config` or selective clean:
 │   └── .gitkeep
 ├── reviews/
 │   └── .gitkeep
-├── logs/
+├── docs/
 │   └── .gitkeep
 └── otto/
     └── sessions/

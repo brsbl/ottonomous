@@ -1,17 +1,17 @@
 ---
-name: log
+name: doc
 description: Searches and retrieves engineering knowledge anchored to source files. Activates when exploring code, investigating bugs, planning implementation, or answering questions about code functionality.
 ---
 
-# Engineering Log
+# Engineering Documentation
 
 Institutional memory for the codebase. Capture discoveries anchored to source files.
 
 ## Usage
 
-- `/log` - Create new log entry (guided workflow)
-- `/log init` - First-time setup: document codebase and create baseline entries
-- `/log rebuild` - Regenerate INDEX.md, clean orphans, re-seed if empty
+- `/doc` - Create new doc entry (guided workflow)
+- `/doc init` - First-time setup: document codebase and create baseline entries
+- `/doc rebuild` - Regenerate INDEX.md, clean orphans, re-seed if empty
 
 ## When to Use
 
@@ -24,14 +24,14 @@ Capture discoveries like:
 
 ---
 
-## Finding Relevant Logs
+## Finding Relevant Docs
 
 ### Strategy 1: File-based lookup (when exploring specific files)
 
 Search INDEX.md for the file path to find entries anchored to that file:
 
 ```bash
-grep -n "systems/log/" .otto/logs/INDEX.md
+grep -n "systems/doc/" .otto/docs/INDEX.md
 ```
 
 ### Strategy 2: Topic-based search (when investigating a concept)
@@ -39,13 +39,13 @@ grep -n "systems/log/" .otto/logs/INDEX.md
 Search INDEX.md for keywords in summaries:
 
 ```bash
-grep -i "timestamp" .otto/logs/INDEX.md
+grep -i "timestamp" .otto/docs/INDEX.md
 ```
 
-For deeper content search, grep all log entries:
+For deeper content search, grep all doc entries:
 
 ```bash
-grep -ri "staleness detection" .otto/logs/
+grep -ri "staleness detection" .otto/docs/
 ```
 
 ### Strategy 3: Read matching entries
@@ -53,7 +53,7 @@ grep -ri "staleness detection" .otto/logs/
 Once you find relevant entry IDs, read the full content:
 
 ```bash
-cat .otto/logs/git-timestamp-utilities-k3m9.md
+cat .otto/docs/git-timestamp-utilities-k3m9.md
 ```
 
 ---
@@ -64,9 +64,9 @@ Before trusting an entry, verify its anchors haven't changed since it was writte
 
 ```bash
 # Get entry timestamp (last commit to the entry file, fallback to mtime for uncommitted)
-entry_time=$(git log -1 --format="%ct" -- .otto/logs/{entry-id}.md 2>/dev/null)
+entry_time=$(git log -1 --format="%ct" -- .otto/docs/{entry-id}.md 2>/dev/null)
 if [ -z "$entry_time" ]; then
-  entry_time=$(stat -c %Y .otto/logs/{entry-id}.md 2>/dev/null || stat -f %m .otto/logs/{entry-id}.md)
+  entry_time=$(stat -c %Y .otto/docs/{entry-id}.md 2>/dev/null || stat -f %m .otto/docs/{entry-id}.md)
 fi
 
 # Check each anchor file (same fallback logic)
@@ -86,7 +86,7 @@ fi
 
 ---
 
-## Initializing the Log: `/log init`
+## Initializing the Docs: `/doc init`
 
 First-time setup that documents the codebase and creates baseline entries.
 
@@ -95,7 +95,7 @@ First-time setup that documents the codebase and creates baseline entries.
 **Step 1: Create directory structure**
 
 ```bash
-mkdir -p .otto/logs
+mkdir -p .otto/docs
 ```
 
 **Step 2: Read project documentation**
@@ -121,7 +121,7 @@ ls *.py *.js *.ts *.go *.rs 2>/dev/null | head -10
 
 Generate ID: `project-overview-{4-char-hash}`
 
-Write `.otto/logs/project-overview-{id}.md`:
+Write `.otto/docs/project-overview-{id}.md`:
 
 ```yaml
 ---
@@ -150,7 +150,7 @@ anchors:
 
 Generate ID: `codebase-structure-{4-char-hash}`
 
-Write `.otto/logs/codebase-structure-{id}.md`:
+Write `.otto/docs/codebase-structure-{id}.md`:
 
 ```yaml
 ---
@@ -176,10 +176,10 @@ anchors:
 
 **Step 6: Generate INDEX.md**
 
-Write `.otto/logs/INDEX.md`:
+Write `.otto/docs/INDEX.md`:
 
 ```markdown
-# Engineering Log Index
+# Engineering Documentation Index
 
 Quick reference for navigating the knowledge base.
 
@@ -197,24 +197,24 @@ Quick reference for navigating the knowledge base.
 **Step 7: Stage and report**
 
 ```bash
-git add .otto/logs/
+git add .otto/docs/
 ```
 
-Report: "Initialized engineering log with baseline entries."
+Report: "Initialized engineering docs with baseline entries."
 
 ---
 
-## Creating a New Entry: `/log`
+## Creating a New Entry: `/doc`
 
 ### 1. Auto-Initialize (if needed)
 
-Check if `.otto/logs/INDEX.md` exists:
+Check if `.otto/docs/INDEX.md` exists:
 
 ```bash
-if [ ! -f .otto/logs/INDEX.md ]; then
-  mkdir -p .otto/logs
-  echo "# Engineering Log Index" > .otto/logs/INDEX.md
-  git add .otto/logs/INDEX.md
+if [ ! -f .otto/docs/INDEX.md ]; then
+  mkdir -p .otto/docs
+  echo "# Engineering Documentation Index" > .otto/docs/INDEX.md
+  git add .otto/docs/INDEX.md
 fi
 ```
 
@@ -222,7 +222,7 @@ fi
 
 Ask yourself: What did I just learn that would help someone understand this code?
 
-Keep it focused: One log entry = one discovery.
+Keep it focused: One doc entry = one discovery.
 
 ### 3. Determine Anchors
 
@@ -242,7 +242,7 @@ id="${slug}-${hash}"
 
 ### 5. Write Entry File
 
-Create `.otto/logs/{id}.md`:
+Create `.otto/docs/{id}.md`:
 
 ```yaml
 ---
@@ -263,7 +263,7 @@ anchors:
 
 ### 6. Update INDEX.md
 
-Add the new entry to `.otto/logs/INDEX.md`:
+Add the new entry to `.otto/docs/INDEX.md`:
 
 1. Determine section from primary anchor location
 2. Format section header: `### \`path/to/directory/\` (Descriptive Name)`
@@ -272,24 +272,24 @@ Add the new entry to `.otto/logs/INDEX.md`:
 ### 7. Stage Files
 
 ```bash
-git add .otto/logs/{id}.md .otto/logs/INDEX.md
+git add .otto/docs/{id}.md .otto/docs/INDEX.md
 ```
 
 ### 8. Confirm to User
 
-"Logged discovery about {topic} anchored to {file list}."
+"Documented discovery about {topic} anchored to {file list}."
 
 ---
 
-## Rebuilding INDEX: `/log rebuild`
+## Rebuilding INDEX: `/doc rebuild`
 
-Regenerate `.otto/logs/INDEX.md` from all entry files. Also detects and removes orphaned entries.
+Regenerate `.otto/docs/INDEX.md` from all entry files. Also detects and removes orphaned entries.
 
 ### Rebuild Workflow
 
 **Step 1: Collect all entries**
 
-Glob `.otto/logs/*.md` and read each one (skip INDEX.md).
+Glob `.otto/docs/*.md` and read each one (skip INDEX.md).
 
 **Step 2: Check anchors**
 
@@ -330,8 +330,8 @@ Rebuilt INDEX.md:
 If entry content is still accurate after reviewing anchor changes:
 
 ```bash
-touch .otto/logs/{entry-id}.md
-git add .otto/logs/{entry-id}.md
+touch .otto/docs/{entry-id}.md
+git add .otto/docs/{entry-id}.md
 git commit -m "verify: {entry-id}"
 ```
 
@@ -339,13 +339,114 @@ git commit -m "verify: {entry-id}"
 
 1. Edit the entry file directly
 2. Update INDEX.md if needed
-3. Stage changes: `git add .otto/logs/{entry-id}.md .otto/logs/INDEX.md`
+3. Stage changes: `git add .otto/docs/{entry-id}.md .otto/docs/INDEX.md`
 
-## Auto-Finding Logs
+## Auto-Finding Docs
 
 When exploring a file or investigating a topic:
 
-1. Check for file-based entries first: `grep "{filename}" .otto/logs/INDEX.md`
+1. Check for file-based entries first: `grep "{filename}" .otto/docs/INDEX.md`
 2. If found: Read those entries before investigating
 3. Check staleness: Verify entries are fresh
 4. Use the knowledge: Apply what previous work discovered
+
+---
+
+## Structured Learnings Integration
+
+When invoked by otto, subagents return structured learnings that are synthesized into documentation.
+
+### Learning Schema
+
+```typescript
+interface Learning {
+  type: "gotcha" | "pattern" | "workaround" | "decision" | "dependency";
+  anchor: string;           // File path or concept this relates to
+  title: string;            // Short summary (< 10 words)
+  insight: string;          // Detailed explanation
+  context?: string;         // Code snippet or example
+  confidence: "high" | "medium" | "low";
+  tags?: string[];          // For categorization
+}
+```
+
+### Learning Types
+
+| Type | When to Use | Example |
+|------|-------------|---------|
+| `gotcha` | Non-obvious behavior that caused issues | "Fuse.js options need explicit type cast" |
+| `pattern` | Reusable solution established | "All API calls go through src/lib/api.ts" |
+| `workaround` | Hack to bypass limitation | "Using ref instead of state to avoid re-render" |
+| `decision` | Architectural choice made | "Chose Zustand over Redux for simplicity" |
+| `dependency` | Important package behavior | "D3.js v7 requires ES modules" |
+
+### Manager Synthesis
+
+After each parallel group completes, the otto orchestrator:
+
+1. **Collects learnings** from all tasks (filtering to HIGH confidence only)
+2. **Deduplicates** by similarity and anchor file
+3. **Synthesizes** into `.otto/docs/LEARNINGS.md`
+
+### Generated Learnings Format
+
+```markdown
+# Project Learnings
+
+Auto-generated from otto session task execution.
+
+## By File
+
+### src/lib/search.ts
+
+#### Fuse.js type inference fails
+**Type:** gotcha | **Confidence:** high
+
+Fuse.js constructor options don't infer types correctly. Must explicitly cast.
+
+```typescript
+const fuse = new Fuse<Note>(notes, options as Fuse.IFuseOptions<Note>);
+```
+
+*Tags: typescript, fuse.js, search*
+
+---
+
+## By Type
+
+### Gotchas
+- [Fuse.js type inference fails](#fuse-js-type-inference-fails)
+
+### Patterns
+- [All state mutations go through Zustand actions](#zustand-action-pattern)
+
+### Workarounds
+- [CodeMirror editor recreation on prop change](#codemirror-recreation-workaround)
+```
+
+### File Structure
+
+```
+.otto/
+├── docs/
+│   ├── INDEX.md           # Main index
+│   ├── LEARNINGS.md       # Auto-generated from subagent learnings
+│   ├── learnings.json     # Raw learnings (machine-readable)
+│   └── {entry-id}.md      # Individual doc entries
+```
+
+### Confidence Filtering
+
+Only persist HIGH confidence learnings by default. Medium/low are logged but not
+synthesized unless:
+- Same learning appears from multiple tasks (reinforcement)
+- Explicitly requested via config
+
+```yaml
+# .otto/config.yaml
+otto:
+  learnings:
+    min_confidence: high      # high | medium | low
+    dedupe_threshold: 0.8     # Similarity threshold for deduplication
+    persist_raw: true         # Keep raw learnings.json
+```
