@@ -136,6 +136,8 @@ Idea → /otto
          ↓
     Code Review (fix P0/P1)
          ↓
+Test changes in browser
+         ↓
     Session Report
          ↓
     Done
