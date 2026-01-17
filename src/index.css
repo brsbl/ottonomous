@@ -160,3 +160,40 @@ html, body, #root {
     @apply bg-background text-foreground;
   }
 }
+
+/* CodeMirror Editor Styles */
+.editor-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-container .cm-editor {
+  height: 100%;
+  flex: 1;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.editor-container .cm-scroller {
+  overflow: auto;
+  height: 100%;
+}
+
+.editor-container .cm-content {
+  padding: 12px 0;
+}
+
+.editor-container .cm-line {
+  padding: 0 16px;
+}
+
+/* Focus styles for editor */
+.editor-container:focus-within {
+  @apply ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-900;
+}
+
+/* Dark mode adjustments for editor */
+.dark .editor-container {
+  border-color: rgb(55 65 81);
+}
