@@ -307,6 +307,8 @@ function App() {
           isDaily: false,
         }).then((note) => {
           setActiveNote(note.id);
+        }).catch((error) => {
+          console.error('Failed to create note from wiki link:', error);
         });
       }
     },

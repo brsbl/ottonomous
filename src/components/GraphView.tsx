@@ -173,15 +173,21 @@ export function GraphView({ onClose, className }: GraphViewProps) {
       y: height / 2 + (Math.random() - 0.5) * 200,
     }));
 
-    const simulationEdges: SimulationEdge[] = graphData.edges.map((edge) => {
-      const sourceNode = simulationNodes.find(
-        (n) => n.id === (typeof edge.source === 'string' ? edge.source : edge.source.id)
-      )!;
-      const targetNode = simulationNodes.find(
-        (n) => n.id === (typeof edge.target === 'string' ? edge.target : edge.target.id)
-      )!;
-      return { source: sourceNode, target: targetNode };
-    });
+    const simulationEdges: SimulationEdge[] = graphData.edges
+      .map((edge) => {
+        const sourceNode = simulationNodes.find(
+          (n) => n.id === (typeof edge.source === 'string' ? edge.source : edge.source.id)
+        );
+        const targetNode = simulationNodes.find(
+          (n) => n.id === (typeof edge.target === 'string' ? edge.target : edge.target.id)
+        );
+        // Skip edges where source or target node is not found (prevents crash)
+        if (!sourceNode || !targetNode) {
+          return null;
+        }
+        return { source: sourceNode, target: targetNode };
+      })
+      .filter((edge): edge is SimulationEdge => edge !== null);
 
     // Create force simulation
     const simulation = d3.forceSimulation<SimulationNode>(simulationNodes)

@@ -200,18 +200,32 @@ export function useAutoSave<T>({
   }, [data, enabled, scheduleSave]);
 
   /**
-   * Cleanup on unmount
+   * Cleanup on unmount - flush pending saves to prevent data loss
    */
   useEffect(() => {
     isMountedRef.current = true;
 
     return () => {
-      isMountedRef.current = false;
+      // Flush pending save if there's dirty data
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
       }
+
+      // If there are unsaved changes, attempt a synchronous save before unmount
+      // Check if data has changed from last saved state
+      const hasPendingChanges = hasDataChanged(lastSavedDataRef.current, currentDataRef.current);
+      if (hasPendingChanges && enabled && !saveInProgressRef.current) {
+        // Perform a fire-and-forget save to prevent data loss
+        // Note: We can't await here, but the save will still execute
+        onSave(currentDataRef.current).catch((error) => {
+          console.error('Failed to save on unmount:', error);
+        });
+      }
+
+      isMountedRef.current = false;
     };
-  }, []);
+  }, [enabled, onSave]);
 
   /**
    * Manual save trigger - bypasses debounce

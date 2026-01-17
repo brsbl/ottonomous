@@ -34,6 +34,39 @@ interface QuickSwitcherItem {
 }
 
 /**
+ * Safe highlight renderer that creates React elements instead of using innerHTML.
+ * Parses the highlighted title string and converts <mark> tags to React elements.
+ */
+function SafeHighlight({ html, className }: { html: string; className?: string }) {
+  // Parse the highlighted string which contains <mark>...</mark> tags
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  const markRegex = /<mark>([^<]*)<\/mark>/g;
+  let match;
+
+  while ((match = markRegex.exec(html)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      parts.push(html.slice(lastIndex, match.index));
+    }
+    // Add the highlighted part as a styled span
+    parts.push(
+      <span key={match.index} className="bg-yellow-300/50 dark:bg-yellow-500/30 rounded-sm">
+        {match[1]}
+      </span>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Add remaining text after last match
+  if (lastIndex < html.length) {
+    parts.push(html.slice(lastIndex));
+  }
+
+  return <span className={className}>{parts}</span>;
+}
+
+/**
  * QuickSwitcher provides fast note navigation with fuzzy search.
  * Features:
  * - Fuzzy search by title using Fuse.js
@@ -268,9 +301,9 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                   <>
                     <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
                     {item.highlightedTitle ? (
-                      <span
+                      <SafeHighlight
+                        html={item.highlightedTitle}
                         className="text-sm truncate flex-1"
-                        dangerouslySetInnerHTML={{ __html: item.highlightedTitle }}
                       />
                     ) : (
                       <span className="text-sm truncate flex-1">{item.title}</span>
