@@ -7,7 +7,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { ChevronDown, ChevronRight, Link2, FileText } from 'lucide-react';
 import { useKnowledgeBase } from '../stores/knowledgeBase';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 import type { NoteLink, Note } from '../types';
 
 interface BacklinksPanelProps {

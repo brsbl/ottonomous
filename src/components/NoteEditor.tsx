@@ -8,7 +8,7 @@ import { Editor } from './Editor';
 import { useAutoSave } from '../hooks/useAutoSave';
 import { useKnowledgeBase } from '../stores/knowledgeBase';
 import { Loader2, Check, AlertCircle, Circle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 
 interface NoteEditorProps {
   /** ID of the note being edited */

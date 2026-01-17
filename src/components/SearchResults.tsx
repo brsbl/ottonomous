@@ -7,7 +7,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { FileText, FolderOpen } from 'lucide-react';
 import { useKnowledgeBase } from '../stores/knowledgeBase';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 
 /**
  * SearchResults displays the search results from the knowledge base store.

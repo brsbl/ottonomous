@@ -26,7 +26,7 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { useKnowledgeBase } from '../stores/knowledgeBase';
 import type { Folder as FolderType, Note } from '../types';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 
 /**
  * Props for the FolderTreeItem component.

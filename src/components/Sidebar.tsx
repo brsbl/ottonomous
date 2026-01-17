@@ -14,13 +14,16 @@ import {
   FileText,
   Clock,
   Pin,
+  Layers,
+  Settings2,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { ScrollArea } from './ui/scroll-area';
 import { useKnowledgeBase } from '../stores/knowledgeBase';
 import type { Folder as FolderType, Note } from '../types';
-import { cn } from '@/lib/utils';
+import { SmartCollections } from './SmartCollections';
+import { cn } from '../lib/utils';
 
 /**
  * Props for the FolderTreeItem component.
@@ -136,6 +139,7 @@ export function Sidebar() {
   const {
     notes,
     folders,
+    collections,
     activeNoteId,
     searchQuery,
     searchResults,
@@ -144,10 +148,13 @@ export function Sidebar() {
     performSearch,
     clearSearch,
     createNote,
+    evaluateCollection,
   } = useKnowledgeBase();
 
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const [collectionsOpen, setCollectionsOpen] = useState(false);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
 
   // Get root folders (no parent)
   const rootFolders = useMemo(
@@ -170,6 +177,19 @@ export function Sidebar() {
 
   // Placeholder for pinned notes (will be implemented later)
   const pinnedNotes: Note[] = [];
+
+  // Get notes for selected collection
+  const collectionNotes = useMemo(() => {
+    if (!selectedCollectionId) return null;
+    const collection = collections.find((c) => c.id === selectedCollectionId);
+    if (!collection) return null;
+    return evaluateCollection(collection);
+  }, [selectedCollectionId, collections, evaluateCollection]);
+
+  // Get selected collection
+  const selectedCollection = useMemo(() => {
+    return collections.find((c) => c.id === selectedCollectionId);
+  }, [selectedCollectionId, collections]);
 
   /**
    * Toggle folder expansion state.
@@ -222,6 +242,15 @@ export function Sidebar() {
   };
 
   const displayNotes = searchQuery ? searchResults : null;
+
+  /**
+   * Handle collection selection.
+   */
+  const handleSelectCollection = (collectionId: string) => {
+    setSelectedCollectionId(
+      selectedCollectionId === collectionId ? null : collectionId
+    );
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -337,6 +366,72 @@ export function Sidebar() {
             </div>
           )}
 
+          {/* Smart Collections section */}
+          {!displayNotes && collections.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-2 px-2">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <Layers className="h-3 w-3" />
+                  Collections
+                </h3>
+                <button
+                  onClick={() => setCollectionsOpen(true)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  title="Manage collections"
+                >
+                  <Settings2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <div className="space-y-0.5">
+                {collections.map((collection) => {
+                  const noteCount = evaluateCollection(collection).length;
+                  const isSelected = selectedCollectionId === collection.id;
+                  return (
+                    <button
+                      key={collection.id}
+                      onClick={() => handleSelectCollection(collection.id)}
+                      className={cn(
+                        'w-full flex items-center justify-between gap-2 px-2 py-1.5 text-sm rounded-md',
+                        'hover:bg-accent hover:text-accent-foreground',
+                        'transition-colors text-left',
+                        isSelected && 'bg-accent text-accent-foreground'
+                      )}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Layers className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <span className="truncate">{collection.name}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground shrink-0">
+                        {noteCount}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Show collection notes when selected */}
+              {selectedCollection && collectionNotes && collectionNotes.length > 0 && (
+                <div className="mt-2 ml-2 pl-2 border-l border-border space-y-0.5">
+                  {collectionNotes.map((note) => (
+                    <button
+                      key={note.id}
+                      onClick={() => handleSelectNote(note.id)}
+                      className={cn(
+                        'w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-md',
+                        'hover:bg-accent hover:text-accent-foreground',
+                        'transition-colors text-left',
+                        activeNoteId === note.id && 'bg-accent text-accent-foreground'
+                      )}
+                    >
+                      <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <span className="truncate">{note.title}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Folder tree */}
           {!displayNotes && (
             <div>
@@ -388,6 +483,13 @@ export function Sidebar() {
           )}
         </div>
       </ScrollArea>
+
+      {/* Smart Collections Manager Dialog */}
+      <SmartCollections
+        open={collectionsOpen}
+        onOpenChange={setCollectionsOpen}
+        onSelectNote={handleSelectNote}
+      />
     </div>
   );
 }

@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { useKnowledgeBase } from '../stores/knowledgeBase';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 
 /**
  * Format a date as YYYY-MM-DD string.

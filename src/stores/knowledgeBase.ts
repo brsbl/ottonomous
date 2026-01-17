@@ -175,6 +175,7 @@ export interface KnowledgeBaseActions {
   createCollection: (collection: Omit<SmartCollection, 'id' | 'createdAt'>) => Promise<SmartCollection>;
   updateCollection: (id: string, updates: Partial<Omit<SmartCollection, 'id' | 'createdAt'>>) => Promise<void>;
   deleteCollection: (id: string) => Promise<void>;
+  evaluateCollection: (collection: SmartCollection) => Note[];
 
   // Search
   setSearchQuery: (query: string) => void;
@@ -576,6 +577,77 @@ export const useKnowledgeBase = create<KnowledgeBaseStore>((set, get) => ({
     set((state) => ({
       collections: state.collections.filter((collection) => collection.id !== id),
     }));
+  },
+
+  evaluateCollection: (collection) => {
+    const { notes, tags, folders } = get();
+
+    return notes.filter((note) => {
+      // All rules must match (AND logic)
+      return collection.rules.every((rule) => {
+        switch (rule.field) {
+          case 'tag': {
+            // Get tag names for this note
+            const noteTags = note.tags
+              .map((tagId) => tags.find((t) => t.id === tagId)?.name || '')
+              .filter(Boolean);
+
+            if (rule.operator === 'contains') {
+              return noteTags.some((tagName) =>
+                tagName.toLowerCase().includes(rule.value.toLowerCase())
+              );
+            } else if (rule.operator === 'equals') {
+              return noteTags.some(
+                (tagName) => tagName.toLowerCase() === rule.value.toLowerCase()
+              );
+            }
+            return false;
+          }
+
+          case 'folder': {
+            // Get folder name for this note
+            const noteFolder = folders.find((f) => f.id === note.folderId);
+            const folderName = noteFolder?.name || '';
+
+            if (rule.operator === 'equals') {
+              return folderName.toLowerCase() === rule.value.toLowerCase();
+            } else if (rule.operator === 'contains') {
+              return folderName.toLowerCase().includes(rule.value.toLowerCase());
+            }
+            return false;
+          }
+
+          case 'createdAt': {
+            const noteDate = new Date(note.createdAt);
+            const ruleDate = new Date(rule.value);
+
+            if (isNaN(ruleDate.getTime())) return false;
+
+            if (rule.operator === 'before') {
+              return noteDate < ruleDate;
+            } else if (rule.operator === 'after') {
+              return noteDate > ruleDate;
+            }
+            return false;
+          }
+
+          case 'content': {
+            const searchText = rule.value.toLowerCase();
+            const noteContent = (note.title + ' ' + note.content).toLowerCase();
+
+            if (rule.operator === 'contains') {
+              return noteContent.includes(searchText);
+            } else if (rule.operator === 'equals') {
+              return note.content.toLowerCase() === searchText;
+            }
+            return false;
+          }
+
+          default:
+            return false;
+        }
+      });
+    });
   },
 
   // =========================================================================

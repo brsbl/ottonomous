@@ -10,7 +10,7 @@ import { extractLinks } from '../lib/linkParser';
 import type { GraphNode, GraphEdge } from '../types';
 import { Button } from './ui/button';
 import { ZoomIn, ZoomOut, Maximize2, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 
 /**
  * Extended node type for D3 simulation with position properties.

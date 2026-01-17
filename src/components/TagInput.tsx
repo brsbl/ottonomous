@@ -5,7 +5,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { X, Hash, Plus } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 import { useKnowledgeBase } from '../stores/knowledgeBase';
 import type { Tag } from '../types';
 

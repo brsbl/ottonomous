@@ -18,7 +18,7 @@ import {
 import { ScrollArea } from './ui/scroll-area';
 import { useKnowledgeBase } from '../stores/knowledgeBase';
 import type { Template, TemplateCategory } from '../types';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 
 /**
  * Category options with labels and colors for display.
