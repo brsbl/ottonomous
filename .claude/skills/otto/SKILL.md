@@ -246,7 +246,19 @@ fi
 
 **Orchestrator action after server check:**
 - If curl succeeded: Set `state.integrations.dev_browser_available = true`, announce "✓ Dev-browser server running"
-- If curl failed: Set `state.integrations.dev_browser_available = false`, announce "⚠️ Dev-browser server failed to start - visual verification disabled"
+- If curl failed:
+  - Print error:
+    ```
+    ERROR: Dev-browser failed to start
+
+    To fix:
+    1. Start manually: cd .claude/skills/dev-browser && ./server.sh
+    2. Check log: cat .otto/otto/sessions/${session_id}/dev-browser.log
+    3. Check port: lsof -i :9222
+    ```
+  - Set `state.status = "failed"`
+  - Set `state.recovery.last_error = "Dev-browser failed to start"`
+  - **TERMINATE SESSION** - do not proceed to Step 0.8
 
 #### Step 0.8: Start Report Server
 
