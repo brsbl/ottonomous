@@ -1,265 +1,193 @@
 ---
 name: clean
-description: Clean ottonomous workflow artifacts from the .otto directory. Supports selective cleaning of sessions, specs, tasks, and reviews while preserving configuration. Invoke with /clean.
+description: Reset project to freshly installed plugin state. Removes workflow artifacts (.otto/) and app code while preserving plugin files. Invoke with /clean.
 ---
 
 # Clean
 
-Clean ottonomous workflow artifacts from the `.otto/` directory. Use this to reset your project's otto state without affecting the ottonomous plugin itself.
+Reset project to freshly installed plugin state. This is destructive and removes all generated code and workflow data.
 
-## Context
+## What Gets Removed
 
-When ottonomous is installed as a Claude Code plugin, users have `.otto/` in their own projects containing:
-- `config.yaml` - User settings (otto config)
-- `specs/` - Specification documents
-- `tasks/` - Task JSON files
-- `reviews/` - Review outputs (markdown, HTML)
-- `docs/` - Engineering docs with INDEX.md
-- `otto/sessions/` - Session state, feedback.md, improvements.md, screenshots
+**Runtime artifacts:**
+- `.otto/` - All workflow data (specs, tasks, reviews, docs, sessions, config)
+- Active processes - dev-browser.pid, report.pid
 
-## Usage
+**App artifacts:**
+- Source: `src/`, `dist/`, `public/`, `server/`, `api/`
+- Frameworks: `.next/`, `.nuxt/`, `.output/`
+- Dependencies: `node_modules/`
+- Configs: `package.json`, `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `bun.lockb`
+- Build configs: `vite.config.*`, `tsconfig*.json`, `next.config.*`, `tailwind.config.*`, `postcss.config.*`
+- Other: `components.json`, `.env*` (except `.env.example`)
 
-```bash
-/clean              # Interactive mode: choose what to clean
-/clean --all        # Full reset including config.yaml
-/clean --sessions   # Clean only otto sessions
-/clean --keep-config # Clean all except config.yaml (default)
-/clean --feedback   # Clear only feedback.md files from sessions (keep state)
-```
+## What Gets Preserved
+
+**Plugin files:**
+- `.claude/` - Skills and settings
+- `.claude-plugin/` - Marketplace metadata
+- `.git/`, `README.md`, `LICENSE`, `.gitignore`, `.gitmodules`
 
 ---
 
 ## Workflow
 
-### Step 1: Parse Arguments
+### Step 1: Kill Active Processes
 
-Check for flags in the user's invocation:
-
-| Flag | Behavior |
-|------|----------|
-| (none) | Interactive mode - ask what to clean |
-| `--all` | Remove everything in .otto/ including config.yaml |
-| `--sessions` | Remove only .otto/otto/sessions/ |
-| `--keep-config` | Remove everything except config.yaml (default for non-interactive) |
-| `--feedback` | Clear only feedback.md and improvements.md from sessions (keep state) |
-
-### Step 2: Check for Active Sessions
-
-Before any cleaning, check if otto sessions are currently running:
+Check for and kill any running otto processes:
 
 ```bash
-# Find state.json files with status: "in_progress"
-find .otto/otto/sessions -name "state.json" -exec grep -l '"status": "in_progress"' {} \; 2>/dev/null
-```
+# Check for active session
+if [ -f ".otto/otto/.active" ]; then
+  SESSION_ID=$(cat .otto/otto/.active)
+  SESSION_DIR=".otto/otto/sessions/$SESSION_ID"
 
-**If active sessions found:**
-```
-⚠️ Active otto session detected: {session_id}
+  # Kill dev-browser
+  if [ -f "$SESSION_DIR/dev-browser.pid" ]; then
+    kill $(cat "$SESSION_DIR/dev-browser.pid") 2>/dev/null || true
+  fi
 
-The session appears to be in progress. Cleaning now may cause:
-- Loss of current execution state
-- Orphaned processes (dev-browser, report server)
-
-Options:
-1. Stop the session first (kill processes, set status to "terminated")
-2. Clean anyway (force)
-3. Cancel
-```
-
-Use `AskUserQuestion` to let user decide.
-
-**To stop an active session:**
-```bash
-# Kill dev-browser if running
-if [ -f ".otto/otto/sessions/{session_id}/dev-browser.pid" ]; then
-  kill $(cat .otto/otto/sessions/{session_id}/dev-browser.pid) 2>/dev/null || true
-fi
-
-# Kill report server if running
-if [ -f ".otto/otto/sessions/{session_id}/report.pid" ]; then
-  kill $(cat .otto/otto/sessions/{session_id}/report.pid) 2>/dev/null || true
+  # Kill report server
+  if [ -f "$SESSION_DIR/report.pid" ]; then
+    kill $(cat "$SESSION_DIR/report.pid") 2>/dev/null || true
+  fi
 fi
 ```
 
-### Step 3: Interactive Mode (if no flags)
+### Step 2: Detect and Preview
 
-If invoked without flags, ask user what to clean:
+Scan for existing artifacts and calculate sizes:
+
+```bash
+# Runtime artifacts
+du -sh .otto 2>/dev/null || echo "0B .otto"
+
+# App artifacts - check each
+for dir in src dist public server api .next .nuxt .output node_modules; do
+  du -sh "$dir" 2>/dev/null
+done
+
+# Config files
+ls -la package.json tsconfig*.json vite.config.* next.config.* tailwind.config.* 2>/dev/null
+```
+
+Display preview to user:
 
 ```
-Use AskUserQuestion with multiSelect: true
+Will remove:
 
-Question: "What would you like to clean from .otto/?"
+Runtime:
+  .otto/              12M   (specs, tasks, reviews, sessions)
+
+App artifacts:
+  src/                 2M
+  node_modules/      180M
+  .next/              45M
+  package.json
+  tsconfig.json
+  ...
+
+Total: ~239M
+
+Preserved:
+  .claude/
+  .git/
+  README.md
+```
+
+### Step 3: Confirm
+
+**Always ask for confirmation** - this is destructive:
+
+```
+Use AskUserQuestion:
+
+Question: "This will delete all app code and workflow data. Continue?"
 
 Options:
-- Sessions (.otto/otto/sessions/) - Session state, feedback.md, improvements.md, screenshots
-- Specs (.otto/specs/) - Specification documents
-- Tasks (.otto/tasks/) - Task JSON files
-- Reviews (.otto/reviews/) - Review outputs
-- Docs (.otto/docs/) - Engineering docs
-- Config (.otto/config.yaml) - User settings (will reset to defaults)
+- Yes, reset to clean state
+- Cancel
 ```
 
-### Step 4: Execute Cleaning
+### Step 4: Remove Artifacts
 
-Based on selection or flags:
+After confirmation, remove in order:
 
-#### --sessions (or "Sessions" selected)
 ```bash
-rm -rf .otto/otto/sessions/*
-mkdir -p .otto/otto/sessions
-touch .otto/otto/sessions/.gitkeep
-
-# Remove orphaned active session marker
-rm -f .otto/otto/.active
-```
-
-#### --feedback (clear feedback files only)
-```bash
-# Clear feedback.md and improvements.md files while preserving session state
-find .otto/otto/sessions -name "feedback.md" -delete
-find .otto/otto/sessions -name "feedback-batch-*.md" -delete
-find .otto/otto/sessions -name "improvements.md" -delete
-```
-
-This allows users to clear accumulated feedback without losing session state.
-
-#### --keep-config (default behavior)
-```bash
-# Remove all except config.yaml
-find .otto -mindepth 1 -maxdepth 1 ! -name "config.yaml" -exec rm -rf {} \;
-
-# Recreate directory structure
-mkdir -p .otto/specs .otto/tasks .otto/reviews .otto/docs .otto/otto/sessions
-
-# Add .gitkeep files to preserve structure
-touch .otto/specs/.gitkeep
-touch .otto/tasks/.gitkeep
-touch .otto/reviews/.gitkeep
-touch .otto/docs/.gitkeep
-touch .otto/otto/sessions/.gitkeep
-
-# Remove orphaned active session marker (in case .otto/otto was recreated)
-rm -f .otto/otto/.active
-```
-
-#### --all (full reset)
-```bash
+# 1. Runtime artifacts
 rm -rf .otto
-```
 
-**Confirmation required for --all:**
-```
-⚠️ This will delete ALL otto data including your config.yaml.
-You will need to reconfigure ottonomous settings.
+# 2. App directories
+rm -rf src dist public server api
+rm -rf .next .nuxt .output
+rm -rf node_modules
 
-Type 'yes' to confirm:
+# 3. Config files
+rm -f package.json package-lock.json pnpm-lock.yaml yarn.lock bun.lockb
+rm -f tsconfig.json tsconfig.*.json
+rm -f vite.config.js vite.config.ts vite.config.mjs
+rm -f next.config.js next.config.ts next.config.mjs
+rm -f tailwind.config.js tailwind.config.ts
+rm -f postcss.config.js postcss.config.mjs
+rm -f components.json
+rm -f .env .env.local .env.production .env.development
+# Keep .env.example if it exists
 ```
 
 ### Step 5: Report Results
 
 ```
 Cleaned:
-- {n} session(s) removed
-- {n} spec(s) removed
-- {n} task file(s) removed
-- {n} review(s) removed
-- {n} doc entries removed
-{if config removed: "- Config reset (will use defaults)"}
+  - .otto/ removed (12M)
+  - src/ removed (2M)
+  - node_modules/ removed (180M)
+  - .next/ removed (45M)
+  - 8 config files removed
 
-Directory structure preserved. Ready for new otto session.
+Total freed: 239M
+
+Project reset to fresh plugin state.
+Run /otto to start a new build.
 ```
 
 ---
 
-## Auto Mode
+## Example
 
-When AUTO_MODE is active (`.otto/otto/.active` exists during an otto session):
-
-| Flag | Auto Behavior |
-|------|---------------|
-| `--sessions` | Clean immediately, no confirmation |
-| `--keep-config` | Clean immediately, no confirmation |
-| `--feedback` | Clean immediately, no confirmation |
-| `--all` | ALWAYS ask for confirmation (destructive) |
-| (none) | Default to `--keep-config`, no confirmation |
-
----
-
-## Examples
-
-### Clean only sessions (quick reset)
-```
-/clean --sessions
-```
-Output:
-```
-Cleaned 3 otto session(s).
-Session artifacts removed, ready for new session.
-```
-
-### Clean feedback files only (preserve state)
-```
-/clean --feedback
-```
-Output:
-```
-Cleaned feedback files from 3 session(s).
-Session state preserved, feedback cleared.
-```
-
-### Interactive cleanup
 ```
 /clean
 ```
+
 Output:
 ```
-What would you like to clean from .otto/?
-[x] Sessions (3 items)
-[x] Tasks (2 items)
-[ ] Specs (1 item)
-[ ] Reviews (0 items)
-[ ] Docs (5 entries)
-[ ] Config
+Checking for active processes... none found.
+
+Will remove:
+
+Runtime:
+  .otto/              12M
+
+App artifacts:
+  src/                 2M
+  node_modules/      180M
+  package.json
+  tsconfig.json
+
+Total: ~194M
+
+Preserved:
+  .claude/
+  .git/
+  README.md
+
+This will delete all app code and workflow data. Continue?
+> Yes, reset to clean state
 
 Cleaned:
-- 3 session(s) removed
-- 2 task file(s) removed
+  - .otto/ removed
+  - src/ removed
+  - node_modules/ removed
+  - 2 config files removed
 
-Directory structure preserved.
-```
-
-### Full reset
-```
-/clean --all
-```
-Output:
-```
-⚠️ This will delete ALL otto data including your config.yaml.
-
-Type 'yes' to confirm: yes
-
-Removed .otto/ directory completely.
-Run /otto to start fresh with default configuration.
-```
-
----
-
-## Directory Structure After Clean
-
-After `--keep-config` or selective clean:
-
-```
-.otto/
-├── config.yaml     # Preserved (unless --all)
-├── specs/
-│   └── .gitkeep
-├── tasks/
-│   └── .gitkeep
-├── reviews/
-│   └── .gitkeep
-├── docs/
-│   └── .gitkeep
-└── otto/
-    └── sessions/
-        └── .gitkeep
+Project reset to fresh plugin state.
 ```
