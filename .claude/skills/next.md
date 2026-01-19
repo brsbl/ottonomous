@@ -12,7 +12,8 @@ Pick and work on the next highest priority unblocked task.
 **Check for AUTO_MODE at the start of every workflow:**
 
 ```bash
-AUTO_MODE=$(grep -q "auto_pick: true" .otto/config.yaml 2>/dev/null && echo "true" || echo "false")
+# AUTO_MODE only active during an active /otto session
+AUTO_MODE=$([[ -f .otto/otto/.active ]] && echo "true" || echo "false")
 MAX_BLOCKERS=$(grep "max_blockers:" .otto/config.yaml 2>/dev/null | awk '{print $2}' || echo "3")
 ```
 

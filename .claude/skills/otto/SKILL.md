@@ -54,8 +54,6 @@ cat .otto/config.yaml 2>/dev/null | grep "otto:" || echo "CONFIG_MISSING"
 If `CONFIG_MISSING`, create default config at `.otto/config.yaml`:
 
 ```yaml
-auto_verify: true
-auto_pick: true
 otto:
   enabled: true
   mode: autonomous
@@ -82,6 +80,9 @@ session_id="otto-$(date +%Y%m%d-%H%M%S)-$(openssl rand -hex 2)"
 ```bash
 mkdir -p .otto/otto/sessions/${session_id}/{research/screenshots,visual-checks}
 mkdir -p .otto/docs  # Ensure docs directory exists for learnings
+
+# Mark otto session as active (used by /review AUTO_MODE detection)
+echo "${session_id}" > .otto/otto/.active
 ```
 
 #### Step 0.4: Initialize state.json
@@ -1092,6 +1093,11 @@ function terminate_gracefully(reason):
     save_state()
     generate_partial_summary()
 
+    # Remove active session marker
+    ```bash
+    rm -f .otto/otto/.active
+    ```
+
     # Termination commit
     ```bash
     git add -A
@@ -1545,6 +1551,9 @@ if [ -f ".otto/otto/sessions/${session_id}/report.pid" ]; then
   kill $(cat .otto/otto/sessions/${session_id}/report.pid) 2>/dev/null || true
   rm .otto/otto/sessions/${session_id}/report.pid
 fi
+
+# Remove active session marker
+rm -f .otto/otto/.active
 ```
 
 #### Step 5.1b: Final Dashboard Snapshot
@@ -2032,9 +2041,6 @@ EOF
 
 ```yaml
 # .otto/config.yaml
-auto_verify: true
-auto_pick: true
-
 otto:
   enabled: true                    # Master switch
   mode: autonomous                 # autonomous | supervised

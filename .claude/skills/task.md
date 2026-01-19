@@ -14,7 +14,8 @@ Generate implementation tasks from an approved spec.
 **Check for AUTO_MODE at the start of every workflow:**
 
 ```bash
-AUTO_MODE=$(grep -q "auto_pick: true" .otto/config.yaml 2>/dev/null && echo "true" || echo "false")
+# AUTO_MODE only active during an active /otto session
+AUTO_MODE=$([[ -f .otto/otto/.active ]] && echo "true" || echo "false")
 ```
 
 **When `AUTO_MODE=true`:**

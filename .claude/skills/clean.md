@@ -10,7 +10,7 @@ Clean ottonomous workflow artifacts from the `.otto/` directory. Use this to res
 ## Context
 
 When ottonomous is installed as a Claude Code plugin, users have `.otto/` in their own projects containing:
-- `config.yaml` - User settings (auto_verify, auto_pick, otto config)
+- `config.yaml` - User settings (otto config)
 - `specs/` - Specification documents
 - `tasks/` - Task JSON files
 - `reviews/` - Review outputs (markdown, HTML)
@@ -108,6 +108,9 @@ Based on selection or flags:
 rm -rf .otto/otto/sessions/*
 mkdir -p .otto/otto/sessions
 touch .otto/otto/sessions/.gitkeep
+
+# Remove orphaned active session marker
+rm -f .otto/otto/.active
 ```
 
 #### --feedback (clear feedback files only)
@@ -134,6 +137,9 @@ touch .otto/tasks/.gitkeep
 touch .otto/reviews/.gitkeep
 touch .otto/docs/.gitkeep
 touch .otto/otto/sessions/.gitkeep
+
+# Remove orphaned active session marker (in case .otto/otto was recreated)
+rm -f .otto/otto/.active
 ```
 
 #### --all (full reset)
@@ -167,7 +173,7 @@ Directory structure preserved. Ready for new otto session.
 
 ## Auto Mode
 
-When `auto_pick: true` is set in config:
+When AUTO_MODE is active (`.otto/otto/.active` exists during an otto session):
 
 | Flag | Auto Behavior |
 |------|---------------|
