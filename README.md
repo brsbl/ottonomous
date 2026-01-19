@@ -17,15 +17,6 @@ A Claude Code plugin for autonomous product development. Takes an idea and build
 /otto Build a CLI todo app with local JSON storage
 ```
 
-Otto will:
-1. Research competitors and generate a spec
-2. Break the spec into prioritized tasks
-3. Execute tasks with fresh subagents (isolated context per task)
-4. Run improvement cycles every 5 tasks
-5. Perform visual verification for UI tasks
-6. Review code and fix P0/P1 issues
-7. Generate a session summary
-
 **Manual** — step-by-step control:
 ```bash
 /spec              # Write specification
@@ -33,6 +24,59 @@ Otto will:
 /next              # Execute next task
 /review            # Review for bugs
 ```
+
+## Workflows
+
+### Manual Workflow
+
+```
+Idea
+  ↓
+/spec ────→ .otto/specs/{id}.md
+  ↓
+/task ────→ .otto/tasks/{id}.json
+  ↓
+/next ────→ Execute highest priority task
+  ↓  ⤴
+  └──────→ Repeat until done
+  ↓
+/review ──→ Find bugs (P0-P3)
+  ↓
+/summary ─→ Document changes
+  ↓
+Done
+```
+
+### Autonomous Workflow
+
+```
+Idea → /otto
+         ↓
+    Research (web search)
+         ↓
+    Spec (3-tier features)
+         ↓
+    Tasks (parallel groups)
+         ↓
+    Execute ←──┐
+         ↓     │
+    Milestone? ┘ (every 5 tasks: self-improve)
+         ↓
+    Code Review (fix P0/P1)
+         ↓
+    Session Report
+         ↓
+    Done
+```
+
+**What `/otto` does:**
+1. Researches competitors via web search
+2. Generates spec with Core/Expected/Delightful features
+3. Breaks into parallel task groups
+4. Executes tasks with fresh subagents (isolated context)
+5. Self-improves every 5 tasks (max 3 cycles)
+6. Reviews and fixes P0/P1 bugs
+7. Generates session report
 
 ## Commands
 
