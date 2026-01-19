@@ -104,8 +104,6 @@ otto:
   mode: autonomous
   max_blockers: 3
   checkpoint_interval: 5
-  improvement_milestone: 5
-  max_improvement_cycles: 3
   max_tasks: 50
   max_duration_hours: 4
 ```

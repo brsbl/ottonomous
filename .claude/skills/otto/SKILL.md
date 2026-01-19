@@ -59,14 +59,12 @@ otto:
   mode: autonomous
   max_blockers: 3
   checkpoint_interval: 5
-  improvement_milestone: 5
-  max_improvement_cycles: 3
   self_improve: true
   max_tasks: 50
   max_duration_hours: 4
   feedback_rotation_interval: 10
   open_report: false               # Auto-open report in browser (skipped if headless)
-  skip_improvement_cycles: false  # Skip self-improvement loops (faster but less thorough)
+  skip_improvement_cycles: false   # Skip self-improvement loops (faster but less thorough)
 ```
 
 #### Step 0.2: Generate Session ID
@@ -578,8 +576,8 @@ Append to feedback.md Phase 2 section:
 #### Constants
 
 ```
-IMPROVEMENT_MILESTONE = 5  # from config: improvement_milestone
-MAX_IMPROVEMENT_CYCLES = 3  # from config: max_improvement_cycles
+IMPROVEMENT_MILESTONE = 5
+MAX_IMPROVEMENT_CYCLES = 3
 FEEDBACK_ROTATION_INTERVAL = 10  # from config: feedback_rotation_interval
 ```
 
@@ -2046,8 +2044,6 @@ otto:
   mode: autonomous                 # autonomous | supervised
   max_blockers: 3                  # Skip task after N failures
   checkpoint_interval: 5           # Commit every N tasks
-  improvement_milestone: 5         # Run improvement cycle every N tasks
-  max_improvement_cycles: 3        # Cap improvement cycles per session
   feedback_rotation_interval: 10   # Rotate feedback.md every N tasks
   self_improve: true               # Generate improvement suggestions
   max_tasks: 50                    # Safety limit on total tasks
