@@ -1,8 +1,5 @@
-<img width="3072" height="1428" alt="image" src="https://github.com/user-attachments/assets/5df66efc-5ca3-4624-b0d2-741f0308d89a" />
-
 # Ottonomous
-
-A Claude Code plugin for autonomous product development. Takes an idea and builds it end-to-end with specs, tasks, code, tests, and reviews.
+<img width="3072" height="1428" alt="image" src="https://github.com/user-attachments/assets/5df66efc-5ca3-4624-b0d2-741f0308d89a" />
 
 ## Installation
 
@@ -12,18 +9,63 @@ A Claude Code plugin for autonomous product development. Takes an idea and build
 
 ## Quick Start
 
-**Autonomous** — one command, full automation:
+### Manual Workflow
+Step-by-step control over each phase:
+
+```bash
+/spec              # 1. Write specification
+/task my-spec      # 2. Break into tasks
+/next              # 3. Execute next task
+/test              # 4. Run tests + visual verification with browser automation
+/review            # 5. Review for bugs
+/summary           # 6. Overview of changes
+/log               # 7. Document changes
+```
+
+### Ottonomous Workflow
+Fully autonomous from idea to working code:
+
 ```bash
 /otto Build a CLI todo app with local JSON storage
 ```
+This workflow is essentially 2 nested loops:
+- **outter loop**: manager agent delegates to subagents to research a product idea (argument for the skill) → write a spec → generate tasks from spec → execute tasks in parallel → test & review in parallel → regularly report status to manager agent → document the codebase as they work
+- **inner loop**: subagents and manager agent document feedback about the workflow as they work. after each milestone, manager agent creates a plan for subagents to improve the workflow
 
-**Manual** — step-by-step control:
-```bash
-/spec              # Write specification
-/task my-spec      # Break into tasks
-/next              # Execute next task
-/review            # Review for bugs
-```
+these loops run continuously until the product is built to spec (with stop hooks to validate after each task).
+
+## Skills
+
+- **`/otto`** — Fully autonomous product development from idea to working code. Spawns fresh agents per task, iteratively reviews code and runs self-improvement cycles to improve overall process.
+
+### Planning
+
+- **`/spec`** — Interactive interview that gathers context, researches best practices, and outputs a spec to `.otto/specs/{id}.md`
+- **`/task`** — Breaks specs into tasks with status (`pending` → `in_progress` → `done`), priority (0-4), and dependencies
+
+### Development
+
+- **`/delegate`** — Transforms Claude into an Engineering Manager who delegates all technical work (exploration, planning, coding, review) to specialized subagents
+
+### Testing & Review (with Browser Automation)
+
+- **`/test`** — Canonical testing skill: run automated tests and visual verification with dev-browser. Detects test runners, captures results, and walks through UI flows
+- **`/review`** — Finds bugs with priority levels: P0 (blocking), P1 (urgent), P2 (normal), P3 (low)
+- **`/summary`** — Generates audience-specific walkthrough (developers, reviewers, stakeholders) with per-component analysis. Opens HTML in browser
+
+### Browser Automation
+
+- **`/dev-browser`** — Browser automation using Playwright with persistent page state. Two modes: standalone (launches Chromium) or extension (connects to existing Chrome). Use for web testing, scraping, screenshots, and form automation
+
+### Engineering Knowledge Base
+
+- **`/log`** — Document information about the codebase anchored to files; entries marked stale when anchors change. Use `/log init` for setup, `/log rebuild` to regenerate index
+
+### Maintenance
+
+- **`/clean`** — Reset project to freshly installed plugin state. Preserves plugin files (.claude/, .git/, README.md, etc.) and removes everything else
+
+
 
 ## Workflows
 
@@ -61,6 +103,8 @@ Idea → /otto
     Execute ←──┐
          ↓     │
     Milestone? ┘ (every 5 tasks: self-improve)
+         ↓
+    Test (via browser automation)
          ↓
     Code Review (fix P0/P1)
          ↓
