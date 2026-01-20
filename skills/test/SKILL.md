@@ -834,19 +834,15 @@ describe('isValidPort', () => {
 project/
 ├── package.json          # workspace test scripts
 ├── vitest.config.js      # points to skill configs
-├── skills/
-│   └── my-skill/
-│       ├── package.json      # skill dependencies + test script
-│       ├── vitest.config.js  # skill test config
-│       ├── __tests__/
-│       │   └── utils.test.js
-│       └── src/
-│           ├── main.js
-│           └── main.utils.js
-└── .claude/skills/           # alternative location
-    └── another-skill/
-        ├── vitest.config.js
-        └── __tests__/
+└── skills/
+    └── my-skill/
+        ├── package.json      # skill dependencies + test script
+        ├── vitest.config.js  # skill test config
+        ├── __tests__/
+        │   └── utils.test.js
+        └── src/
+            ├── main.js
+            └── main.utils.js
 ```
 
 **Root package.json:**
@@ -872,7 +868,6 @@ export default defineConfig({
   test: {
     projects: [
       'skills/*/vitest.config.js',
-      '.claude/skills/*/vitest.config.js',
     ],
   },
 })
