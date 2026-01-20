@@ -4,11 +4,16 @@
   "description": "Markdown to HTML converter for semantic reviews",
   "type": "module",
   "scripts": {
-    "convert": "node scripts/md-to-html.js"
+    "convert": "node scripts/md-to-html.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "marked": "^15.0.0",
     "marked-highlight": "^2.2.0",
     "highlight.js": "^11.10.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
   }
 }

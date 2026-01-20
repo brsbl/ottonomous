@@ -10,8 +10,9 @@ Reset project to freshly installed plugin state. This is destructive and removes
 ## What Gets Preserved (allowlist)
 
 Only these files/directories survive:
-- `.claude/` - Skills and settings
+- `.claude/` - Settings and dev-browser submodule
 - `.claude-plugin/` - Marketplace metadata
+- `skills/` - Plugin skills
 - `.git/` - Version control
 - `README.md` - Project readme
 - `LICENSE` - License file
@@ -57,6 +58,7 @@ find . -maxdepth 1 \
   ! -name '.' \
   ! -name '.claude' \
   ! -name '.claude-plugin' \
+  ! -name 'skills' \
   ! -name '.git' \
   ! -name 'README.md' \
   ! -name 'LICENSE' \
@@ -81,6 +83,7 @@ Total: ~239M
 Preserved:
   .claude/
   .claude-plugin/
+  skills/
   .git/
   README.md
   LICENSE
@@ -111,6 +114,7 @@ find . -maxdepth 1 \
   ! -name '.' \
   ! -name '.claude' \
   ! -name '.claude-plugin' \
+  ! -name 'skills' \
   ! -name '.git' \
   ! -name 'README.md' \
   ! -name 'LICENSE' \
@@ -127,6 +131,7 @@ This operates on the filesystem directly (doesn't use git or read .gitignore).
 Cleaned. Removed all files except:
   .claude/
   .claude-plugin/
+  skills/
   .git/
   README.md
   LICENSE
@@ -161,6 +166,8 @@ Total: ~239M
 
 Preserved:
   .claude/
+  .claude-plugin/
+  skills/
   .git/
   README.md
 

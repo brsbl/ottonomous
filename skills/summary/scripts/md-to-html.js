@@ -5,6 +5,7 @@ import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
 import fs from "fs";
 import path from "path";
+import { parseFrontmatter, generateMetadataHtml, parseArgs, escapeHtml } from "./md-to-html.utils.js";
 
 // Configure marked with syntax highlighting
 marked.use(
@@ -179,24 +180,41 @@ ${content}
 
 // Main execution
 const args = process.argv.slice(2);
+const { inputPath, outputPath } = parseArgs(args);
 
-if (args.length < 1) {
+if (!inputPath) {
   console.error("Usage: node md-to-html.js <input.md> [output.html]");
   process.exit(1);
 }
 
-const inputPath = args[0];
-const outputPath = args[1] || inputPath.replace(/\.md$/, ".html");
-
 try {
-  const markdown = fs.readFileSync(inputPath, "utf-8");
+  const rawMarkdown = fs.readFileSync(inputPath, "utf-8");
+
+  // Extract and parse YAML frontmatter
+  const { content: markdown, meta } = parseFrontmatter(rawMarkdown);
+  const metadataHtml = generateMetadataHtml(meta);
+
+  // Configure custom renderer for GitHub links in h3 file paths
+  const renderer = new marked.Renderer();
+  renderer.heading = function ({ tokens, depth }) {
+    const text = this.parser.parseInline(tokens);
+    if (depth === 3 && meta.repo && meta.branch) {
+      // Check if text looks like a file path (contains / or .)
+      if (text.includes("/") || text.includes(".")) {
+        const githubUrl = `https://github.com/${meta.repo}/blob/${meta.branch}/${text}`;
+        return `<h3><a href="${githubUrl}">${text}</a></h3>\n`;
+      }
+    }
+    return `<h${depth}>${text}</h${depth}>\n`;
+  };
+  marked.use({ renderer });
 
   // Extract title from first heading or filename
   const titleMatch = markdown.match(/^#\s+(.+)$/m);
-  const title = titleMatch ? titleMatch[1] : path.basename(inputPath, ".md");
+  const title = escapeHtml(titleMatch ? titleMatch[1] : path.basename(inputPath, ".md"));
 
   // Convert markdown to HTML
-  const htmlContent = marked(markdown);
+  const htmlContent = metadataHtml + marked(markdown);
 
   // Generate full HTML document
   const fullHtml = htmlTemplate(htmlContent, title);

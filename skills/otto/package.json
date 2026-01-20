@@ -1,0 +1,13 @@
+{
+  "name": "otto",
+  "version": "1.0.0",
+  "description": "Otto autonomous product development skill",
+  "type": "module",
+  "devDependencies": {
+    "vitest": "^3.0.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  }
+}

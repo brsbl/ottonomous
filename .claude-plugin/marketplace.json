@@ -1,24 +1,19 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "ottonomous",
-  "version": "1.0.0",
-  "description": "Comprehensive skills toolkit for autonomous product development with structured workflows for planning, implementation, review, and self-improvement",
   "owner": {
     "name": "brsbl",
-    "url": "https://github.com/brsbl"
+    "email": "brsbl@github.com"
+  },
+  "metadata": {
+    "description": "Comprehensive skills toolkit for autonomous product development",
+    "version": "1.0.0"
   },
   "plugins": [
     {
       "name": "ottonomous",
+      "source": "./",
       "description": "Skills for spec writing, task management, review, summary, delegation, testing, and autonomous development",
-      "source": ".",
-      "version": "1.0.0",
-      "author": {
-        "name": "brsbl",
-        "url": "https://github.com/brsbl"
-      },
-      "category": "development",
-      "tags": ["automation", "workflows", "review", "testing", "planning", "autonomous"]
+      "strict": false
     }
   ]
 }
