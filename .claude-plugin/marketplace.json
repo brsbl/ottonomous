@@ -18,7 +18,20 @@
         "url": "https://github.com/brsbl"
       },
       "category": "development",
-      "tags": ["automation", "workflows", "review", "testing", "planning", "autonomous"]
+      "tags": ["automation", "workflows", "review", "testing", "planning", "autonomous"],
+      "skills": [
+        "./skills/otto",
+        "./skills/spec",
+        "./skills/task",
+        "./skills/next",
+        "./skills/test",
+        "./skills/review",
+        "./skills/summary",
+        "./skills/delegate",
+        "./skills/doc",
+        "./skills/dev-browser",
+        "./skills/clean"
+      ]
     }
   ]
 }
