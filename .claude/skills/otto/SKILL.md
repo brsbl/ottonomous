@@ -18,7 +18,7 @@ The system will autonomously:
 2. Generate a specification (with optional research via dev-browser)
 3. Break it into atomic tasks
 4. Execute tasks in a milestone-based loop (fresh subagent per task)
-5. Run improvement cycles every 5 tasks (max 3 cycles)
+5. Run improvement cycles every 5 tasks
 6. Perform E2E testing and code review
 7. Generate session summary
 
@@ -113,7 +113,6 @@ Write to `.otto/otto/sessions/${session_id}/state.json`:
   // Improvement cycle tracking - separate from product tasks
   "improvement": {
     "cycles_run": 0,
-    "max_cycles": 3,
     "current_cycle_tasks_completed": 0,  // Tracks improvement tasks only (resets each cycle)
     "cycle_history": []
   },
@@ -577,7 +576,6 @@ Append to feedback.md Phase 2 section:
 
 ```
 IMPROVEMENT_MILESTONE = 5
-MAX_IMPROVEMENT_CYCLES = 3
 FEEDBACK_ROTATION_INTERVAL = 10  # from config: feedback_rotation_interval
 ```
 
@@ -729,7 +727,6 @@ function collect_dashboard_feedback(group_number):
     cycles_run = state.improvement.cycles_run
 
     if (previous_completed // IMPROVEMENT_MILESTONE < current_completed // IMPROVEMENT_MILESTONE
-        AND cycles_run < MAX_IMPROVEMENT_CYCLES
         AND NOT config.skip_improvement_cycles):
 
         ⚠️ STOP - DO NOT PROCEED TO NEXT GROUP
@@ -743,7 +740,7 @@ function collect_dashboard_feedback(group_number):
 # --- MANDATORY FINAL IMPROVEMENT CYCLE ---
 ⚠️ STOP - Before proceeding to Phase 4:
 
-if state.improvement.cycles_run < MAX_IMPROVEMENT_CYCLES AND NOT config.skip_improvement_cycles:
+if NOT config.skip_improvement_cycles:
     Announce: "🔄 FINAL IMPROVEMENT CYCLE - Last chance to improve workflow..."
     run_improvement_cycle()
     state.improvement.cycles_run++
@@ -1515,7 +1512,7 @@ otto: complete - {completed}/{total} tasks, {fixes} fixes applied
 
 Session: {session_id}
 Phase: review complete
-Improvement cycles: {cycles_run}/{max_cycles}
+Improvement cycles: {cycles_run}
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
@@ -1884,7 +1881,6 @@ Doc entries created: {count}
 
   "improvement": {
     "cycles_run": 1,
-    "max_cycles": 3,
     "current_cycle_tasks_completed": 0,
     "cycle_history": [
       {

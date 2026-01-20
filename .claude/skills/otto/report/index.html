@@ -151,7 +151,7 @@
           <div class="meta">
             <span>Session: ${escapeHtml(s.session_id?.slice(-12)) || '-'}</span>
             <span>Duration: ${duration(s.timestamps?.started_at)}</span>
-            <span>Cycles: ${imp.cycles_run || 0}/${imp.max_cycles || 3}</span>
+            <span>Cycles: ${imp.cycles_run || 0}</span>
             <span>Issues: ${issuesFound} found, ${issuesFixed} fixed</span>
           </div>
         </div>
@@ -186,18 +186,16 @@
       const el = document.getElementById('cycles');
       const imp = state?.improvement || {};
       const history = imp.cycle_history || [];
-      const maxCycles = imp.max_cycles || 3;
       let html = '';
-      for (let i = 1; i <= maxCycles; i++) {
-        const cycle = history.find(c => c.cycle === i);
-        if (cycle) {
+      if (history.length === 0) {
+        html = '<div class="empty-state">No improvement cycles yet</div>';
+      } else {
+        history.forEach((cycle, i) => {
           html += `<div class="cycle-item">
-            <div class="cycle-header"><span class="cycle-number">Cycle ${i}</span><span>${escapeHtml(cycle.status) || 'completed'}</span></div>
+            <div class="cycle-header"><span class="cycle-number">Cycle ${cycle.cycle || i + 1}</span><span>${escapeHtml(cycle.status) || 'completed'}</span></div>
             <div class="cycle-details">Triggered after task ${escapeHtml(cycle.triggered_after) || '-'} | ${cycle.improvements_found || 0} improvements | ${cycle.tasks_executed || 0} tasks</div>
           </div>`;
-        } else if (i <= (imp.cycles_run || 0) + 1) {
-          html += `<div class="cycle-item"><div class="cycle-header"><span class="cycle-number">Cycle ${i}</span><span>Pending</span></div></div>`;
-        }
+        });
       }
       el.innerHTML = html || '<div class="empty-state">No cycles data</div>';
     }

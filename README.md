@@ -118,7 +118,7 @@ Idea → /otto
 2. Generates spec with Core/Expected/Delightful features
 3. Breaks into parallel task groups
 4. Executes tasks with fresh subagents (isolated context)
-5. Self-improves every 5 tasks (max 3 cycles)
+5. Self-improves every 5 tasks
 6. Reviews and fixes P0/P1 bugs
 7. Generates session report
 
