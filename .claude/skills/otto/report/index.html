@@ -59,6 +59,17 @@
       border-radius: 6px;
       text-align: center;
     }
+    .service-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #21262d; }
+    .service-row:last-child { border-bottom: none; }
+    .service-icon { font-size: 1.1em; width: 20px; text-align: center; }
+    .service-icon.available { color: #3fb950; }
+    .service-icon.unavailable { color: #f85149; }
+    .service-name { flex: 1; }
+    .service-note { font-size: 0.8em; color: #6e7681; }
+    .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #30363d; }
+    .metric-item { background: #21262d; padding: 10px; border-radius: 6px; text-align: center; }
+    .metric-value { font-size: 1.4em; font-weight: 600; color: #58a6ff; }
+    .metric-label { font-size: 0.75em; color: #8b949e; margin-top: 4px; }
     .empty-state {
       color: #8b949e;
       font-style: italic;
@@ -85,6 +96,10 @@
       <div class="panel">
         <div class="panel-title">Code Review Summary</div>
         <div id="review-summary"><div class="loading">Loading review data...</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Service Availability</div>
+        <div id="service-availability"><div class="loading">Loading services...</div></div>
       </div>
     </div>
   </div>
@@ -136,7 +151,7 @@
           <div class="meta">
             <span>Session: ${escapeHtml(s.session_id?.slice(-12)) || '-'}</span>
             <span>Duration: ${duration(s.timestamps?.started_at)}</span>
-            <span>Cycles: ${imp.cycles_run || 0}/${imp.max_cycles || 3}</span>
+            <span>Cycles: ${imp.cycles_run || 0}</span>
             <span>Issues: ${issuesFound} found, ${issuesFixed} fixed</span>
           </div>
         </div>
@@ -171,18 +186,16 @@
       const el = document.getElementById('cycles');
       const imp = state?.improvement || {};
       const history = imp.cycle_history || [];
-      const maxCycles = imp.max_cycles || 3;
       let html = '';
-      for (let i = 1; i <= maxCycles; i++) {
-        const cycle = history.find(c => c.cycle === i);
-        if (cycle) {
+      if (history.length === 0) {
+        html = '<div class="empty-state">No improvement cycles yet</div>';
+      } else {
+        history.forEach((cycle, i) => {
           html += `<div class="cycle-item">
-            <div class="cycle-header"><span class="cycle-number">Cycle ${i}</span><span>${escapeHtml(cycle.status) || 'completed'}</span></div>
+            <div class="cycle-header"><span class="cycle-number">Cycle ${cycle.cycle || i + 1}</span><span>${escapeHtml(cycle.status) || 'completed'}</span></div>
             <div class="cycle-details">Triggered after task ${escapeHtml(cycle.triggered_after) || '-'} | ${cycle.improvements_found || 0} improvements | ${cycle.tasks_executed || 0} tasks</div>
           </div>`;
-        } else if (i <= (imp.cycles_run || 0) + 1) {
-          html += `<div class="cycle-item"><div class="cycle-header"><span class="cycle-number">Cycle ${i}</span><span>Pending</span></div></div>`;
-        }
+        });
       }
       el.innerHTML = html || '<div class="empty-state">No cycles data</div>';
     }
@@ -207,6 +220,49 @@
       </table>`;
     }
 
+    function renderServices() {
+      const el = document.getElementById('service-availability');
+      const integrations = state?.integrations || {};
+      const recovery = state?.recovery || {};
+      const failedServices = recovery.services_failed || [];
+
+      const services = [
+        { key: 'report', name: 'Report Server', available: true }, // Always true if viewing dashboard
+        { key: 'dev_browser', name: 'Dev-browser', available: integrations.dev_browser_available },
+        { key: 'doc', name: 'Documentation', available: integrations.doc_available }
+      ];
+
+      const serviceRows = services.map(s => {
+        const failed = failedServices.find(f => f.service === s.key);
+        const icon = s.available ? '&#10003;' : '&#10007;';
+        const cls = s.available ? 'available' : 'unavailable';
+        const note = failed ? `Failed in ${escapeHtml(failed.phase)} phase` : (s.available ? '' : 'Unavailable');
+        return `<div class="service-row">
+          <span class="service-icon ${cls}">${icon}</span>
+          <span class="service-name">${escapeHtml(s.name)}</span>
+          <span class="service-note">${note}</span>
+        </div>`;
+      }).join('');
+
+      // Count metrics
+      const uiTasks = tasks.filter(t => t.is_ui_task).length;
+      const visualChecks = tasks.filter(t => t.is_ui_task && t.status === 'done').length; // Approximation
+      const commits = state?.commits?.total || 0;
+
+      el.innerHTML = `
+        ${serviceRows}
+        <div class="metrics-grid">
+          <div class="metric-item">
+            <div class="metric-value">${visualChecks}</div>
+            <div class="metric-label">Visual Checks</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-value">${commits}</div>
+            <div class="metric-label">Commits</div>
+          </div>
+        </div>`;
+    }
+
     async function fetchData() {
       try {
         const [stateRes, tasksRes] = await Promise.all([fetch(`${API_BASE}/api/state`), fetch(`${API_BASE}/api/tasks`)]);
@@ -219,7 +275,7 @@
             tasks = data;
           }
         }
-        renderHeader(); renderTasks(); renderCycles(); renderReview();
+        renderHeader(); renderTasks(); renderCycles(); renderReview(); renderServices();
       } catch (e) {
         console.error('Fetch error:', e);
         document.getElementById('header').innerHTML =
@@ -239,10 +295,12 @@
             state = msg.data;
             renderHeader();
             renderCycles();
+            renderServices();
           } else if (msg.type === 'tasks') {
             tasks = msg.data.tasks || msg.data || [];
             renderTasks();
             renderReview();
+            renderServices();
           }
         } catch (err) {
           console.error('SSE parse error:', err);

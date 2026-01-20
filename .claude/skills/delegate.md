@@ -382,7 +382,7 @@ After delegate completes successfully:
 4. **`gh pr create`** - Create PR via GitHub CLI
 
 See also:
-- **`/log`** - Capture any discoveries made during implementation
+- **`/doc`** - Capture any discoveries made during implementation
 - **`/otto`** - For fully autonomous development without manual coordination
 
 ---

@@ -1,7 +1,12 @@
 #!/usr/bin/env node
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
+import http from 'http';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Parse args
 const args = process.argv.slice(2);
@@ -26,7 +31,8 @@ if (!SESSION_ID_PATTERN.test(sessionId)) {
   process.exit(1);
 }
 
-const ottoDir = path.resolve(__dirname, '../../../.otto');
+// Use cwd() since server is started from project root, not __dirname which is the script location
+const ottoDir = path.resolve(process.cwd(), '.otto');
 const sessionDir = path.join(ottoDir, 'otto', 'sessions', sessionId);
 const statePath = path.join(sessionDir, 'state.json');
 const reportPath = path.join(__dirname, 'index.html');
@@ -36,7 +42,7 @@ if (!fs.existsSync(sessionDir)) {
   process.exit(1);
 }
 
-const cors = { 'Access-Control-Allow-Origin': `http://127.0.0.1:${port}`, 'Access-Control-Allow-Methods': 'GET', 'Access-Control-Allow-Headers': 'Content-Type' };
+const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET', 'Access-Control-Allow-Headers': 'Content-Type' };
 const json = (res, data, code = 200) => { res.writeHead(code, { ...cors, 'Content-Type': 'application/json' }); res.end(JSON.stringify(data)); };
 const readJson = (p) => {
   try {

@@ -18,7 +18,7 @@ The system will autonomously:
 2. Generate a specification (with optional research via dev-browser)
 3. Break it into atomic tasks
 4. Execute tasks in a milestone-based loop (fresh subagent per task)
-5. Run improvement cycles every 5 tasks (max 3 cycles)
+5. Run improvement cycles every 5 tasks
 6. Perform E2E testing and code review
 7. Generate session summary
 
@@ -54,21 +54,17 @@ cat .otto/config.yaml 2>/dev/null | grep "otto:" || echo "CONFIG_MISSING"
 If `CONFIG_MISSING`, create default config at `.otto/config.yaml`:
 
 ```yaml
-auto_verify: true
-auto_pick: true
 otto:
   enabled: true
   mode: autonomous
   max_blockers: 3
   checkpoint_interval: 5
-  improvement_milestone: 5
-  max_improvement_cycles: 3
   self_improve: true
   max_tasks: 50
   max_duration_hours: 4
   feedback_rotation_interval: 10
   open_report: false               # Auto-open report in browser (skipped if headless)
-  skip_improvement_cycles: false  # Skip self-improvement loops (faster but less thorough)
+  skip_improvement_cycles: false   # Skip self-improvement loops (faster but less thorough)
 ```
 
 #### Step 0.2: Generate Session ID
@@ -81,6 +77,10 @@ session_id="otto-$(date +%Y%m%d-%H%M%S)-$(openssl rand -hex 2)"
 
 ```bash
 mkdir -p .otto/otto/sessions/${session_id}/{research/screenshots,visual-checks}
+mkdir -p .otto/docs  # Ensure docs directory exists for learnings
+
+# Mark otto session as active (used by /review AUTO_MODE detection)
+echo "${session_id}" > .otto/otto/.active
 ```
 
 #### Step 0.4: Initialize state.json
@@ -113,7 +113,6 @@ Write to `.otto/otto/sessions/${session_id}/state.json`:
   // Improvement cycle tracking - separate from product tasks
   "improvement": {
     "cycles_run": 0,
-    "max_cycles": 3,
     "current_cycle_tasks_completed": 0,  // Tracks improvement tasks only (resets each cycle)
     "cycle_history": []
   },
@@ -128,13 +127,21 @@ Write to `.otto/otto/sessions/${session_id}/state.json`:
   "recovery": {
     "can_resume": true,
     "last_successful_task_id": null,
-    "last_error": null
+    "last_error": null,
+    "services_failed": []
+  },
+
+  "commits": {
+    "total": 0,
+    "last_commit_sha": null,
+    "history": []
   },
 
   // Integration availability - set during Phase 0 initialization
   "integrations": {
     "dev_browser_available": false,
-    "report_available": false
+    "report_available": false,
+    "doc_available": false
   }
 }
 ```
@@ -187,7 +194,30 @@ status: in_progress
 |-------|-------|--------------|--------------|
 ```
 
-#### Step 0.6: Start Dev-Browser Server
+#### Step 0.6: Initialize Engineering Docs
+
+Check if `/doc` skill is available and initialize baseline for institutional memory:
+
+```bash
+# Check if doc skill exists
+if [ -f ".claude/skills/doc.md" ]; then
+  # Initialize docs if not already initialized
+  if [ ! -f ".otto/docs/INDEX.md" ]; then
+    Invoke Skill: skill="doc", args="init"
+  fi
+fi
+```
+
+**Orchestrator action after /doc init:**
+- If init succeeded (`.otto/docs/INDEX.md` exists):
+  - Set `state.integrations.doc_available = true`
+  - Announce "✓ Engineering docs initialized"
+- If init failed or skill not available:
+  - Set `state.integrations.doc_available = false`
+  - Append to feedback.md: "⚠️ Engineering docs unavailable - continuing without institutional memory"
+  - Continue without documentation (non-blocking)
+
+#### Step 0.7: Start Dev-Browser Server
 
 ```bash
 # Update dev-browser submodule if present
@@ -214,39 +244,97 @@ fi
 
 **Orchestrator action after server check:**
 - If curl succeeded: Set `state.integrations.dev_browser_available = true`, announce "✓ Dev-browser server running"
-- If curl failed: Set `state.integrations.dev_browser_available = false`, announce "⚠️ Dev-browser server failed to start - visual verification disabled"
+- If curl failed:
+  - Print error:
+    ```
+    ERROR: Dev-browser failed to start
 
-#### Step 0.7: Start Report Server
+    To fix:
+    1. Start manually: cd .claude/skills/dev-browser && ./server.sh
+    2. Check log: cat .otto/otto/sessions/${session_id}/dev-browser.log
+    3. Check port: lsof -i :9222
+    ```
+  - Set `state.status = "failed"`
+  - Set `state.recovery.last_error = "Dev-browser failed to start"`
+  - **TERMINATE SESSION** - do not proceed to Step 0.8
 
+#### Step 0.8: Start Report Server
+
+**Start server:**
 ```bash
 if [ -f "$SKILL_DIR/report/server.js" ]; then
-  node "$SKILL_DIR/report/server.js" --session ${session_id} --port 3456 &
+  node "$SKILL_DIR/report/server.js" --session ${session_id} --port 3456 \
+    > .otto/otto/sessions/${session_id}/report.log 2>&1 &
   echo $! > .otto/otto/sessions/${session_id}/report.pid
-  sleep 1
-  echo "Report: http://localhost:3456"
-
-  # Verify report server is responding
-  curl -s http://localhost:3456 > /dev/null
 fi
 ```
 
-**Orchestrator action after report start:**
-- If curl succeeded: Set `state.integrations.report_available = true`
-- If curl failed: Set `state.integrations.report_available = false`, announce "⚠️ Report server failed to start"
+**Verify server responds (REQUIRED):**
+```bash
+sleep 2  # Give server time to initialize
+REPORT_CHECK=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3456/api/state || echo "000")
+```
+
+**If verification fails, diagnose:**
+```bash
+if [ "$REPORT_CHECK" != "200" ]; then
+  echo "Report server failed to respond (HTTP ${REPORT_CHECK}). Diagnosing..."
+
+  # Check if port is in use
+  PORT_USER=$(lsof -i :3456 -t 2>/dev/null)
+  if [ -n "$PORT_USER" ]; then
+    echo "⚠️ Port 3456 already in use by PID $PORT_USER"
+    # Kill existing process and retry
+    kill -9 $PORT_USER 2>/dev/null
+    sleep 1
+  fi
+
+  # Check server log for errors
+  if [ -f ".otto/otto/sessions/${session_id}/report.log" ]; then
+    echo "Server log:"
+    tail -20 .otto/otto/sessions/${session_id}/report.log
+  fi
+
+  # Retry once
+  node "$SKILL_DIR/report/server.js" --session ${session_id} --port 3456 \
+    > .otto/otto/sessions/${session_id}/report.log 2>&1 &
+  echo $! > .otto/otto/sessions/${session_id}/report.pid
+  sleep 2
+  REPORT_CHECK=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3456/api/state || echo "000")
+fi
+```
+
+**Set availability:**
+```bash
+if [ "$REPORT_CHECK" = "200" ]; then
+  Set state.integrations.report_available = true
+  echo "✓ Report server running at http://127.0.0.1:3456"
+else
+  Set state.integrations.report_available = false
+  Append to feedback.md: |
+    ## ⚠️ Report Server Failed to Start
+
+    **HTTP Status:** ${REPORT_CHECK}
+    **Server Log:** (last 20 lines)
+    $(tail -20 .otto/otto/sessions/${session_id}/report.log 2>/dev/null || echo "No log available")
+
+    Session will continue without dashboard.
+fi
+```
 
 **Auto-open logic (orchestrator handles):**
-- If `config.open_report` is true AND (DISPLAY env var is set OR running on macOS):
-  - macOS: Run `open "http://localhost:3456"`
-  - Linux: Run `xdg-open "http://localhost:3456"`
+- If `config.open_report` is true AND report_available AND (DISPLAY env var is set OR running on macOS):
+  - macOS: Run `open "http://127.0.0.1:3456"`
+  - Linux: Run `xdg-open "http://127.0.0.1:3456"`
 
-#### Step 0.8: Create Feature Branch
+#### Step 0.9: Create Feature Branch
 
 ```bash
 branch_name="otto/${session_id}"
 git checkout -b ${branch_name}
 ```
 
-#### Step 0.9: Update State
+#### Step 0.10: Update State
 
 Update `state.json`:
 - `status`: "in_progress"
@@ -487,8 +575,7 @@ Append to feedback.md Phase 2 section:
 #### Constants
 
 ```
-IMPROVEMENT_MILESTONE = 5  # from config: improvement_milestone
-MAX_IMPROVEMENT_CYCLES = 3  # from config: max_improvement_cycles
+IMPROVEMENT_MILESTONE = 5
 FEEDBACK_ROTATION_INTERVAL = 10  # from config: feedback_rotation_interval
 ```
 
@@ -536,6 +623,10 @@ for group in parallel_groups (sorted by group number):
 
             if task.is_ui_task:
                 invoke_visual_verification(task)
+
+            # Capture discoveries to engineering docs (orchestrator responsibility)
+            if state.integrations.doc_available AND result.observations contains non-obvious patterns:
+                invoke_doc_capture(task, result.observations)
         else:
             task.blocker_count++
             task.execution.attempts.append({"attempt": 1, "status": "failed", "error": result.error})
@@ -546,6 +637,11 @@ for group in parallel_groups (sorted by group number):
                 state.product_tasks.skipped++
 
     state.guard_rails.total_tasks_executed += len(tasks_in_group)
+
+    # --- LEARNINGS SYNTHESIS ---
+    group_learnings = collect_high_confidence_learnings(results)
+    if group_learnings.length > 0:
+        synthesize_learnings_to_docs(group_learnings)
 
     save_tasks()
     save_state()
@@ -575,6 +671,50 @@ EOF
 )" || true
 ```
 
+    # --- DASHBOARD FEEDBACK COLLECTION (after each parallel group) ---
+    collect_dashboard_feedback(group.group)
+
+#### Dashboard Feedback Collection
+
+**Trigger:** After ALL tasks in a parallel group complete (not individual tasks)
+
+**Implementation:**
+```bash
+function collect_dashboard_feedback(group_number):
+    if [ "${state_integrations_report_available}" != "true" ]; then
+        # Note limitation once at start of Phase 3, not every group
+        if [ "$group_number" = "1" ]; then
+            Append to feedback.md: "⚠️ Dashboard unavailable - continuing without dashboard snapshots"
+        fi
+        return
+    fi
+
+    DASHBOARD_STATE=$(curl -s http://127.0.0.1:3456/api/state)
+
+    if [ $? -eq 0 ] && [ -n "$DASHBOARD_STATE" ]; then
+        # Extract metrics using jq
+        COMPLETED=$(echo $DASHBOARD_STATE | jq -r '.product_tasks.completed // 0')
+        TOTAL=$(echo $DASHBOARD_STATE | jq -r '.product_tasks.total // 0')
+        SKIPPED=$(echo $DASHBOARD_STATE | jq -r '.product_tasks.skipped // 0')
+        FAILURES=$(echo $DASHBOARD_STATE | jq -r '.guard_rails.consecutive_failures // 0')
+
+        Append to feedback.md: |
+            ### Dashboard Snapshot (after group ${group_number})
+            - Tasks: ${COMPLETED}/${TOTAL} completed
+            - Skipped: ${SKIPPED}
+            - Guard rails: ${FAILURES} consecutive failures
+    else
+        # Server became unresponsive mid-session
+        Set state.integrations.report_available = false
+        Append to feedback.md: "⚠️ Dashboard became unavailable during execution (group ${group_number})"
+    fi
+```
+
+**Dashboard checkpoint schedule:**
+- After every parallel group completes
+- Before each improvement cycle
+- At session end (Phase 5)
+
     # --- FEEDBACK ROTATION CHECK ---
     if state.guard_rails.total_tasks_executed % FEEDBACK_ROTATION_INTERVAL == 0:
         archive_feedback_batch()
@@ -587,7 +727,6 @@ EOF
     cycles_run = state.improvement.cycles_run
 
     if (previous_completed // IMPROVEMENT_MILESTONE < current_completed // IMPROVEMENT_MILESTONE
-        AND cycles_run < MAX_IMPROVEMENT_CYCLES
         AND NOT config.skip_improvement_cycles):
 
         ⚠️ STOP - DO NOT PROCEED TO NEXT GROUP
@@ -601,7 +740,7 @@ EOF
 # --- MANDATORY FINAL IMPROVEMENT CYCLE ---
 ⚠️ STOP - Before proceeding to Phase 4:
 
-if state.improvement.cycles_run < MAX_IMPROVEMENT_CYCLES AND NOT config.skip_improvement_cycles:
+if NOT config.skip_improvement_cycles:
     Announce: "🔄 FINAL IMPROVEMENT CYCLE - Last chance to improve workflow..."
     run_improvement_cycle()
     state.improvement.cycles_run++
@@ -613,6 +752,23 @@ if state.improvement.cycles_run < MAX_IMPROVEMENT_CYCLES AND NOT config.skip_imp
 Use the Task tool with:
 - `subagent_type`: "general-purpose"
 - `prompt`: Contains ONLY file paths and task description
+
+**Before spawning subagent, check for relevant knowledge (orchestrator responsibility):**
+
+If `state.integrations.doc_available` is true:
+1. Read cached INDEX.md from `.otto/docs/` (refreshed at session start and each improvement milestone)
+2. Grep INDEX.md for task's primary file paths or keywords
+3. If relevant entries found, read their content and include in subagent prompt:
+
+```markdown
+## Relevant Engineering Knowledge
+
+{entry content trimmed to 200 words max}
+
+Note: This knowledge was captured from previous sessions. Use it to avoid known pitfalls.
+```
+
+If no relevant entries found or docs unavailable, skip this section.
 
 Example prompt:
 ```
@@ -638,7 +794,38 @@ Instructions:
 5. Append observations to feedback.md
 6. Stage all changes with: git add -A
 
-Return JSON: {"success": bool, "files_modified": [], "observations": "string", "error": "string or null"}
+## Learnings Capture
+
+After completing your task, reflect on what you learned:
+
+1. **Gotchas**: Anything non-obvious that tripped you up?
+2. **Patterns**: Did you establish a pattern others should follow?
+3. **Workarounds**: Any hacks needed to make things work?
+4. **Decisions**: Architectural choices worth documenting?
+5. **Dependencies**: Package quirks worth noting?
+
+Include learnings in your return JSON. Only include HIGH confidence learnings
+that would help future agents working on this codebase.
+
+Return JSON:
+```json
+{
+  "success": bool,
+  "files_modified": [],
+  "observations": "string",
+  "error": "string or null",
+  "learnings": [
+    {
+      "type": "gotcha | pattern | workaround | decision | dependency",
+      "anchor": "file path this relates to",
+      "title": "short summary (< 10 words)",
+      "insight": "detailed explanation",
+      "context": "code snippet if relevant",
+      "confidence": "high | medium | low",
+      "tags": ["optional", "categorization", "tags"]
+    }
+  ]
+}
 ```
 
 **For UI tasks, add to prompt:**
@@ -652,53 +839,231 @@ This is a UI task. After implementation:
 Return JSON: {"success": bool, "files_modified": [], "observations": "string", "error": "string or null", "screenshot_path": "string or null"}
 ```
 
-#### Visual Verification (for UI Tasks)
+#### Function: invoke_visual_verification(task)
 
-After any task with `is_ui_task: true`:
+**Trigger:** Call after completing any task with `is_ui_task: true` OR category containing: "ui", "component", "layout", "style", "visual", "page", "modal", "form"
 
-**Prerequisite check:**
+**Step 1: Check prerequisites**
+```bash
+if [ "${state_integrations_dev_browser_available}" != "true" ]; then
+  Append to feedback.md: "- Task ${task.id}: Visual verification skipped (dev-browser unavailable)"
+  return
+fi
 ```
-if NOT state.integrations.dev_browser_available:
-    log("Skipping visual verification - dev-browser not available")
-    Continue to next task
+
+**Step 2: Detect dev server**
+```bash
+DEV_PORT=""
+# Common dev server ports (also used in Phase 4 smoke test)
+for port in 5173 5174 3000 8080 4000; do
+  if curl -s "http://localhost:${port}" > /dev/null 2>&1; then
+    DEV_PORT=$port
+    break
+  fi
+done
+
+if [ -z "$DEV_PORT" ]; then
+  Append to feedback.md: "- Task ${task.id}: Visual verification skipped (no dev server on ports 5173/5174/3000/8080/4000)"
+  return
+fi
 ```
 
-Invoke `/dev-browser` and write a verification script:
+**Step 3: Capture screenshot**
+```bash
+mkdir -p .otto/otto/sessions/${session_id}/visual-checks
 
-```
 Invoke Skill: skill="dev-browser"
 ```
 
-Once the dev-browser skill is loaded, write a verification script:
+**Note:** The orchestrator must substitute the following variables before executing this script:
+- `${task.id}` → Current task ID
+- `${session_id}` → Current session ID
+- `${DEV_PORT}` → Detected dev server port
 
+The heredoc uses single-quoted EOF to preserve JavaScript template literals. Variable substitution happens at the orchestrator level, not shell level.
+
+Write verification script:
 ```bash
 cd .claude/skills/dev-browser && npx tsx <<'EOF'
 import { connect, waitForPageLoad } from "@/client.js";
 
 const client = await connect();
-const page = await client.page("{session_id}-task-{id}-verify");
+const page = await client.page("otto-verify-${task.id}");
 
-// Navigate to local dev server
-await page.goto("http://localhost:3000");  // Adjust port as needed
+await page.goto("http://localhost:${DEV_PORT}");
 await waitForPageLoad(page);
 
-// Capture screenshot for visual verification
+// Take screenshot
 await page.screenshot({
-  path: "../../.otto/otto/sessions/{session_id}/visual-checks/task-{id}.png",
+  path: "../../.otto/otto/sessions/${session_id}/visual-checks/task-${task.id}.png",
   fullPage: true
 });
 
-console.log({
-  url: page.url(),
-  title: await page.title(),
-  verified: true
+// Check for console errors (basic check)
+const consoleErrors = await page.evaluate(() => {
+  // Return any visible error messages in the DOM
+  const errorEls = document.querySelectorAll('[class*="error"], [role="alert"]');
+  return Array.from(errorEls).map(el => el.textContent).slice(0, 5);
 });
+
+console.log(JSON.stringify({
+  task_id: "${task.id}",
+  url: page.url(),
+  screenshot: "task-${task.id}.png",
+  console_errors: consoleErrors
+}));
 
 await client.disconnect();
 EOF
 ```
 
-Log verification result to feedback.md.
+**Step 4: Log result**
+```bash
+Append to feedback.md: "- Task ${task.id}: Visual verification captured → visual-checks/task-${task.id}.png"
+
+If console_errors is non-empty:
+  Append to feedback.md: "  ⚠️ UI errors detected: ${console_errors}"
+```
+
+**Verification frequency:**
+- Every UI task (immediate after completion)
+- After task 5, 10, 15, 20 (sanity check regardless of type)
+- Before each improvement cycle (baseline state)
+
+#### Function: invoke_doc_capture(task, observations)
+
+**Trigger:** Called by orchestrator after task completion when observations contain non-obvious patterns.
+
+**Implementation:**
+```bash
+if [ "${state_integrations_doc_available}" != "true" ]; then
+  return  # Silent skip if docs unavailable
+fi
+
+# Only document if observations contain gotchas, workarounds, or non-obvious findings
+if echo "${observations}" | grep -qiE "(gotcha|workaround|unexpected|tricky|note:|warning:|careful:|caveat|pitfall|edge.?case)"; then
+  if ! Invoke Skill: skill="doc"; then
+    Append to feedback.md: "⚠️ Doc capture failed for task ${task.id} - continuing without documentation"
+  fi
+  # Anchor to modified files
+  # Keep entry under 200 words
+fi
+```
+
+#### Function: collect_high_confidence_learnings(results)
+
+**Purpose:** Extract high-confidence learnings from subagent task results.
+
+```
+function collect_high_confidence_learnings(results):
+    learnings = []
+    for result in results:
+        if result and result.learnings and Array.isArray(result.learnings):
+            for learning in result.learnings:
+                if learning.confidence == "high":
+                    learnings.append(learning)
+    return learnings
+```
+
+#### Function: similarity(a, b)
+
+**Purpose:** Calculate text similarity for deduplication.
+
+**Implementation:**
+```
+function similarity(text_a, text_b):
+    # Simple word-based Jaccard similarity
+    words_a = set(text_a.lower().split())
+    words_b = set(text_b.lower().split())
+
+    intersection = words_a & words_b
+    union = words_a | words_b
+
+    return len(intersection) / len(union) if union else 0.0
+```
+
+Threshold of 0.8 means 80% word overlap = considered duplicate.
+
+#### Function: synthesize_learnings_to_docs(learnings)
+
+**Purpose:** Deduplicate and write learnings to `.otto/docs/LEARNINGS.md` and `learnings.json`.
+
+**Implementation:**
+```
+function synthesize_learnings_to_docs(learnings):
+    if not state.integrations.doc_available:
+        return
+
+    # Load existing learnings.json if present
+    existing = load_json(".otto/docs/learnings.json") or {"learnings": []}
+
+    # Group by anchor file and deduplicate
+    by_anchor = {}
+    for learning in learnings:
+        anchor = learning.anchor
+        if anchor not in by_anchor:
+            by_anchor[anchor] = []
+
+        # Skip if similar learning already exists (similarity > 0.8)
+        is_duplicate = false
+        for existing_learning in existing.learnings + by_anchor[anchor]:
+            if similarity(existing_learning.insight, learning.insight) > 0.8:
+                is_duplicate = true
+                break
+
+        if not is_duplicate:
+            by_anchor[anchor].append(learning)
+            existing.learnings.append(learning)
+
+    # Write raw learnings JSON
+    write_json(".otto/docs/learnings.json", existing)
+
+    # Generate human-readable LEARNINGS.md
+    generate_learnings_markdown(existing.learnings)
+
+    Append to feedback.md: "📚 Synthesized {len(learnings)} learnings to .otto/docs/LEARNINGS.md"
+```
+
+#### Function: generate_learnings_markdown(learnings)
+
+**Purpose:** Generate `.otto/docs/LEARNINGS.md` from raw learnings.
+
+**Output format:**
+```markdown
+# Project Learnings
+
+Auto-generated from otto session task execution.
+
+## By File
+
+### {anchor_path}
+
+#### {learning.title}
+**Type:** {type} | **Confidence:** {confidence}
+
+{learning.insight}
+
+{if learning.context:}
+```{language}
+{learning.context}
+```
+{end if}
+
+*Tags: {tags.join(", ")}*
+
+---
+
+## By Type
+
+### Gotchas
+- [{title}](#{slug})
+
+### Patterns
+- [{title}](#{slug})
+
+### Workarounds
+- [{title}](#{slug})
+```
 
 #### Guard Rail Functions
 
@@ -722,6 +1087,11 @@ function terminate_gracefully(reason):
     state.recovery.can_resume = true
     save_state()
     generate_partial_summary()
+
+    # Remove active session marker
+    ```bash
+    rm -f .otto/otto/.active
+    ```
 
     # Termination commit
     ```bash
@@ -831,6 +1201,23 @@ function run_improvement_cycle():
       "improvements_found": {count from improvements.md},
       "tasks_executed": {count executed}
     }
+
+    # ============================================
+    # STEP 6: Capture Improvement Insights (OPTIONAL)
+    # ============================================
+
+    **Meta-pattern criteria** (document if ANY apply):
+    - Same error type occurred in 2+ tasks
+    - A workaround was applied that affects future tasks
+    - An architectural pattern was established (e.g., "all API calls go through X")
+    - A dependency or configuration issue was resolved that others should know
+
+    If state.integrations.doc_available AND cycle discovered meta-patterns:
+        Invoke Skill: skill="doc"
+        - Anchor to improvement.md and relevant task files
+        - Document: Pattern identified, optimization applied, rationale
+        - Keep entry under 200 words
+        - If /doc fails, log warning to feedback.md and continue
 ```
 
 #### Improvement Cycle Commit
@@ -1125,7 +1512,7 @@ otto: complete - {completed}/{total} tasks, {fixes} fixes applied
 
 Session: {session_id}
 Phase: review complete
-Improvement cycles: {cycles_run}/{max_cycles}
+Improvement cycles: {cycles_run}
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
@@ -1159,7 +1546,94 @@ if [ -f ".otto/otto/sessions/${session_id}/report.pid" ]; then
   kill $(cat .otto/otto/sessions/${session_id}/report.pid) 2>/dev/null || true
   rm .otto/otto/sessions/${session_id}/report.pid
 fi
+
+# Remove active session marker
+rm -f .otto/otto/.active
 ```
+
+#### Step 5.1b: Final Dashboard Snapshot
+
+If report server was available during session:
+```bash
+collect_dashboard_feedback("final")
+```
+
+This captures the final state before generating the summary.
+
+#### Step 5.1c: Summary Sign-off Checklist (MANDATORY)
+
+Before generating the session summary, the orchestrator MUST verify the following. If ANY check fails, the issue MUST be documented in the summary.
+
+**1. Task Count Consistency**
+```bash
+# Verify state.json matches tasks.json
+TASKS_DONE=$(jq '[.tasks[] | select(.status == "done")] | length' .otto/tasks/${spec_id}.json)
+STATE_DONE=$(jq '.product_tasks.completed' .otto/otto/sessions/${session_id}/state.json)
+
+if [ "$TASKS_DONE" != "$STATE_DONE" ]; then
+  SIGN_OFF_ISSUES+=("Task count mismatch: tasks.json=${TASKS_DONE}, state.json=${STATE_DONE}")
+fi
+```
+
+**2. Service Failure Acknowledgment**
+```bash
+# Check each integration that was supposed to be available
+for service in dev_browser report doc; do
+  AVAILABLE=$(jq -r ".integrations.${service}_available" state.json)
+  if [ "$AVAILABLE" = "false" ]; then
+    # Verify failure is documented in feedback.md
+    if ! grep -q "${service}.*unavailable\|${service}.*failed" feedback.md; then
+      SIGN_OFF_ISSUES+=("Service ${service} failed but not documented in feedback.md")
+    fi
+  fi
+done
+```
+
+**3. Visual Verification Coverage**
+```bash
+UI_TASKS=$(jq '[.tasks[] | select(.is_ui_task == true)] | length' .otto/tasks/${spec_id}.json)
+SCREENSHOTS=$(ls .otto/otto/sessions/${session_id}/visual-checks/*.png 2>/dev/null | wc -l)
+
+if [ "$UI_TASKS" -gt 0 ] && [ "$SCREENSHOTS" -eq 0 ]; then
+  SIGN_OFF_ISSUES+=("${UI_TASKS} UI tasks but 0 visual verifications captured")
+fi
+```
+
+**4. Skipped Tasks Have Reasons**
+```bash
+SKIPPED=$(jq '[.tasks[] | select(.skipped == true and .skip_reason == null)] | length' .otto/tasks/${spec_id}.json)
+if [ "$SKIPPED" -gt 0 ]; then
+  SIGN_OFF_ISSUES+=("${SKIPPED} tasks skipped without documented reason")
+fi
+```
+
+**Sign-off Result:**
+
+If `SIGN_OFF_ISSUES` is empty:
+```
+Announce: "✓ Summary sign-off: All checks passed"
+```
+
+If `SIGN_OFF_ISSUES` is non-empty:
+```
+Announce: "⚠️ Summary sign-off: ${#SIGN_OFF_ISSUES[@]} issues found"
+
+# Add issues section to summary
+Append to summary:
+### ⚠️ Sign-off Issues
+
+The following inconsistencies were detected during summary generation:
+
+| Issue | Details |
+|-------|---------|
+{for each issue in SIGN_OFF_ISSUES:}
+| {issue_type} | {issue_details} |
+{end for}
+
+These issues indicate the session did not complete as expected. Review feedback.md and state.json for details.
+```
+
+**CRITICAL:** The orchestrator MUST NOT skip this step. A summary without sign-off is incomplete.
 
 #### Step 5.2: Generate Task-Centric Summary
 
@@ -1241,11 +1715,36 @@ Write session summary to feedback.md. All metrics roll up FROM task data.
 | P3 (Low) | {n} | {n} | {n} | {task_ids} |
 | **Total** | **{n}** | **{n}** | **{n}** | |
 
+### Learnings Captured
+
+| Type | Count | Top Examples |
+|------|-------|--------------|
+| Gotchas | {n} | {top 2 titles} |
+| Patterns | {n} | {top 2 titles} |
+| Workarounds | {n} | {top 2 titles} |
+| Decisions | {n} | {top 2 titles} |
+| Dependencies | {n} | {top 2 titles} |
+
+Full learnings: `.otto/docs/LEARNINGS.md`
+
 ### Artifacts
 - Spec: `.otto/specs/{spec_id}.md`
 - Tasks: `.otto/tasks/{spec_id}.json`
 - Research: `.otto/otto/sessions/{session_id}/research/competitors.md`
 - State: `.otto/otto/sessions/{session_id}/state.json`
+
+### Service Availability
+
+| Service | Status | Notes |
+|---------|--------|-------|
+| Report server | {✓ or ✗} | {if failed: reason from feedback.md} |
+| Dev-browser | {✓ or ✗} | {if failed: reason} |
+| Engineering docs | {✓ or ✗} | {if failed: reason} |
+
+**Integration Metrics:**
+- Visual verifications performed: {count from visual-checks/ directory}
+- Dashboard snapshots captured: {count from feedback.md}
+- Doc entries created: {count from .otto/docs/ if available}
 
 ### Suggested Next Steps
 1. Review the generated code on branch `otto/{session_id}`
@@ -1285,6 +1784,75 @@ Review artifacts in .otto/otto/sessions/{session_id}/
 
 ---
 
+## Graceful Degradation
+
+Otto is designed to continue operating even when optional services fail. The orchestrator should never silently fail - always log service unavailability to feedback.md.
+
+### Service Availability Matrix
+
+| Service | If Unavailable at Start | If Fails Mid-Session | Action |
+|---------|------------------------|---------------------|--------|
+| Report server | Skip dashboard feedback | Set `report_available = false` | Log to feedback.md, continue execution |
+| Dev-browser | Skip visual verification | Set `dev_browser_available = false` | Log warning, use build check instead |
+| /doc skill | Skip doc capture | Set `doc_available = false` | No institutional memory, continue |
+| Dev server | Skip visual verification | N/A (not a persistent service) | Log warning, continue tasks |
+
+### Mid-Session Failure Handling
+
+When a service that was available becomes unavailable during execution:
+
+**Note:** This function describes the pattern that inline failure handlers (in Dashboard Feedback Collection, Visual Verification, etc.) should follow. The orchestrator implements this pattern at each service check point.
+
+```
+function handle_service_failure(service_name):
+    # 1. Update state immediately
+    Set state.integrations.{service_name}_available = false
+
+    # 2. Log specific failure to feedback.md
+    Append to feedback.md: "⚠️ {service_name} became unavailable during execution"
+
+    # 3. Continue without that service
+    # Do NOT retry mid-session (to avoid infinite loops)
+
+    # 4. Mark in session metrics for summary
+    state.recovery.services_failed.append({
+        "service": service_name,
+        "failed_at": now(),
+        "phase": state.current_phase
+    })
+```
+
+### Never-Block Services
+
+These services are optional and must NEVER block session progress:
+
+1. **Report server** - Dashboard is informational only
+2. **Dev-browser** - Visual verification can be skipped
+3. **/doc skill** - Institutional memory is nice-to-have
+4. **Dev server** - Only needed for visual verification
+
+### Session Summary Service Report
+
+At session end, include service availability summary:
+
+```markdown
+### Service Availability
+
+| Service | Available | Notes |
+|---------|-----------|-------|
+| Report server | ✓ / ✗ | {reason if failed} |
+| Dev-browser | ✓ / ✗ | {reason if failed} |
+| Engineering docs | ✓ / ✗ | {reason if failed} |
+
+{if any services failed}
+Visual verifications performed: {count}
+Dashboard snapshots captured: {count}
+Doc entries created: {count}
+{end if}
+```
+
+---
+
 ## State Management
 
 ### state.json Schema
@@ -1313,7 +1881,6 @@ Review artifacts in .otto/otto/sessions/{session_id}/
 
   "improvement": {
     "cycles_run": 1,
-    "max_cycles": 3,
     "current_cycle_tasks_completed": 0,
     "cycle_history": [
       {
@@ -1334,7 +1901,8 @@ Review artifacts in .otto/otto/sessions/{session_id}/
   "recovery": {
     "can_resume": true,
     "last_successful_task_id": "3",
-    "last_error": null
+    "last_error": null,
+    "services_failed": []
   },
 
   "commits": {
@@ -1345,7 +1913,8 @@ Review artifacts in .otto/otto/sessions/{session_id}/
 
   "integrations": {
     "dev_browser_available": false,
-    "report_available": false
+    "report_available": false,
+    "doc_available": false
   }
 }
 ```
@@ -1466,16 +2035,11 @@ EOF
 
 ```yaml
 # .otto/config.yaml
-auto_verify: true
-auto_pick: true
-
 otto:
   enabled: true                    # Master switch
   mode: autonomous                 # autonomous | supervised
   max_blockers: 3                  # Skip task after N failures
   checkpoint_interval: 5           # Commit every N tasks
-  improvement_milestone: 5         # Run improvement cycle every N tasks
-  max_improvement_cycles: 3        # Cap improvement cycles per session
   feedback_rotation_interval: 10   # Rotate feedback.md every N tasks
   self_improve: true               # Generate improvement suggestions
   max_tasks: 50                    # Safety limit on total tasks

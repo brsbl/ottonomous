@@ -11,6 +11,5 @@ node_modules/
 .claude/*
 !.claude/skills/
 
-# Review output files (keep .gitkeep)
-.otto/reviews/*
-!.otto/reviews/.gitkeep
+# Otto skill output (specs, tasks, sessions, reviews)
+.otto/

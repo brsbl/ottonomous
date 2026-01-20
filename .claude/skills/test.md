@@ -311,7 +311,7 @@ Screenshots: {SCREENSHOT_DIR}/
 
 ## Auto Mode
 
-When `auto_pick: true` is set in config:
+When AUTO_MODE is active (`.otto/otto/.active` exists during an otto session):
 
 | Scenario | Behavior |
 |----------|----------|
