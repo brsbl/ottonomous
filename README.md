@@ -67,6 +67,14 @@ these loops run continuously until the product is built to spec (with stop hooks
 
 
 
+## Local Development
+
+Skills are kept in both `skills/` (plugin package) and `.claude/skills/` (standalone local use). Keep them in sync by copying updates to the other location after edits. For example:
+
+```bash
+cp -R skills/. .claude/skills/
+```
+
 ## Workflows
 
 ### Manual Workflow

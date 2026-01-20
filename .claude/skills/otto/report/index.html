@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Otto Report</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #c9d1d9; min-height: 100vh; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+    .session-info { display: flex; align-items: center; gap: 12px; }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .status-dot.running { background: #3fb950; animation: pulse 1.5s infinite; }
+    .status-dot.completed { background: #3fb950; }
+    .status-dot.failed { background: #f85149; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .product-name { font-size: 1.4em; font-weight: 600; color: #f0f6fc; }
+    .phase-badge { background: #238636; padding: 4px 10px; border-radius: 12px; font-size: 0.8em; text-transform: uppercase; }
+    .meta { display: flex; gap: 24px; flex-wrap: wrap; font-size: 0.9em; color: #8b949e; }
+    .progress-section { margin-top: 12px; }
+    .progress-bar { background: #21262d; border-radius: 4px; height: 8px; overflow: hidden; }
+    .progress-fill { background: linear-gradient(90deg, #238636, #3fb950); height: 100%; transition: width 0.3s; }
+    .progress-text { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.85em; color: #8b949e; }
+    .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+    .panel { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+    .panel-title { font-size: 1.1em; font-weight: 600; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #30363d; }
+    .task-list { max-height: 400px; overflow-y: auto; }
+    .task-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #21262d; }
+    .task-item:last-child { border-bottom: none; }
+    .task-icon { font-size: 1.1em; width: 20px; text-align: center; }
+    .task-icon.completed { color: #3fb950; }
+    .task-icon.in-progress { color: #d29922; }
+    .task-icon.pending { color: #484f58; }
+    .task-icon.failed { color: #f85149; }
+    .task-icon.skipped { color: #6e7681; }
+    .task-title { flex: 1; }
+    .task-meta { font-size: 0.8em; color: #6e7681; display: flex; gap: 8px; }
+    .badge { background: #21262d; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; }
+    .badge.warning { background: #9e6a03; color: #f0f6fc; }
+    .badge.issues { background: #da3633; color: #f0f6fc; }
+    .cycle-item { padding: 10px; background: #21262d; border-radius: 6px; margin-bottom: 8px; }
+    .cycle-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .cycle-number { font-weight: 600; color: #58a6ff; }
+    .cycle-details { font-size: 0.85em; color: #8b949e; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #21262d; }
+    th { color: #8b949e; font-weight: 500; font-size: 0.85em; text-transform: uppercase; }
+    .severity-p0 { color: #f85149; font-weight: 600; }
+    .severity-p1 { color: #d29922; }
+    .severity-p2 { color: #58a6ff; }
+    .severity-p3 { color: #8b949e; }
+    .total-row { font-weight: 600; background: #21262d; }
+    .error-msg {
+      color: #f85149;
+      background: rgba(248, 81, 73, 0.1);
+      padding: 12px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .service-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #21262d; }
+    .service-row:last-child { border-bottom: none; }
+    .service-icon { font-size: 1.1em; width: 20px; text-align: center; }
+    .service-icon.available { color: #3fb950; }
+    .service-icon.unavailable { color: #f85149; }
+    .service-name { flex: 1; }
+    .service-note { font-size: 0.8em; color: #6e7681; }
+    .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #30363d; }
+    .metric-item { background: #21262d; padding: 10px; border-radius: 6px; text-align: center; }
+    .metric-value { font-size: 1.4em; font-weight: 600; color: #58a6ff; }
+    .metric-label { font-size: 0.75em; color: #8b949e; margin-top: 4px; }
+    .empty-state {
+      color: #8b949e;
+      font-style: italic;
+      text-align: center;
+      padding: 20px;
+    }
+    .loading { text-align: center; padding: 40px; color: #6e7681; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header" id="header">
+      <div class="loading">Loading session data...</div>
+    </div>
+    <div class="panels">
+      <div class="panel">
+        <div class="panel-title">Task Progress</div>
+        <div class="task-list" id="task-list"><div class="loading">Loading tasks...</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Improvement Cycles</div>
+        <div id="cycles"><div class="loading">Loading cycles...</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Code Review Summary</div>
+        <div id="review-summary"><div class="loading">Loading review data...</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Service Availability</div>
+        <div id="service-availability"><div class="loading">Loading services...</div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const API_BASE = '';
+    let state = null, tasks = [];
+
+    // HTML escaping to prevent XSS
+    function escapeHtml(text) {
+      if (text == null) return '';
+      const div = document.createElement('div');
+      div.textContent = String(text);
+      return div.innerHTML;
+    }
+
+    function relativeTime(iso) {
+      if (!iso) return '-';
+      const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+      if (diff < 60) return `${diff}s ago`;
+      if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+      return `${Math.floor(diff / 3600)}h ${Math.floor((diff % 3600) / 60)}m ago`;
+    }
+
+    function duration(start, end) {
+      if (!start) return '-';
+      const ms = (end ? new Date(end) : Date.now()) - new Date(start);
+      const s = Math.floor(ms / 1000), m = Math.floor(s / 60), h = Math.floor(m / 60);
+      if (h > 0) return `${h}h ${m % 60}m`;
+      if (m > 0) return `${m}m ${s % 60}s`;
+      return `${s}s`;
+    }
+
+    function renderHeader() {
+      if (!state) return;
+      const s = state, pt = s.product_tasks || {}, imp = s.improvement || {};
+      const statusClass = s.status === 'completed' ? 'completed' : s.status === 'failed' ? 'failed' : 'running';
+      const statusIcon = s.status === 'completed' ? '&#10003;' : '';
+      const progress = pt.total > 0 ? (pt.completed / pt.total) * 100 : 0;
+      const issuesFound = tasks.reduce((n, t) => n + (t.review?.issues?.length || 0), 0);
+      const issuesFixed = tasks.reduce((n, t) => n + (t.review?.issues?.filter(i => i.status === 'fixed').length || 0), 0);
+
+      document.getElementById('header').innerHTML = `
+        <div class="header-top">
+          <div class="session-info">
+            <span class="status-dot ${statusClass}">${statusIcon}</span>
+            <span class="product-name">${escapeHtml(s.product_spec_id) || 'Otto Session'}</span>
+            <span class="phase-badge">${s.current_phase || 'initializing'}</span>
+          </div>
+          <div class="meta">
+            <span>Session: ${escapeHtml(s.session_id?.slice(-12)) || '-'}</span>
+            <span>Duration: ${duration(s.timestamps?.started_at)}</span>
+            <span>Cycles: ${imp.cycles_run || 0}</span>
+            <span>Issues: ${issuesFound} found, ${issuesFixed} fixed</span>
+          </div>
+        </div>
+        <div class="progress-section">
+          <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+          <div class="progress-text">
+            <span>Tasks: ${pt.completed || 0}/${pt.total || 0}</span>
+            <span>Last update: ${relativeTime(s.timestamps?.last_heartbeat)}</span>
+          </div>
+        </div>`;
+    }
+
+    function renderTasks() {
+      const list = document.getElementById('task-list');
+      if (!tasks.length) { list.innerHTML = '<div class="empty-state">No tasks yet</div>'; return; }
+      list.innerHTML = tasks.map(t => {
+        const icons = { completed: ['&#10003;', 'completed'], in_progress: ['&#9679;', 'in-progress'], pending: ['&#9675;', 'pending'], failed: ['&#10007;', 'failed'], skipped: ['&#8856;', 'skipped'] };
+        const [icon, cls] = icons[t.status] || icons.pending;
+        const dur = t.execution?.completed_at ? duration(t.execution.started_at, t.execution.completed_at) : '';
+        const retryCount = (t.execution?.attempts?.length || 1) - 1;
+        const retry = retryCount > 0 ? `<span class="badge warning">&#9888; ${retryCount > 1 ? retryCount + ' retries' : 'retry'}</span>` : '';
+        const issues = (t.review?.issues?.length || 0) > 0 ? `<span class="badge issues">${t.review.issues.length} issues</span>` : '';
+        return `<div class="task-item">
+          <span class="task-icon ${cls}">${icon}</span>
+          <span class="task-title">${escapeHtml(t.title || t.id) || 'Task'}</span>
+          <div class="task-meta">${dur ? `<span>${dur}</span>` : ''}${retry}${issues}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderCycles() {
+      const el = document.getElementById('cycles');
+      const imp = state?.improvement || {};
+      const history = imp.cycle_history || [];
+      let html = '';
+      if (history.length === 0) {
+        html = '<div class="empty-state">No improvement cycles yet</div>';
+      } else {
+        history.forEach((cycle, i) => {
+          html += `<div class="cycle-item">
+            <div class="cycle-header"><span class="cycle-number">Cycle ${cycle.cycle || i + 1}</span><span>${escapeHtml(cycle.status) || 'completed'}</span></div>
+            <div class="cycle-details">Triggered after task ${escapeHtml(cycle.triggered_after) || '-'} | ${cycle.improvements_found || 0} improvements | ${cycle.tasks_executed || 0} tasks</div>
+          </div>`;
+        });
+      }
+      el.innerHTML = html || '<div class="empty-state">No cycles data</div>';
+    }
+
+    function renderReview() {
+      const el = document.getElementById('review-summary');
+      const counts = { p0: { found: 0, fixed: 0, deferred: 0 }, p1: { found: 0, fixed: 0, deferred: 0 }, p2: { found: 0, fixed: 0, deferred: 0 }, p3: { found: 0, fixed: 0, deferred: 0 } };
+      tasks.forEach(t => (t.review?.issues || []).forEach(i => {
+        const sev = (i.severity || 'p2').toLowerCase();
+        if (counts[sev]) {
+          counts[sev].found++;
+          if (i.status === 'fixed') counts[sev].fixed++;
+          else if (i.status === 'deferred') counts[sev].deferred++;
+        }
+      }));
+      const total = { found: 0, fixed: 0, deferred: 0 };
+      Object.values(counts).forEach(c => { total.found += c.found; total.fixed += c.fixed; total.deferred += c.deferred; });
+      el.innerHTML = `<table>
+        <tr><th>Severity</th><th>Found</th><th>Fixed</th><th>Deferred</th></tr>
+        ${['p0', 'p1', 'p2', 'p3'].map(s => `<tr><td class="severity-${s}">${s.toUpperCase()}</td><td>${counts[s].found}</td><td>${counts[s].fixed}</td><td>${counts[s].deferred}</td></tr>`).join('')}
+        <tr class="total-row"><td>Total</td><td>${total.found}</td><td>${total.fixed}</td><td>${total.deferred}</td></tr>
+      </table>`;
+    }
+
+    function renderServices() {
+      const el = document.getElementById('service-availability');
+      const integrations = state?.integrations || {};
+      const recovery = state?.recovery || {};
+      const failedServices = recovery.services_failed || [];
+
+      const services = [
+        { key: 'report', name: 'Report Server', available: true }, // Always true if viewing dashboard
+        { key: 'dev_browser', name: 'Dev-browser', available: integrations.dev_browser_available },
+        { key: 'doc', name: 'Documentation', available: integrations.doc_available }
+      ];
+
+      const serviceRows = services.map(s => {
+        const failed = failedServices.find(f => f.service === s.key);
+        const icon = s.available ? '&#10003;' : '&#10007;';
+        const cls = s.available ? 'available' : 'unavailable';
+        const note = failed ? `Failed in ${escapeHtml(failed.phase)} phase` : (s.available ? '' : 'Unavailable');
+        return `<div class="service-row">
+          <span class="service-icon ${cls}">${icon}</span>
+          <span class="service-name">${escapeHtml(s.name)}</span>
+          <span class="service-note">${note}</span>
+        </div>`;
+      }).join('');
+
+      // Count metrics
+      const uiTasks = tasks.filter(t => t.is_ui_task).length;
+      const visualChecks = tasks.filter(t => t.is_ui_task && t.status === 'done').length; // Approximation
+      const commits = state?.commits?.total || 0;
+
+      el.innerHTML = `
+        ${serviceRows}
+        <div class="metrics-grid">
+          <div class="metric-item">
+            <div class="metric-value">${visualChecks}</div>
+            <div class="metric-label">Visual Checks</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-value">${commits}</div>
+            <div class="metric-label">Commits</div>
+          </div>
+        </div>`;
+    }
+
+    async function fetchData() {
+      try {
+        const [stateRes, tasksRes] = await Promise.all([fetch(`${API_BASE}/api/state`), fetch(`${API_BASE}/api/tasks`)]);
+        if (stateRes.ok) state = await stateRes.json();
+        if (tasksRes.ok) {
+          const data = await tasksRes.json();
+          if (data && data.tasks && Array.isArray(data.tasks)) {
+            tasks = data.tasks;
+          } else if (Array.isArray(data)) {
+            tasks = data;
+          }
+        }
+        renderHeader(); renderTasks(); renderCycles(); renderReview(); renderServices();
+      } catch (e) {
+        console.error('Fetch error:', e);
+        document.getElementById('header').innerHTML =
+          `<div class="error-msg">Connection error: ${escapeHtml(e.message)}. Retrying...</div>`;
+      }
+    }
+
+    let eventSource = null;
+
+    function connectSSE() {
+      eventSource = new EventSource(`${API_BASE}/api/events`);
+
+      eventSource.onmessage = (e) => {
+        try {
+          const msg = JSON.parse(e.data);
+          if (msg.type === 'state') {
+            state = msg.data;
+            renderHeader();
+            renderCycles();
+            renderServices();
+          } else if (msg.type === 'tasks') {
+            tasks = msg.data.tasks || msg.data || [];
+            renderTasks();
+            renderReview();
+            renderServices();
+          }
+        } catch (err) {
+          console.error('SSE parse error:', err);
+        }
+      };
+
+      eventSource.onerror = () => {
+        eventSource.close();
+        setTimeout(connectSSE, 3000);
+      };
+    }
+
+    // Initial fetch, then SSE for updates
+    fetchData().then(connectSSE);
+  </script>
+</body>
+</html>
