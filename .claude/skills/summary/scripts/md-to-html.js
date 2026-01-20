@@ -5,6 +5,7 @@ import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
 import fs from "fs";
 import path from "path";
+import { parseFrontmatter, generateMetadataHtml, parseArgs } from "./md-to-html.utils.js";
 
 // Configure marked with syntax highlighting
 marked.use(
@@ -179,53 +180,19 @@ ${content}
 
 // Main execution
 const args = process.argv.slice(2);
+const { inputPath, outputPath } = parseArgs(args);
 
-if (args.length < 1) {
+if (!inputPath) {
   console.error("Usage: node md-to-html.js <input.md> [output.html]");
   process.exit(1);
 }
 
-const inputPath = args[0];
-const outputPath = args[1] || inputPath.replace(/\.md$/, ".html");
-
 try {
-  let markdown = fs.readFileSync(inputPath, "utf-8");
+  const rawMarkdown = fs.readFileSync(inputPath, "utf-8");
 
   // Extract and parse YAML frontmatter
-  let metadataHtml = "";
-  const meta = {};
-  const frontmatterMatch = markdown.match(/^---\n([\s\S]*?)\n---\n/);
-  if (frontmatterMatch) {
-    markdown = markdown.slice(frontmatterMatch[0].length);
-    const frontmatter = frontmatterMatch[1];
-    frontmatter.split("\n").forEach((line) => {
-      const [key, ...rest] = line.split(": ");
-      if (key && rest.length) meta[key.trim()] = rest.join(": ").trim();
-    });
-
-    // Build single-line metadata: Date: X Branch: Y Total Files: Z
-    const parts = [];
-    if (meta.date) parts.push(`<strong>Date:</strong> ${meta.date}`);
-    if (meta.branch) {
-      const commits = meta.commits ? ` (${meta.commits} commits)` : "";
-      parts.push(`<strong>Branch:</strong> ${meta.branch}${commits}`);
-    }
-    if (meta.files_changed) {
-      let linesHtml = "";
-      if (meta.lines) {
-        const match = meta.lines.match(/\+(\d+)\/-(\d+)/);
-        if (match) {
-          linesHtml = ` (<span style="color:#22863a">+${match[1]}</span>/<span style="color:#cb2431">-${match[2]}</span>)`;
-        } else {
-          linesHtml = ` (${meta.lines})`;
-        }
-      }
-      parts.push(`<strong>Total Files:</strong> ${meta.files_changed} files changed${linesHtml}`);
-    }
-    if (parts.length) {
-      metadataHtml = `<div class="metadata">${parts.join(" ")}</div>`;
-    }
-  }
+  const { content: markdown, meta } = parseFrontmatter(rawMarkdown);
+  const metadataHtml = generateMetadataHtml(meta);
 
   // Configure custom renderer for GitHub links in h3 file paths
   const renderer = new marked.Renderer();

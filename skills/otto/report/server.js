@@ -3,6 +3,7 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getArg, isValidPort, isValidSessionId } from './server.utils.js';
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -10,24 +11,16 @@ const __dirname = path.dirname(__filename);
 
 // Parse args
 const args = process.argv.slice(2);
-const getArg = (name, def) => { const i = args.indexOf(`--${name}`); return i >= 0 ? args[i + 1] : def; };
-const sessionId = getArg('session', '');
-const port = parseInt(getArg('port', '3456'), 10);
+const sessionId = getArg(args, 'session', '');
+const port = parseInt(getArg(args, 'port', '3456'), 10);
 
-if (isNaN(port) || port < 1 || port > 65535) {
+if (!isValidPort(port)) {
   console.error('Invalid port number');
   process.exit(1);
 }
 
-if (!sessionId || sessionId.startsWith('--')) {
+if (!isValidSessionId(sessionId)) {
   console.error('Usage: node server.js --session <session_id> [--port 3456]');
-  process.exit(1);
-}
-
-// Path traversal protection - validate session ID format
-const SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
-if (!SESSION_ID_PATTERN.test(sessionId)) {
-  console.error('Invalid session ID format. Only alphanumeric characters, hyphens, and underscores allowed.');
   process.exit(1);
 }
 

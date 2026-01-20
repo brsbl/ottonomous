@@ -721,3 +721,182 @@ Visual Checks: 12/12 verified
 
 Screenshots: ./test-screenshots/
 ```
+
+---
+
+## Adding Tests to a Project
+
+When a project needs tests, follow this strategy:
+
+### Step 1: Identify Testable Code
+
+Look for pure functions - functions with no side effects that take inputs and return outputs:
+
+- **Input validation/parsing** - argument parsers, validators
+- **String formatting/transformation** - template generators, formatters
+- **Data aggregation/calculation** - reducers, calculators
+- **Configuration parsing** - frontmatter, YAML, JSON parsers
+
+Signs of pure functions:
+- No `fs.readFile`, `fetch`, `console.log`, or other I/O
+- No modification of external state
+- Same inputs always produce same outputs
+
+### Step 2: Extract Pure Functions
+
+Move testable logic from main files into `.utils.js` files:
+
+```
+# Before
+server.js (mixed I/O and logic)
+
+# After
+server.js (orchestrator, imports utils)
+server.utils.js (pure functions, exported)
+```
+
+**Example extraction:**
+
+```javascript
+// Before: server.js
+const args = process.argv.slice(2);
+const getArg = (name, def) => {
+  const i = args.indexOf(`--${name}`);
+  return i >= 0 ? args[i + 1] : def;
+};
+
+// After: server.utils.js
+export function getArg(args, name, def) {
+  const i = args.indexOf(`--${name}`);
+  return i >= 0 ? args[i + 1] : def;
+}
+
+// After: server.js
+import { getArg } from './server.utils.js';
+const args = process.argv.slice(2);
+const port = getArg(args, 'port', '3000');
+```
+
+### Step 3: Write Unit Tests
+
+Test each pure function with:
+
+```javascript
+import { describe, it, expect } from 'vitest'
+import { getArg, isValidPort } from '../server.utils.js'
+
+describe('getArg', () => {
+  // Happy path
+  it('returns value after named argument', () => {
+    expect(getArg(['--port', '8080'], 'port', '3000')).toBe('8080')
+  })
+
+  // Default/fallback
+  it('returns default when not found', () => {
+    expect(getArg([], 'port', '3000')).toBe('3000')
+  })
+
+  // Edge cases
+  it('returns default for empty array', () => {
+    expect(getArg([], 'config', 'default.json')).toBe('default.json')
+  })
+})
+
+describe('isValidPort', () => {
+  // Valid inputs
+  it('accepts valid ports', () => {
+    expect(isValidPort(80)).toBe(true)
+    expect(isValidPort(8080)).toBe(true)
+    expect(isValidPort(65535)).toBe(true)
+  })
+
+  // Boundary conditions
+  it('rejects port 0', () => {
+    expect(isValidPort(0)).toBe(false)
+  })
+
+  it('rejects ports above 65535', () => {
+    expect(isValidPort(65536)).toBe(false)
+  })
+
+  // Invalid inputs
+  it('rejects NaN', () => {
+    expect(isValidPort(NaN)).toBe(false)
+  })
+})
+```
+
+### Step 4: Set Up Test Runner
+
+**Project structure:**
+
+```
+project/
+├── package.json          # workspace test scripts
+├── vitest.config.js      # points to skill configs
+├── skills/
+│   └── my-skill/
+│       ├── package.json      # skill dependencies + test script
+│       ├── vitest.config.js  # skill test config
+│       ├── __tests__/
+│       │   └── utils.test.js
+│       └── src/
+│           ├── main.js
+│           └── main.utils.js
+└── .claude/skills/           # alternative location
+    └── another-skill/
+        ├── vitest.config.js
+        └── __tests__/
+```
+
+**Root package.json:**
+
+```json
+{
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
+  }
+}
+```
+
+**Root vitest.config.js:**
+
+```javascript
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  test: {
+    projects: [
+      'skills/*/vitest.config.js',
+      '.claude/skills/*/vitest.config.js',
+    ],
+  },
+})
+```
+
+**Skill vitest.config.js:**
+
+```javascript
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  test: {
+    include: ['__tests__/**/*.test.js'],
+    environment: 'node',
+  },
+})
+```
+
+### Test Categories Checklist
+
+When adding tests, ensure coverage of:
+
+- [ ] **Happy path** - normal expected inputs
+- [ ] **Edge cases** - empty, null, undefined, boundary values
+- [ ] **Invalid inputs** - wrong types, malformed data
+- [ ] **Boundary conditions** - min/max values, array limits
+- [ ] **Error handling** - graceful failures, meaningful errors
