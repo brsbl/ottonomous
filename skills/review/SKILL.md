@@ -46,7 +46,7 @@ AUTO_MODE=$([[ -f .otto/otto/.active ]] && echo "true" || echo "false")
 
 ```bash
 # Check for existing config
-cat .claude/skills/review/config.json 2>/dev/null
+cat skills/review/config.json 2>/dev/null
 ```
 
 **If config.json doesn't exist:**

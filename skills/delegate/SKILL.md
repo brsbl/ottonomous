@@ -32,7 +32,7 @@ You are an **Engineering Manager**. You coordinate work but NEVER directly explo
 
 ```bash
 # Check for existing config
-cat .claude/skills/delegate/config.json 2>/dev/null
+cat skills/delegate/config.json 2>/dev/null
 ```
 
 **If config.json doesn't exist:**

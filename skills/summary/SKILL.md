@@ -57,11 +57,11 @@ Provide a high-level summary of what this branch accomplishes from a business/fe
 
 - **For product/non-technical stakeholders:** What functionality changes and why it matters
 
-## Semantic Changes by Component (2-3 sentences each)
+## Changes by Component or File (2-3 sentences each)
 
 For each modified file or logical component:
 
-### [Component/File Name](link-to-code)
+### path/to/file.ts
 
 - **Purpose of changes:** What problem does this solve or what feature does it add?
 
@@ -96,14 +96,30 @@ filename="${slug}-${date}"
 mkdir -p .otto/reviews
 ```
 
+Gather stats for frontmatter:
+
+```bash
+# Count commits
+commits=$(git rev-list --count main...HEAD)
+
+# Get file count and line stats
+stats=$(git diff main...HEAD --stat | tail -1)
+# Example: " 13 files changed, 1027 insertions(+), 468 deletions(-)"
+
+# Get GitHub repo from remote
+repo=$(git remote get-url origin | sed 's/.*github.com[:/]\(.*\)\.git/\1/' | sed 's/.*github.com[:/]\(.*\)/\1/')
+```
+
 Write the review with YAML frontmatter to `.otto/reviews/{filename}.md`:
 
 ```yaml
 ---
-branch: {branch-name}
-base: main
 date: {YYYY-MM-DD}
+branch: {branch-name}
+repo: {owner/repo}
+commits: {count}
 files_changed: {count}
+lines: {+insertions/-deletions}
 ---
 
 {review content}
@@ -180,10 +196,12 @@ Offer next steps:
 
 ```markdown
 ---
-branch: feature/add-user-preferences
-base: main
 date: 2025-01-13
+branch: feature/add-user-preferences
+repo: acme/my-app
+commits: 3
 files_changed: 5
+lines: +342/-89
 ---
 
 ## High-Level Summary
@@ -198,16 +216,16 @@ This branch adds user preference management, allowing users to customize their d
 
 - **For product/non-technical stakeholders:** Users can now customize their experience with saved preferences. Settings persist across browser sessions and sync when logged into multiple devices.
 
-## Semantic Changes by Component
+## Changes by Component or File
 
-### [PreferencesService](src/services/preferences.ts)
+### src/services/preferences.ts
 
 - **Purpose of changes:** Centralizes preference management with local and remote storage
 - **Behavioral changes:** Preferences now sync on login and save immediately on change
 - **Data flow impact:** Components read preferences via context instead of direct localStorage
 - **Dependencies affected:** Dashboard, NotificationPanel, and UserSettings now depend on this service
 
-### [PreferencesContext](src/contexts/preferences.tsx)
+### src/contexts/preferences.tsx
 
 - **Purpose of changes:** Provides React context for accessing preferences throughout the app
 - **Behavioral changes:** Preference changes trigger re-renders only in consuming components

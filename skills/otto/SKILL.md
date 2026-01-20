@@ -200,7 +200,7 @@ Check if `/doc` skill is available and initialize baseline for institutional mem
 
 ```bash
 # Check if doc skill exists
-if [ -f ".claude/skills/doc.md" ]; then
+if [ -f "skills/doc/SKILL.md" ]; then
   # Initialize docs if not already initialized
   if [ ! -f ".otto/docs/INDEX.md" ]; then
     Invoke Skill: skill="doc", args="init"
