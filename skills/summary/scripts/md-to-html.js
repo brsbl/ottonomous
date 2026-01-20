@@ -5,7 +5,7 @@ import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
 import fs from "fs";
 import path from "path";
-import { parseFrontmatter, generateMetadataHtml, parseArgs } from "./md-to-html.utils.js";
+import { parseFrontmatter, generateMetadataHtml, parseArgs, escapeHtml } from "./md-to-html.utils.js";
 
 // Configure marked with syntax highlighting
 marked.use(
@@ -211,7 +211,7 @@ try {
 
   // Extract title from first heading or filename
   const titleMatch = markdown.match(/^#\s+(.+)$/m);
-  const title = titleMatch ? titleMatch[1] : path.basename(inputPath, ".md");
+  const title = escapeHtml(titleMatch ? titleMatch[1] : path.basename(inputPath, ".md"));
 
   // Convert markdown to HTML
   const htmlContent = metadataHtml + marked(markdown);

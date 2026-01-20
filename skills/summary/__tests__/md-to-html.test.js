@@ -3,6 +3,7 @@ import {
   parseFrontmatter,
   generateMetadataHtml,
   parseArgs,
+  escapeHtml,
 } from '../scripts/md-to-html.utils.js'
 
 describe('parseFrontmatter', () => {
@@ -73,6 +74,13 @@ Content`
       valid: 'yes',
       'also-valid': 'true',
     })
+  })
+
+  it('handles CRLF line endings', () => {
+    const markdown = "---\r\ntitle: Test\r\n---\r\nContent"
+    const result = parseFrontmatter(markdown)
+    expect(result.meta.title).toBe('Test')
+    expect(result.content).toBe('Content')
   })
 })
 
@@ -176,5 +184,20 @@ describe('parseArgs', () => {
 
     expect(result.inputPath).toBe('readme')
     expect(result.outputPath).toBe('readme')
+  })
+})
+
+describe('escapeHtml', () => {
+  it('escapes HTML special characters', () => {
+    expect(escapeHtml('<script>')).toBe('&lt;script&gt;')
+    expect(escapeHtml('"quoted"')).toBe('&quot;quoted&quot;')
+    expect(escapeHtml("it's")).toBe("it&#39;s")
+    expect(escapeHtml('a & b')).toBe('a &amp; b')
+  })
+
+  it('handles empty/null input', () => {
+    expect(escapeHtml('')).toBe('')
+    expect(escapeHtml(null)).toBe('')
+    expect(escapeHtml(undefined)).toBe('')
   })
 })

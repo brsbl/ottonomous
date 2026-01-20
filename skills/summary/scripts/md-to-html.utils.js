@@ -3,13 +3,29 @@
  */
 
 /**
+ * Escape HTML special characters to prevent XSS
+ * @param {string} str - String to escape
+ * @returns {string} Escaped string
+ */
+export function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, c => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[c]));
+}
+
+/**
  * Parse YAML frontmatter from markdown content
  * @param {string} markdown - Markdown content with optional frontmatter
  * @returns {{ content: string, meta: object }} Markdown without frontmatter and parsed metadata
  */
 export function parseFrontmatter(markdown) {
   const meta = {};
-  const frontmatterMatch = markdown.match(/^---\n([\s\S]*?)\n---\n/);
+  const frontmatterMatch = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
 
   if (!frontmatterMatch) {
     return { content: markdown, meta };
@@ -37,12 +53,12 @@ export function generateMetadataHtml(meta) {
   const parts = [];
 
   if (meta.date) {
-    parts.push(`<strong>Date:</strong> ${meta.date}`);
+    parts.push(`<strong>Date:</strong> ${escapeHtml(meta.date)}`);
   }
 
   if (meta.branch) {
-    const commits = meta.commits ? ` (${meta.commits} commits)` : '';
-    parts.push(`<strong>Branch:</strong> ${meta.branch}${commits}`);
+    const commits = meta.commits ? ` (${escapeHtml(meta.commits)} commits)` : '';
+    parts.push(`<strong>Branch:</strong> ${escapeHtml(meta.branch)}${commits}`);
   }
 
   if (meta.files_changed) {
@@ -50,12 +66,12 @@ export function generateMetadataHtml(meta) {
     if (meta.lines) {
       const match = meta.lines.match(/\+(\d+)\/-(\d+)/);
       if (match) {
-        linesHtml = ` (<span style="color:#22863a">+${match[1]}</span>/<span style="color:#cb2431">-${match[2]}</span>)`;
+        linesHtml = ` (<span style="color:#22863a">+${escapeHtml(match[1])}</span>/<span style="color:#cb2431">-${escapeHtml(match[2])}</span>)`;
       } else {
-        linesHtml = ` (${meta.lines})`;
+        linesHtml = ` (${escapeHtml(meta.lines)})`;
       }
     }
-    parts.push(`<strong>Total Files:</strong> ${meta.files_changed} files changed${linesHtml}`);
+    parts.push(`<strong>Total Files:</strong> ${escapeHtml(meta.files_changed)} files changed${linesHtml}`);
   }
 
   if (parts.length === 0) {

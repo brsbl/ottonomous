@@ -3,7 +3,7 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getArg, isValidPort, isValidSessionId } from './server.utils.js';
+import { getArg, isValidPort, isValidSessionId, SESSION_ID_PATTERN } from './server.utils.js';
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -68,6 +68,9 @@ const server = http.createServer((req, res) => {
   if (url.pathname === '/api/tasks') {
     const state = readJson(statePath);
     if (!state?.product_spec_id) return json(res, { error: 'No spec_id in state' }, 404);
+    if (!SESSION_ID_PATTERN.test(state.product_spec_id)) {
+      return json(res, { error: 'Invalid spec_id format' }, 400);
+    }
     const tasksPath = path.join(ottoDir, 'tasks', `${state.product_spec_id}.json`);
     const tasks = readJson(tasksPath);
     return tasks ? json(res, tasks) : json(res, { error: 'Tasks not found' }, 404);
@@ -90,8 +93,8 @@ const server = http.createServer((req, res) => {
           const state = readJson(statePath);
           if (state) {
             send({ type: 'state', data: state });
-            // Update tasks path if we have spec_id
-            if (state.product_spec_id) {
+            // Update tasks path if we have valid spec_id
+            if (state.product_spec_id && SESSION_ID_PATTERN.test(state.product_spec_id)) {
               tasksPath = path.join(ottoDir, 'tasks', `${state.product_spec_id}.json`);
             }
           }
