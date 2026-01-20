@@ -1,5 +1,4 @@
 # Ottonomous
-<img width="3072" height="1428" alt="image" src="https://github.com/user-attachments/assets/5df66efc-5ca3-4624-b0d2-741f0308d89a" />
 
 ## Installation
 
@@ -21,6 +20,9 @@ Step-by-step control over each phase:
 /summary           # 6. Overview of changes
 /log               # 7. Document changes
 ```
+
+<img width="1536" height="714" alt="thinner 1" src="https://github.com/user-attachments/assets/16405ada-0a77-4ba3-aed2-339997924eac" />
+
 
 ### Ottonomous Workflow
 Fully autonomous from idea to working code:
