@@ -84,6 +84,12 @@ otto:
   self_improve: true         # Run self-improvement cycles at each commit (on/off)
 ```
 
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+All contributors are expected to follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## License
 
 MIT
