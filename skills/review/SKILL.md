@@ -1,6 +1,6 @@
 ---
 name: review
-description: Review code changes for bugs with prioritized, actionable feedback. Uses parallel subagents for thorough review of large changes, then creates fix plans and delegates implementation. Invoke with /review.
+description: Reviews code changes for bugs with P0-P3 prioritized feedback. Uses parallel subagents for thorough analysis, then creates fix plans and auto-implements critical issues. Activates when reviewing code, finding bugs, checking quality, or before merging. Invoke with /review.
 ---
 
 # Code Review

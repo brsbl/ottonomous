@@ -1,6 +1,6 @@
 ---
 name: doc
-description: Searches and retrieves engineering knowledge anchored to source files. Activates when exploring code, investigating bugs, planning implementation, or answering questions about code functionality.
+description: Institutional memory for the codebase. Captures and retrieves engineering knowledge anchored to source files - how features work, gotchas, patterns, and discoveries. Activates when exploring code, investigating bugs, documenting learnings, or understanding why code is structured a certain way. Invoke with /doc.
 ---
 
 # Engineering Documentation

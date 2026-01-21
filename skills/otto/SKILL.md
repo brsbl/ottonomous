@@ -1,6 +1,6 @@
 ---
 name: otto
-description: Fully autonomous product development loop with milestone-based self-improvement. Takes a product idea and builds it end-to-end using spec, task, and review skills. Spawns fresh subagents per task, tracks workflow feedback, rotates logs, and integrates browser automation for visual verification. Invoke with /otto <product idea>.
+description: Fully autonomous product development loop. Takes a product idea and builds it end-to-end - researching, specifying, implementing, testing, and reviewing. Activates when you want to build something, create an app, make a project, or develop a product from an idea. Spawns fresh subagents per task with milestone-based self-improvement. Invoke with /otto <product idea>.
 ---
 
 # Otto

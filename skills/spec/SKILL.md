@@ -1,6 +1,6 @@
 ---
 name: spec
-description: Writes specifications through collaborative interview. Activates when user mentions planning, new features, projects, or needs a spec/PRD.
+description: Writes specifications through collaborative interview with web research and browser automation. Activates when user mentions planning, requirements, design, new features, architecture, proposals, or needs a spec/PRD/blueprint. Invoke with /spec.
 ---
 
 # Spec Writing

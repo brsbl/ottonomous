@@ -1,6 +1,6 @@
 ---
 name: next
-description: Pick and work on the next highest priority unblocked task. Invoke with /next.
+description: Pick and work on the next highest priority unblocked task. Handles blockers with automatic retry logic. Activates when user wants to continue working, pick up the next task, keep going, or make progress on a spec. Invoke with /next.
 ---
 
 # Next Task
