@@ -1,0 +1,43 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check issue reference
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || '';
+
+            // Check for issue reference
+            const issueMatch = body.match(/[Cc]loses?\s+#(\d+)|[Ff]ixes?\s+#(\d+)|[Rr]esolves?\s+#(\d+)/);
+
+            if (!issueMatch) {
+              core.setFailed('PR must reference an issue using "Closes #<number>"');
+              return;
+            }
+
+            const issueNumber = issueMatch[1] || issueMatch[2] || issueMatch[3];
+
+            // Get the referenced issue
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: parseInt(issueNumber)
+            });
+
+            // Check for approved label
+            const hasApproved = issue.labels.some(label => label.name === 'approved');
+
+            if (!hasApproved) {
+              core.setFailed(`Referenced issue #${issueNumber} does not have the "approved" label`);
+              return;
+            }
+
+            console.log(`PR references approved issue #${issueNumber}`);
