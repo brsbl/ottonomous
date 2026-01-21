@@ -84,11 +84,11 @@ otto:
   self_improve: true         # Run self-improvement cycles at each commit (on/off)
 ```
 
-## Contributing
+## Feedback
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Found a bug or have a feature request? [Open an issue](https://github.com/brsbl/ottonomous/issues).
 
-All contributors are expected to follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License
 
