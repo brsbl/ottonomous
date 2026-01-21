@@ -62,7 +62,7 @@ Use `WebSearch` to find:
 - How popular projects solve similar problems
 
 **For web-based research requiring interaction:**
-- Use `/dev-browser` to navigate sites, fill forms, or capture screenshots
+- Use browser automation (`skills/otto/lib/browser`) to navigate sites, fill forms, or capture screenshots
 - Useful for exploring reference implementations or competitor products
 
 ### 3. Interview

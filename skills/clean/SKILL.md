@@ -10,9 +10,9 @@ Reset project to freshly installed plugin state. This is destructive and removes
 ## What Gets Preserved (allowlist)
 
 Only these files/directories survive:
-- `.claude/` - Settings and dev-browser submodule
+- `.claude/` - Settings
 - `.claude-plugin/` - Marketplace metadata
-- `skills/` - Plugin skills
+- `skills/` - Plugin skills (includes browser automation in skills/otto/lib/)
 - `.git/` - Version control
 - `README.md` - Project readme
 - `LICENSE` - License file
@@ -43,7 +43,7 @@ Check for and kill any running otto processes:
 if [ -f ".otto/otto/.active" ]; then
   SESSION_ID=$(cat .otto/otto/.active)
   SESSION_DIR=".otto/otto/sessions/$SESSION_ID"
-  [ -f "$SESSION_DIR/dev-browser.pid" ] && kill $(cat "$SESSION_DIR/dev-browser.pid") 2>/dev/null || true
+  [ -f "$SESSION_DIR/browser.pid" ] && kill $(cat "$SESSION_DIR/browser.pid") 2>/dev/null || true
   [ -f "$SESSION_DIR/report.pid" ] && kill $(cat "$SESSION_DIR/report.pid") 2>/dev/null || true
 fi
 ```

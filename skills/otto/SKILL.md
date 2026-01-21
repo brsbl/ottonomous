@@ -1,6 +1,6 @@
 ---
 name: otto
-description: Fully autonomous product development loop with milestone-based self-improvement. Takes a product idea and builds it end-to-end using spec, task, and review skills. Spawns fresh subagents per task, tracks workflow feedback, rotates logs, and integrates dev-browser for visual verification. Invoke with /otto <product idea>.
+description: Fully autonomous product development loop with milestone-based self-improvement. Takes a product idea and builds it end-to-end using spec, task, and review skills. Spawns fresh subagents per task, tracks workflow feedback, rotates logs, and integrates browser automation for visual verification. Invoke with /otto <product idea>.
 ---
 
 # Otto
@@ -14,8 +14,8 @@ Fully autonomous product development from idea to working code with milestone-ba
 ```
 
 The system will autonomously:
-1. Initialize session and start dev-browser server
-2. Generate a specification (with optional research via dev-browser)
+1. Initialize session and start browser server
+2. Generate a specification (with optional research via browser automation)
 3. Break it into atomic tasks
 4. Execute tasks in a milestone-based loop (fresh subagent per task)
 5. Run improvement cycles every 5 tasks
@@ -43,7 +43,7 @@ The system will autonomously:
 
 ### Phase 0: Initialization
 
-**Purpose:** Set up session, config, and dev-browser server.
+**Purpose:** Set up session, config, and browser server.
 
 #### Step 0.1: Check/Create Config
 
@@ -55,8 +55,6 @@ If `CONFIG_MISSING`, create default config at `.otto/config.yaml`:
 
 ```yaml
 otto:
-  enabled: true
-  mode: autonomous
   max_blockers: 3
   checkpoint_interval: 5
   self_improve: true
@@ -139,7 +137,7 @@ Write to `.otto/otto/sessions/${session_id}/state.json`:
 
   // Integration availability - set during Phase 0 initialization
   "integrations": {
-    "dev_browser_available": false,
+    "browser_available": false,
     "report_available": false,
     "doc_available": false
   }
@@ -217,45 +215,40 @@ fi
   - Append to feedback.md: "⚠️ Engineering docs unavailable - continuing without institutional memory"
   - Continue without documentation (non-blocking)
 
-#### Step 0.7: Start Dev-Browser Server
+#### Step 0.7: Start Browser Server
 
 ```bash
-# Update dev-browser submodule if present
-if [ -d ".claude/skills/dev-browser/.git" ]; then
-  git submodule update --remote --merge .claude/skills/dev-browser 2>/dev/null || true
-fi
-
 # Install dependencies if needed
-if [ -d ".claude/skills/dev-browser" ] && [ -f ".claude/skills/dev-browser/package.json" ]; then
-  (cd .claude/skills/dev-browser && npm install 2>/dev/null) || true
+if [ -d "$SKILL_DIR/lib/browser" ] && [ -f "$SKILL_DIR/lib/browser/package.json" ]; then
+  (cd "$SKILL_DIR/lib/browser" && npm install 2>/dev/null) || true
 fi
 
 # Start server in background and verify it started
-if [ -f ".claude/skills/dev-browser/server.sh" ]; then
-  nohup .claude/skills/dev-browser/server.sh > .otto/otto/sessions/${session_id}/dev-browser.log 2>&1 &
-  echo $! > .otto/otto/sessions/${session_id}/dev-browser.pid
+if [ -f "$SKILL_DIR/lib/browser/server.js" ]; then
+  nohup node "$SKILL_DIR/lib/browser/server.js" > .otto/otto/sessions/${session_id}/browser.log 2>&1 &
+  echo $! > .otto/otto/sessions/${session_id}/browser.pid
   sleep 3  # Wait for server to initialize
 
   # Verify server is responding
-  curl -s http://localhost:9222/json/version > /dev/null
+  curl -s http://localhost:9222/health > /dev/null
   # Exit code 0 = server running, non-zero = failed
 fi
 ```
 
 **Orchestrator action after server check:**
-- If curl succeeded: Set `state.integrations.dev_browser_available = true`, announce "✓ Dev-browser server running"
+- If curl succeeded: Set `state.integrations.browser_available = true`, announce "✓ Browser server running"
 - If curl failed:
   - Print error:
     ```
-    ERROR: Dev-browser failed to start
+    ERROR: Browser server failed to start
 
     To fix:
-    1. Start manually: cd .claude/skills/dev-browser && ./server.sh
-    2. Check log: cat .otto/otto/sessions/${session_id}/dev-browser.log
+    1. Start manually: node $SKILL_DIR/lib/browser/server.js
+    2. Check log: cat .otto/otto/sessions/${session_id}/browser.log
     3. Check port: lsof -i :9222
     ```
   - Set `state.status = "failed"`
-  - Set `state.recovery.last_error = "Dev-browser failed to start"`
+  - Set `state.recovery.last_error = "Browser server failed to start"`
   - **TERMINATE SESSION** - do not proceed to Step 0.8
 
 #### Step 0.8: Start Report Server
@@ -832,7 +825,7 @@ Return JSON:
 ```
 This is a UI task. After implementation:
 1. Start the dev server if not running
-2. Use dev-browser to capture a screenshot
+2. Use browser automation to capture a screenshot
 3. Save to: .otto/otto/sessions/{session_id}/visual-checks/task-{id}.png
 4. Include screenshot_path in your return JSON
 
@@ -845,8 +838,8 @@ Return JSON: {"success": bool, "files_modified": [], "observations": "string", "
 
 **Step 1: Check prerequisites**
 ```bash
-if [ "${state_integrations_dev_browser_available}" != "true" ]; then
-  Append to feedback.md: "- Task ${task.id}: Visual verification skipped (dev-browser unavailable)"
+if [ "${state_integrations_browser_available}" != "true" ]; then
+  Append to feedback.md: "- Task ${task.id}: Visual verification skipped (browser unavailable)"
   return
 fi
 ```
@@ -871,8 +864,6 @@ fi
 **Step 3: Capture screenshot**
 ```bash
 mkdir -p .otto/otto/sessions/${session_id}/visual-checks
-
-Invoke Skill: skill="dev-browser"
 ```
 
 **Note:** The orchestrator must substitute the following variables before executing this script:
@@ -884,8 +875,8 @@ The heredoc uses single-quoted EOF to preserve JavaScript template literals. Var
 
 Write verification script:
 ```bash
-cd .claude/skills/dev-browser && npx tsx <<'EOF'
-import { connect, waitForPageLoad } from "@/client.js";
+cd "$SKILL_DIR/lib/browser" && npx tsx <<'EOF'
+import { connect, waitForPageLoad } from "./client.js";
 
 const client = await connect();
 const page = await client.page("otto-verify-${task.id}");
@@ -1383,9 +1374,9 @@ Invoke Skill: skill="test", args="--visual --session {session_id} --spec {spec_i
 ```
 
 The `/test` skill will:
-1. Check dev-browser availability (skip if not running)
+1. Check browser availability (skip if not running)
 2. Read user flows from the spec file
-3. Execute each flow with dev-browser
+3. Execute each flow with browser automation
 4. Capture screenshots to `.otto/otto/sessions/{session_id}/visual-checks/`
 5. Generate `.otto/otto/sessions/{session_id}/e2e-report.md`
 6. Return JSON with results
@@ -1535,10 +1526,10 @@ Update `state.json`:
 #### Step 5.1: Stop Servers
 
 ```bash
-# Stop dev-browser server
-if [ -f ".otto/otto/sessions/${session_id}/dev-browser.pid" ]; then
-  kill $(cat .otto/otto/sessions/${session_id}/dev-browser.pid) 2>/dev/null || true
-  rm .otto/otto/sessions/${session_id}/dev-browser.pid
+# Stop browser server
+if [ -f ".otto/otto/sessions/${session_id}/browser.pid" ]; then
+  kill $(cat .otto/otto/sessions/${session_id}/browser.pid) 2>/dev/null || true
+  rm .otto/otto/sessions/${session_id}/browser.pid
 fi
 
 # Stop report server
@@ -1738,7 +1729,7 @@ Full learnings: `.otto/docs/LEARNINGS.md`
 | Service | Status | Notes |
 |---------|--------|-------|
 | Report server | {✓ or ✗} | {if failed: reason from feedback.md} |
-| Dev-browser | {✓ or ✗} | {if failed: reason} |
+| Browser | {✓ or ✗} | {if failed: reason} |
 | Engineering docs | {✓ or ✗} | {if failed: reason} |
 
 **Integration Metrics:**
@@ -1793,7 +1784,7 @@ Otto is designed to continue operating even when optional services fail. The orc
 | Service | If Unavailable at Start | If Fails Mid-Session | Action |
 |---------|------------------------|---------------------|--------|
 | Report server | Skip dashboard feedback | Set `report_available = false` | Log to feedback.md, continue execution |
-| Dev-browser | Skip visual verification | Set `dev_browser_available = false` | Log warning, use build check instead |
+| Browser | Skip visual verification | Set `browser_available = false` | Log warning, use build check instead |
 | /doc skill | Skip doc capture | Set `doc_available = false` | No institutional memory, continue |
 | Dev server | Skip visual verification | N/A (not a persistent service) | Log warning, continue tasks |
 
@@ -1827,7 +1818,7 @@ function handle_service_failure(service_name):
 These services are optional and must NEVER block session progress:
 
 1. **Report server** - Dashboard is informational only
-2. **Dev-browser** - Visual verification can be skipped
+2. **Browser** - Visual verification can be skipped
 3. **/doc skill** - Institutional memory is nice-to-have
 4. **Dev server** - Only needed for visual verification
 
@@ -1841,7 +1832,7 @@ At session end, include service availability summary:
 | Service | Available | Notes |
 |---------|-----------|-------|
 | Report server | ✓ / ✗ | {reason if failed} |
-| Dev-browser | ✓ / ✗ | {reason if failed} |
+| Browser | ✓ / ✗ | {reason if failed} |
 | Engineering docs | ✓ / ✗ | {reason if failed} |
 
 {if any services failed}
@@ -1912,7 +1903,7 @@ Doc entries created: {count}
   },
 
   "integrations": {
-    "dev_browser_available": false,
+    "browser_available": false,
     "report_available": false,
     "doc_available": false
   }
@@ -1960,14 +1951,14 @@ Run this check during Phase 0 if resuming an existing session, before continuing
 
 ---
 
-## Dev-Browser Integration
+## Browser Integration
 
-Dev-browser provides browser automation with persistent page state using Playwright. When invoked, the skill loads instructions for writing automation scripts.
+The `$SKILL_DIR/lib/browser` module provides browser automation with persistent page state using Playwright.
 
 ### How to Use
 
-1. **Invoke the skill:** `Invoke Skill: skill="dev-browser"`
-2. **Write a script:** Use the dev-browser API to navigate, interact, and screenshot
+1. **Start the server:** `node $SKILL_DIR/lib/browser/server.js` (or let Phase 0 start it automatically)
+2. **Write a script:** Use the browser client API to navigate, interact, and screenshot
 3. **Capture results:** Save screenshots and log outcomes
 
 ### Page Naming Convention
@@ -1987,11 +1978,11 @@ Prevent conflicts with unique page names:
 
 ### Script Pattern
 
-All dev-browser scripts follow this pattern:
+All browser automation scripts follow this pattern:
 
 ```bash
-cd .claude/skills/dev-browser && npx tsx <<'EOF'
-import { connect, waitForPageLoad } from "@/client.js";
+cd "$SKILL_DIR/lib/browser" && npx tsx <<'EOF'
+import { connect, waitForPageLoad } from "./client.js";
 
 const client = await connect();
 const page = await client.page("unique-page-name");
@@ -2007,9 +1998,10 @@ EOF
 
 ### Key APIs
 
+- `connect()` - Connect to browser server or launch direct browser
 - `client.page("name")` - Get or create named page (persists across scripts)
-- `client.getAISnapshot("name")` - Get accessibility tree for element discovery
-- `client.selectSnapshotRef("name", "e5")` - Select element by ref from snapshot
+- `client.closePage("name")` - Close a named page
+- `client.listPages()` - List all open pages
 - `page.goto(url)` - Navigate to URL
 - `page.screenshot({ path })` - Capture screenshot
 - `page.click(selector)` - Click element
@@ -2036,8 +2028,6 @@ EOF
 ```yaml
 # .otto/config.yaml
 otto:
-  enabled: true                    # Master switch
-  mode: autonomous                 # autonomous | supervised
   max_blockers: 3                  # Skip task after N failures
   checkpoint_interval: 5           # Commit every N tasks
   feedback_rotation_interval: 10   # Rotate feedback.md every N tasks
@@ -2071,9 +2061,9 @@ otto:
             ├── feedback-batch-{n}.md     # Archived feedback (rotated)
             ├── improvements.md           # Current improvement suggestions
             ├── e2e-report.md             # End-to-end test results
-            ├── dev-browser.log           # Dev-browser server log
-            ├── dev-browser.pid           # Dev-browser process ID
-            ├── research/                 # Dev-browser research artifacts
+            ├── browser.log           # Browser server log
+            ├── browser.pid           # Browser process ID
+            ├── research/                 # Browser research artifacts
             │   └── screenshots/          # Reference screenshots
             └── visual-checks/            # UI verification screenshots
                 └── task-{id}.png         # Per-task visual verification
@@ -2091,7 +2081,7 @@ otto:
 **Output (abbreviated):**
 ```
 Starting autonomous build session: otto-20260115-143022-a3b2
-Starting dev-browser server...
+Starting browser server...
 
 [Phase 1] Generating specification...
   - Product type: CLI application
@@ -2120,7 +2110,7 @@ Starting dev-browser server...
   - Duration: 12m
 
 [Phase 4] Running final review...
-  - E2E testing via dev-browser: 3/3 flows passed
+  - E2E testing via browser automation: 3/3 flows passed
   - Code review: P0:0 P1:1 P2:2 P3:1
   - Fixed P1: Missing null check
   - Deferred P2/P3 to known issues
@@ -2145,5 +2135,5 @@ Review artifacts in .otto/otto/sessions/otto-20260115-143022-a3b2/
 3. **State persistence**: Kill mid-task, restart resumes from state.json
 4. **Feedback rotation**: After 10 tasks, feedback-batch-1.md created
 5. **Guard rails**: max_tasks=3 terminates gracefully after 3 tasks
-6. **Dev-browser integration**: Skill invocation works, screenshots captured
+6. **Browser integration**: Skill invocation works, screenshots captured
 7. **End-to-end**: Real product idea produces working code + improved skills

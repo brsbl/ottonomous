@@ -1,3 +1,0 @@
-[submodule ".claude/skills/dev-browser"]
-	path = .claude/skills/dev-browser
-	url = https://github.com/SawyerHood/dev-browser.git

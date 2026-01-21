@@ -45,19 +45,11 @@ these loops run continuously until the product is built to spec (with stop hooks
 - **`/spec`** — Interactive interview that gathers context, researches best practices, and outputs a spec to `.otto/specs/{id}.md`
 - **`/task`** — Breaks specs into tasks with status (`pending` → `in_progress` → `done`), priority (0-4), and dependencies
 
-### Development
-
-- **`/delegate`** — Transforms Claude into an Engineering Manager who delegates all technical work (exploration, planning, coding, review) to specialized subagents
-
 ### Testing & Review (with Browser Automation)
 
-- **`/test`** — Canonical testing skill: run automated tests and visual verification with dev-browser. Detects test runners, captures results, and walks through UI flows
+- **`/test`** — Canonical testing skill: run automated tests and visual verification with browser automation. Detects test runners, captures results, and walks through UI flows
 - **`/review`** — Finds bugs with priority levels: P0 (blocking), P1 (urgent), P2 (normal), P3 (low)
 - **`/summary`** — Generates audience-specific walkthrough (developers, reviewers, stakeholders) with per-component analysis. Opens HTML in browser
-
-### Browser Automation
-
-- **`/dev-browser`** — Browser automation using Playwright with persistent page state. Two modes: standalone (launches Chromium) or extension (connects to existing Chrome). Use for web testing, scraping, screenshots, and form automation
 
 ### Engineering Knowledge Base
 
@@ -143,9 +135,7 @@ Idea → /otto
 | `/test` | Run tests and visual verification |
 | `/review` | Find bugs with P0-P3 priority levels |
 | `/summary` | Generate change documentation |
-| `/delegate` | Delegate work to specialized subagents |
 | `/doc` | Document discoveries anchored to files |
-| `/dev-browser` | Browser automation with Playwright |
 | `/clean` | Clean workflow artifacts |
 
 ## Configuration
@@ -154,8 +144,6 @@ Idea → /otto
 
 ```yaml
 otto:
-  enabled: true
-  mode: autonomous
   max_blockers: 3
   checkpoint_interval: 5
   max_tasks: 50

@@ -169,9 +169,9 @@ The HTML output includes:
 
 If the changes include UI modifications:
 
-> "Would you like me to capture screenshots of the UI changes using `/dev-browser`?"
+> "Would you like me to capture screenshots of the UI changes using `/test --visual`?"
 
-If yes, use dev-browser to:
+If yes, use browser automation to:
 - Navigate to affected pages
 - Capture before/after screenshots
 - Save to `.otto/reviews/{filename}-screenshots/`

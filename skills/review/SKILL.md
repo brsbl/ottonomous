@@ -443,7 +443,7 @@ git diff HEAD~1  # Review only the fix commit
 
 For UI changes, offer visual verification:
 
-> "Should I use `/dev-browser` to visually verify the UI changes are correct?"
+> "Should I use `/test --visual` to visually verify the UI changes are correct?"
 
 If yes:
 - Launch browser to affected pages

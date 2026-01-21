@@ -1,18 +1,18 @@
 ---
 name: test
-description: Canonical testing skill that runs automated tests and visual verification with dev-browser. Detects test runners, captures results, and walks through UI flows with screenshots. Used both manually and by /otto for consistent verification. Invoke with /test.
+description: Canonical testing skill that runs automated tests and visual verification with browser automation. Detects test runners, captures results, and walks through UI flows with screenshots. Used both manually and by /otto for consistent verification. Invoke with /test.
 ---
 
 # Test
 
-Canonical testing skill: run automated tests and visually verify UI flows with dev-browser. Provides consistent testing behavior whether invoked manually or from `/otto`.
+Canonical testing skill: run automated tests and visually verify UI flows with browser automation. Provides consistent testing behavior whether invoked manually or from `/otto`.
 
 ## Usage
 
 ```bash
 /test              # Run all tests + visual verification
 /test --unit       # Run only unit/automated tests
-/test --visual     # Run only visual verification with dev-browser
+/test --visual     # Run only visual verification with browser automation
 /test --flows      # Run specific user flows (prompts for selection)
 ```
 
@@ -95,31 +95,31 @@ Full output: .otto/test-results/test-output.log
 
 ### Phase 3: Visual Verification (unless --unit only)
 
-If `--unit` flag is NOT set, perform visual verification using dev-browser.
+If `--unit` flag is NOT set, perform visual verification using browser automation.
 
-#### Step 3.1: Check Dev-Browser Availability
+#### Step 3.1: Check Browser Availability
 
 ```bash
-# Check if dev-browser server is running
-curl -s http://localhost:9222/json/version > /dev/null 2>&1
-DEV_BROWSER_AVAILABLE=$?
+# Check if browser server is running
+curl -s http://localhost:9222/health > /dev/null 2>&1
+BROWSER_AVAILABLE=$?
 ```
 
-**If dev-browser not available:**
+**If browser not available:**
 ```
-⚠️ Dev-browser server not running.
+⚠️ Browser server not running.
 
 Options:
-1. Start dev-browser server: skills/dev-browser/server.sh
+1. Start browser server: node skills/otto/lib/browser/server.js
 2. Skip visual verification (--unit flag)
 3. Cancel
 
-Would you like me to start the dev-browser server?
+Would you like me to start the browser server?
 ```
 
 If user agrees, start the server:
 ```bash
-nohup skills/dev-browser/server.sh > /tmp/dev-browser.log 2>&1 &
+nohup node skills/otto/lib/browser/server.js > /tmp/browser.log 2>&1 &
 sleep 3
 ```
 
@@ -190,15 +190,11 @@ Take screenshots at TWO levels for comprehensive verification:
 - Use element selectors to screenshot targeted regions
 - Better detail for verifying specific requirements
 
-```
-Invoke Skill: skill="dev-browser"
-```
-
-Once dev-browser skill is loaded, write targeted verification scripts:
+Write targeted verification scripts using the browser module:
 
 ```bash
-cd skills/dev-browser && npx tsx <<'EOF'
-import { connect, waitForPageLoad } from "@/client.js";
+cd skills/otto/lib/browser && npx tsx <<'EOF'
+import { connect, waitForPageLoad } from "./client.js";
 
 const client = await connect();
 const page = await client.page("test-{flow_name}");
@@ -290,8 +286,8 @@ Analyze what's visible and check against requirements:
 For interactive flows, take before/after screenshots at each step:
 
 ```bash
-cd skills/dev-browser && npx tsx <<'EOF'
-import { connect, waitForPageLoad } from "@/client.js";
+cd skills/otto/lib/browser && npx tsx <<'EOF'
+import { connect, waitForPageLoad } from "./client.js";
 
 const client = await connect();
 const page = await client.page("test-{flow_name}");
@@ -547,7 +543,7 @@ When AUTO_MODE is active (`.otto/otto/.active` exists during an otto session):
 | Called from `/otto` | Run silently, return JSON results |
 | Called manually | Show progress, ask about failures |
 | Test failures | Continue and report (don't block) |
-| Dev-browser unavailable | Skip visual verification, warn user |
+| Browser unavailable | Skip visual verification, warn user |
 
 ---
 
@@ -613,7 +609,7 @@ Running unit tests...
 ✓ 23 tests passed (2.3s)
 
 Starting visual verification...
-Dev-browser server: running
+Browser server: running
 
 Building requirements checklist from spec...
 Found 8 requirements to verify.
