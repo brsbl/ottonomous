@@ -55,14 +55,9 @@ If `CONFIG_MISSING`, create default config at `.otto/config.yaml`:
 
 ```yaml
 otto:
-  max_blockers: 3
-  checkpoint_interval: 5
-  self_improve: true
-  max_tasks: 50
-  max_duration_hours: 4
-  feedback_rotation_interval: 10
-  open_report: false               # Auto-open report in browser (skipped if headless)
-  skip_improvement_cycles: false   # Skip self-improvement loops (faster but less thorough)
+  commit_interval: 5         # Commit progress every N tasks
+  max_duration_hours: 4      # Session timeout
+  self_improve: true         # Run self-improvement cycles at each commit (on/off)
 ```
 
 #### Step 0.2: Generate Session ID
@@ -118,7 +113,7 @@ Write to `.otto/otto/sessions/${session_id}/state.json`:
   // Guard rails - includes ALL execution attempts for safety limits
   "guard_rails": {
     "consecutive_failures": 0,
-    "total_tasks_executed": 0,  // Includes retries + improvement tasks (for max_tasks limit)
+    "total_tasks_executed": 0,  // Includes retries + improvement tasks
     "feedback_rotations": 0
   },
 
@@ -581,7 +576,6 @@ for group in parallel_groups (sorted by group number):
 
     # --- GUARD RAILS ---
     check_time_limit()
-    check_task_limit()
     check_stall()
 
     # --- WAIT FOR DEPENDENCIES ---
@@ -640,7 +634,7 @@ for group in parallel_groups (sorted by group number):
     save_state()
 
     # --- CHECKPOINT COMMIT ---
-    if state.product_tasks.completed % checkpoint_interval == 0:
+    if state.product_tasks.completed % commit_interval == 0:
         perform_checkpoint_commit()
 
 #### Checkpoint Commit
@@ -720,7 +714,7 @@ function collect_dashboard_feedback(group_number):
     cycles_run = state.improvement.cycles_run
 
     if (previous_completed // IMPROVEMENT_MILESTONE < current_completed // IMPROVEMENT_MILESTONE
-        AND NOT config.skip_improvement_cycles):
+        AND config.self_improve):
 
         ⚠️ STOP - DO NOT PROCEED TO NEXT GROUP
         You MUST run the improvement cycle NOW.
@@ -733,7 +727,7 @@ function collect_dashboard_feedback(group_number):
 # --- MANDATORY FINAL IMPROVEMENT CYCLE ---
 ⚠️ STOP - Before proceeding to Phase 4:
 
-if NOT config.skip_improvement_cycles:
+if config.self_improve:
     Announce: "🔄 FINAL IMPROVEMENT CYCLE - Last chance to improve workflow..."
     run_improvement_cycle()
     state.improvement.cycles_run++
@@ -1063,10 +1057,6 @@ function check_time_limit():
     elapsed = now() - state.timestamps.started_at
     if elapsed > config.max_duration_hours * 3600:
         terminate_gracefully("TIME_LIMIT")
-
-function check_task_limit():
-    if state.guard_rails.total_tasks_executed >= config.max_tasks:
-        terminate_gracefully("TASK_LIMIT")
 
 function check_stall():
     if state.guard_rails.consecutive_failures >= 5:
@@ -2028,14 +2018,9 @@ EOF
 ```yaml
 # .otto/config.yaml
 otto:
-  max_blockers: 3                  # Skip task after N failures
-  checkpoint_interval: 5           # Commit every N tasks
-  feedback_rotation_interval: 10   # Rotate feedback.md every N tasks
-  self_improve: true               # Generate improvement suggestions
-  max_tasks: 50                    # Safety limit on total tasks
-  max_duration_hours: 4            # Time limit for session
-  open_report: false               # Auto-open report in browser (skipped if headless)
-  skip_improvement_cycles: false   # Skip self-improvement loops (faster but less thorough)
+  commit_interval: 5         # Commit progress every N tasks
+  max_duration_hours: 4      # Session timeout
+  self_improve: true         # Run self-improvement cycles at each commit (on/off)
 ```
 
 ---
@@ -2134,6 +2119,6 @@ Review artifacts in .otto/otto/sessions/otto-20260115-143022-a3b2/
 2. **Milestone improvements**: Improvement cycle runs every 5 tasks (not after each)
 3. **State persistence**: Kill mid-task, restart resumes from state.json
 4. **Feedback rotation**: After 10 tasks, feedback-batch-1.md created
-5. **Guard rails**: max_tasks=3 terminates gracefully after 3 tasks
+5. **Guard rails**: max_duration_hours terminates gracefully on timeout
 6. **Browser integration**: Skill invocation works, screenshots captured
 7. **End-to-end**: Real product idea produces working code + improved skills
