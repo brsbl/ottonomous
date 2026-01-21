@@ -1,6 +1,6 @@
 ---
 name: test
-description: Canonical testing skill that runs automated tests and visual verification with browser automation. Detects test runners, captures results, and walks through UI flows with screenshots. Used both manually and by /otto for consistent verification. Invoke with /test.
+description: Canonical testing skill that runs automated tests and visual verification with dev-browser. Detects test runners, captures results, and walks through UI flows with screenshots. Used both manually and by /otto for consistent verification. Use this skill to verify your work, check what the app looks like, take screenshots, open a browser tab, view the UI, confirm implementation visually, validate appearance, see the result, or check how it renders. Invoke with /test.
 ---
 
 # Test
