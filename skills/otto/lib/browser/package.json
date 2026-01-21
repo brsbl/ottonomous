@@ -1,0 +1,23 @@
+{
+  "name": "@ottonomous/browser",
+  "version": "1.0.0",
+  "description": "Self-contained browser automation for ottonomous skills",
+  "type": "module",
+  "main": "client.js",
+  "exports": {
+    ".": "./client.js",
+    "./server": "./server.js",
+    "./client": "./client.js"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
+  }
+}

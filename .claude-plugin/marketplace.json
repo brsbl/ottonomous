@@ -2,18 +2,28 @@
   "name": "ottonomous",
   "owner": {
     "name": "brsbl",
-    "email": "brsbl@github.com"
-  },
-  "metadata": {
-    "description": "Comprehensive skills toolkit for autonomous product development",
-    "version": "1.0.0"
+    "email": "brsbl@users.noreply.github.com"
   },
   "plugins": [
     {
       "name": "ottonomous",
       "source": "./",
-      "description": "Skills for spec writing, task management, review, summary, delegation, testing, and autonomous development",
-      "strict": false
+      "description": "Skills for autonomous product development",
+      "skills": [
+        "./skills/otto",
+        "./skills/test",
+        "./skills/spec",
+        "./skills/review",
+        "./skills/summary",
+        "./skills/task",
+        "./skills/next",
+        "./skills/doc",
+        "./skills/clean"
+      ]
     }
-  ]
+  ],
+  "metadata": {
+    "description": "Ottonomous plugin marketplace",
+    "version": "1.0.0"
+  }
 }

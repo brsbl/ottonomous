@@ -1,181 +1,87 @@
 # Ottonomous
 
+<img width="1536" height="714" alt="thinner 1" src="https://github.com/user-attachments/assets/16405ada-0a77-4ba3-aed2-339997924eac" />
+
 ## Installation
 
 ```bash
-/install brsbl/ottonomous
+# Add marketplace
+/plugin marketplace add brsbl/ottonomous
+
+# Install plugin
+/plugin install ottonomous@brsbl-ottonomous
 ```
-
-## Quick Start
-
-### Manual Workflow
-Step-by-step control over each phase:
-
-```bash
-/spec              # 1. Write specification
-/task my-spec      # 2. Break into tasks
-/next              # 3. Execute next task
-/test              # 4. Run tests + visual verification with browser automation
-/review            # 5. Review for bugs
-/summary           # 6. Overview of changes
-/log               # 7. Document changes
-```
-
-<img width="1536" height="714" alt="thinner 1" src="https://github.com/user-attachments/assets/16405ada-0a77-4ba3-aed2-339997924eac" />
-
-
-### Ottonomous Workflow
-Fully autonomous from idea to working code:
-
-```bash
-/otto Build a CLI todo app with local JSON storage
-```
-This workflow is essentially 2 nested loops:
-- **outter loop**: manager agent delegates to subagents to research a product idea (argument for the skill) → write a spec → generate tasks from spec → execute tasks in parallel → test & review in parallel → regularly report status to manager agent → document the codebase as they work
-- **inner loop**: subagents and manager agent document feedback about the workflow as they work. after each milestone, manager agent creates a plan for subagents to improve the workflow
-
-these loops run continuously until the product is built to spec (with stop hooks to validate after each task).
 
 ## Skills
 
-- **`/otto`** — Fully autonomous product development from idea to working code. Spawns fresh agents per task, iteratively reviews code and runs self-improvement cycles to improve overall process.
+### Orchestration
+
+**`/otto <idea>`** — Fully autonomous product development loop. Takes a product idea and builds it end-to-end: researches competitors via web search, generates a 3-tier spec (core/expected/delightful), breaks into parallel task groups, and executes with fresh subagents (isolated context per task).
+
+Progress is committed every N tasks (configurable). At each commit, otto can run a **self-improvement cycle**: analyzes workflow friction from feedback that agents capture as they work, generates improvement tasks (max 3), executes them, then resumes product work. This lets the workflow adapt and get better as it runs.
 
 ### Planning
 
-- **`/spec`** — Interactive interview that gathers context, researches best practices, and outputs a spec to `.otto/specs/{id}.md`
-- **`/task`** — Breaks specs into tasks with status (`pending` → `in_progress` → `done`), priority (0-4), and dependencies
+**`/spec`** — Interactive specification writing. Gathers context through an interview, researches via web search and browser automation (for navigating sites, capturing screenshots), and outputs structured specs. When called by `/otto`, chooses recommended options based on best practices instead of prompting.
 
-### Development
+**`/task <spec>`** — Breaks specs into atomic, parallelizable tasks. Each task has status (pending → in_progress → done), priority (0-4), and dependencies. Targets < 1 day per task, ≤ 3 files modified.
 
-- **`/delegate`** — Transforms Claude into an Engineering Manager who delegates all technical work (exploration, planning, coding, review) to specialized subagents
+**`/next`** — Picks and executes the highest priority unblocked task. Resolves dependencies, spawns a subagent for execution, then marks complete.
 
-### Testing & Review (with Browser Automation)
+### Quality
 
-- **`/test`** — Canonical testing skill: run automated tests and visual verification with dev-browser. Detects test runners, captures results, and walks through UI flows
-- **`/review`** — Finds bugs with priority levels: P0 (blocking), P1 (urgent), P2 (normal), P3 (low)
-- **`/summary`** — Generates audience-specific walkthrough (developers, reviewers, stakeholders) with per-component analysis. Opens HTML in browser
+**`/test`** — Canonical testing skill. Detects test runners (npm/vitest/jest/pytest/cargo), implements tests if none exist, runs automated tests, and performs visual UI verification with browser automation and screenshots.
 
-### Browser Automation
+**`/review`** — Parallel code review using multiple subagents. Finds bugs with priority levels: P0 (blocking), P1 (urgent), P2 (normal), P3 (low). When called by `/otto`, auto-fixes P0/P1 issues.
 
-- **`/dev-browser`** — Browser automation using Playwright with persistent page state. Two modes: standalone (launches Chromium) or extension (connects to existing Chrome). Use for web testing, scraping, screenshots, and form automation
+**`/summary`** — Generates audience-specific change walkthroughs (developers, reviewers, stakeholders). Analyzes git diff, explains the "why" not just "what", and opens an HTML summary in your browser.
 
-### Engineering Knowledge Base
+### Utilities
 
-- **`/log`** — Document information about the codebase anchored to files; entries marked stale when anchors change. Use `/log init` for setup, `/log rebuild` to regenerate index
+**`/doc`** — Institutional memory for the codebase. Captures how features work, why code is structured a certain way, gotchas, and non-obvious patterns—anchored to specific source files. During `/otto` sessions, agents automatically add discoveries after each task. Entries auto-detect staleness when their anchored code changes. Use `/doc init` for first-time setup.
 
-### Maintenance
-
-- **`/clean`** — Reset project to freshly installed plugin state. Preserves plugin files (.claude/, .git/, README.md, etc.) and removes everything else
-
-
-
-## Local Development
-
-Skills are kept in both `skills/` (plugin package) and `.claude/skills/` (standalone local use). Keep them in sync by copying updates to the other location after edits. For example:
-
-```bash
-cp -R skills/. .claude/skills/
-```
+**`/clean`** — Reset project to fresh state. Removes `.otto/`, generated code, and build artifacts. Preserves plugin files and git history.
 
 ## Workflows
 
-### Manual Workflow
-
+### Manual
 ```
-Idea
-  ↓
-/spec ────→ .otto/specs/{id}.md
-  ↓
-/task ────→ .otto/tasks/{id}.json
-  ↓
-/next ────→ Execute highest priority task
-  ↓  ⤴
-  └──────→ Repeat until done
-  ↓
-/review ──→ Find bugs (P0-P3)
-  ↓
-/summary ─→ Document changes
-  ↓
-Done
+/spec → /task → /next (repeat) → /test → /review → /summary
 ```
 
-### Autonomous Workflow
-
+### Autonomous
 ```
-Idea → /otto
-         ↓
-    Research (web search)
-         ↓
-    Spec (3-tier features)
-         ↓
-    Tasks (parallel groups)
-         ↓
-    Execute ←──┐
-         ↓     │
-    Milestone? ┘ (every 5 tasks: self-improve)
-         ↓
-    Test (via browser automation)
-         ↓
-    Code Review (fix P0/P1)
-         ↓
-    Session Report
-         ↓
-    Done
+/otto <idea>   # Runs full loop: spec → tasks → execute → test → review
 ```
 
-**What `/otto` does:**
-1. Researches competitors via web search
-2. Generates spec with Core/Expected/Delightful features
-3. Breaks into parallel task groups
-4. Executes tasks with fresh subagents (isolated context)
-5. Self-improves every 5 tasks
-6. Reviews and fixes P0/P1 bugs
-7. Generates session report
+## Architecture
 
-## Commands
+```
+.otto/                       # Workflow artifacts (git-ignored)
+├── specs/                   # Specification documents (.md)
+├── tasks/                   # Task definitions (.json)
+├── docs/                    # Engineering knowledge base
+└── otto/
+    ├── .active              # Lock file during /otto sessions
+    └── sessions/            # Session state, feedback, screenshots
 
-| Command | Description |
-|---------|-------------|
-| `/otto` | Autonomous product development from idea to code |
-| `/spec` | Interactive specification writing |
-| `/task` | Break specs into prioritized tasks |
-| `/next` | Execute highest priority unblocked task |
-| `/test` | Run tests and visual verification |
-| `/review` | Find bugs with P0-P3 priority levels |
-| `/summary` | Generate change documentation |
-| `/delegate` | Delegate work to specialized subagents |
-| `/doc` | Document discoveries anchored to files |
-| `/dev-browser` | Browser automation with Playwright |
-| `/clean` | Clean workflow artifacts |
+skills/                      # Skill implementations (SKILL.md + support files)
+├── otto/
+│   └── lib/browser/         # Shared Playwright-based browser automation
+├── summary/
+│   └── scripts/md-to-html.js  # Markdown → HTML renderer
+└── ...
+```
 
 ## Configuration
 
-`.otto/config.yaml` (created automatically on first `/otto` run):
+`.otto/config.yaml` (auto-created on first `/otto` run):
 
 ```yaml
 otto:
-  enabled: true
-  mode: autonomous
-  max_blockers: 3
-  checkpoint_interval: 5
-  max_tasks: 50
-  max_duration_hours: 4
-```
-
-## Data
-
-All artifacts stored in `.otto/`:
-
-```
-.otto/
-├── config.yaml          # Session configuration
-├── specs/               # Specification documents
-├── tasks/               # Task JSON files
-├── reviews/             # Code review outputs
-├── docs/                # Engineering knowledge
-└── otto/
-    ├── .active          # Exists only during active sessions
-    └── sessions/        # Session state, feedback, screenshots
+  commit_interval: 5         # Commit progress every N tasks
+  max_duration_hours: 4      # Session timeout
+  self_improve: true         # Run self-improvement cycles at each commit (on/off)
 ```
 
 ## License
