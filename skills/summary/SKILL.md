@@ -1,6 +1,6 @@
 ---
 name: summary
-description: Generate a semantic walkthrough of branch changes for different audiences. Creates business-focused summaries explaining what changed and why it matters. Invoke with /summary.
+description: Generates audience-specific walkthroughs of code changes. Creates semantic summaries explaining what changed and why it matters, not just diffs. Opens styled HTML in browser. Activates when documenting changes, writing PR descriptions, creating release notes, or explaining what you built. Invoke with /summary.
 ---
 
 # Summary

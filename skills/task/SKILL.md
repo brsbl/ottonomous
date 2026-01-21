@@ -1,6 +1,6 @@
 ---
 name: task
-description: Generates and manages task lists from specs. Activates when user has a spec and mentions tasks, implementation, work, or what to do next.
+description: Generates parallelizable task lists from specs. Breaks specs into atomic, prioritized tasks with dependencies. Activates when user has a spec and mentions tasks, implementation, breakdown, work plan, or what to do next. Invoke with /task.
 ---
 
 # Task Management

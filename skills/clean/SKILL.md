@@ -1,6 +1,6 @@
 ---
 name: clean
-description: Reset project to freshly installed plugin state. Removes workflow artifacts (.otto/) and app code while preserving plugin files. Invoke with /clean.
+description: Resets project to fresh plugin state. Removes all workflow artifacts (.otto/) and generated code while preserving plugin files and git history. Use when starting over, testing clean builds, or wiping generated code. Destructive - requires confirmation. Invoke with /clean.
 ---
 
 # Clean
