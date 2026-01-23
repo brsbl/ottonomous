@@ -8,7 +8,9 @@
 ```bash
 # Add marketplace
 /plugin marketplace add brsbl/ottonomous
+```
 
+```bash
 # Install plugin
 /plugin install ottonomous@brsbl-ottonomous
 ```
