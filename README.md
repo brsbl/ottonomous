@@ -2,7 +2,15 @@
 
 <img width="3072" height="1428" alt="image 1 (1)" src="https://github.com/user-attachments/assets/2e8b420b-8b85-43af-9db7-764f6d4dc269" />
 
-A Claude Code plugin with skills for every stage of product development: research-based spec writing, task breakdown, testing, code review, and documentation. Run them manually as needed, or let `/otto` orchestrate the entire loop autonomously using subagents.
+A set of Claude Code skills for every stage of product development: research-based spec writing, task breakdown & priorization, unit & screen-shot based UI testing, multi-tier code review & bug auto-fix, and documentation of changes and key decisions. Each skill can be run manually as needed, or let `/otto` orchestrate the entire loop autonomously using subagents.
+
+## Workflow
+
+```
+                 ┌─────────────────────────────────┐
+/spec → /task →  │ /next → /test → /review → /doc  │ → /summary
+                 └──────── repeat per task ────────┘
+```
 
 ## Dependencies
 
@@ -20,14 +28,6 @@ A Claude Code plugin with skills for every stage of product development: researc
 ```bash
 # Install plugin
 /plugin install ottonomous@brsbl-ottonomous
-```
-
-## Workflow
-
-```
-                 ┌─────────────────────────────────┐
-/spec → /task →  │ /next → /test → /review → /doc  │ → /summary
-                 └──────── repeat per task ────────┘
 ```
 
 ## Skills
