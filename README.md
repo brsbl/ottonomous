@@ -14,21 +14,17 @@
 
 ## Skills
 
-### Orchestration
-
-**`/otto <idea>`** — Autonomous product development. Takes an idea and builds it end-to-end with subagents: writes a spec, generates tasks, implements each task with test/review/doc phases, then produces a final summary. All skills are invoked via subagents with auto-approval of recommended options.
-
 ### Planning
 
-**`/spec [idea]`** — Interactive specification writing. Gathers context, researches via web search and browser automation, conducts an interview, and outputs structured specs with product requirements and technical design.
+**`/spec [product idea]`** — Analyzes your codebase, researches best practices, and interactively interviews you until it has comprehensive product requirements and technical design decisions for your product idea.
 
-**`/task <spec-id>`** — Generates parallelizable tasks from a spec. Each task has status (pending → in_progress → done), priority (0-4), and dependencies. Targets atomic units completable in one session, ≤3 files modified.
+**`/task <spec-id>`** — Generates atomic, parallelizable tasks from a spec. Each task has status (pending → in_progress → done), priority (0-4), and optional dependencies.
 
-**`/next [task-id]`** — Two modes: without argument, selects and returns the next unblocked task. With task id, implements that specific task.
+**`/next [task-id]`** — Without argument, selects and returns the highest priority, unblocked task that is not in progress or done. With a task id, implements that specific task.
 
 ### Quality
 
-**`/test <run | write> [scope]`** — Runs automated tests and visual verification. Detects test runners (vitest/jest/pytest/cargo), sets up test harness if missing, captures screenshots for UI verification. Use `run` to execute tests, `write` to generate then run. Scopes: `staged`, `uncommitted`, `branch` (default).
+**`/test <run | write> [scope]`** — Use `write` to set up a test harness and write tests following a recommended testing strategy. Use `run` to run automated tests and verify UI changes using browser automation. Scope of changes for tests: `staged`, `uncommitted`, `branch` (default).
 
 **`/review [scope]`** — Code review with P0-P3 prioritized findings. Uses parallel subagents for large changes, creates fix plans, and implements critical issues. Scopes: `staged`, `uncommitted`, `branch` (default).
 
@@ -38,9 +34,15 @@
 
 **`/summary`** — Consolidates `/doc` entries into a styled HTML summary. Synthesizes documentation into a cohesive overview and opens in browser.
 
+
+### Orchestration
+
+**`/otto <idea>`** — Autonomous product development. Takes an idea and builds it end-to-end with subagents: writes a spec, generates tasks, implements each task with test/review/doc phases, then produces a final summary. All skills are invoked via subagents with auto-approval of recommended options.
+
 ### Utilities
 
 **`/clean`** — Resets project to fresh plugin state. Removes `.otto/`, generated code, and build artifacts. Preserves plugin files (skills/, .claude/) and git history. Requires confirmation.
+
 
 ## Workflows
 
