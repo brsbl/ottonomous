@@ -1,6 +1,6 @@
 ---
-name: clean
-description: Resets project to fresh plugin state. Removes all workflow artifacts (.otto/) and generated code while preserving plugin files and git history. Use when starting over, testing clean builds, or wiping generated code. Destructive - requires confirmation.
+name: reset
+description: Resets project to fresh plugin state. Removes all workflow artifacts (.otto/) and generated code while preserving plugin files and git history. Use when starting over or wiping generated code. Destructive - requires confirmation.
 ---
 
 Reset project to freshly installed plugin state. This is destructive.
@@ -89,6 +89,6 @@ find . -maxdepth 1 \
 ### 5. Report
 
 ```
-Cleaned. Project reset to fresh plugin state.
+Reset complete. Project restored to fresh plugin state.
 Run /otto to start a new build.
 ```
