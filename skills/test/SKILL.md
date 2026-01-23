@@ -1,19 +1,21 @@
 ---
 name: test
 description: Runs automated tests and visual verification. Detects test runners (vitest/jest/pytest/cargo), captures screenshots, and can generate tests for code changes.
-argument-hint: [write] [staged | uncommitted | branch]
+argument-hint: <run | write> [staged | uncommitted | branch]
 ---
 
 **Arguments:** $ARGUMENTS
 
-| Argument | Behavior |
-|----------|----------|
-| (none) or `branch` | Run tests + visual verify branch changes |
-| `staged` | Run tests + visual verify staged changes |
-| `uncommitted` | Run tests + visual verify uncommitted changes |
-| `write` | Generate tests, then run + visual verify |
-| `write staged` | Generate tests for staged, then run + visual verify |
-| `write uncommitted` | Generate tests for uncommitted, then run + visual verify |
+| Command | Behavior |
+|---------|----------|
+| `run` | Run tests + visual verify (branch) |
+| `run staged` | Run tests + visual verify staged changes |
+| `run uncommitted` | Run tests + visual verify uncommitted changes |
+| `run branch` | Run tests + visual verify branch changes |
+| `write` | Generate tests, then run (branch) |
+| `write staged` | Generate tests for staged, then run |
+| `write uncommitted` | Generate tests for uncommitted, then run |
+| `write branch` | Generate tests for branch, then run |
 
 **Scope determines which files to analyze:**
 
