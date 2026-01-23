@@ -1,17 +1,27 @@
 ---
 name: test
-description: Runs automated tests and visual verification. Detects test runners (vitest/jest/pytest/cargo), captures screenshots, and can generate tests for branch changes.
-argument-hint: [staged | uncommitted | branch | write]
+description: Runs automated tests and visual verification. Detects test runners (vitest/jest/pytest/cargo), captures screenshots, and can generate tests for code changes.
+argument-hint: [write] [staged | uncommitted | branch]
 ---
 
-**Mode:** $ARGUMENTS
+**Arguments:** $ARGUMENTS
 
 | Argument | Behavior |
 |----------|----------|
 | (none) or `branch` | Run tests + visual verify branch changes |
 | `staged` | Run tests + visual verify staged changes |
 | `uncommitted` | Run tests + visual verify uncommitted changes |
-| `write` | Generate tests for branch changes |
+| `write` | Generate tests, then run + visual verify |
+| `write staged` | Generate tests for staged, then run + visual verify |
+| `write uncommitted` | Generate tests for uncommitted, then run + visual verify |
+
+**Scope determines which files to analyze:**
+
+| Scope | Git command |
+|-------|-------------|
+| `branch` (default) | `git diff main...HEAD --name-only` |
+| `staged` | `git diff --cached --name-only` |
+| `uncommitted` | `git diff --name-only` |
 
 ---
 
@@ -63,13 +73,11 @@ Add to `package.json`:
 
 ## 3. Generate Tests (write mode)
 
-If mode is `write`, generate tests for code changes in the current branch.
+If `write` is specified, generate tests for code changes before running.
 
 ### Get Changed Files
 
-```bash
-git diff main...HEAD --name-only
-```
+Use the git command from the scope table above.
 
 ### Identify Testable Code
 

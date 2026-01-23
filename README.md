@@ -28,7 +28,7 @@
 
 ### Quality
 
-**`/test [scope]`** — Runs automated tests and visual verification. Detects test runners (vitest/jest/pytest/cargo), sets up test harness if missing, captures screenshots for UI verification. Scopes: `staged`, `uncommitted`, `branch` (default). Use `write` to generate tests for branch changes.
+**`/test [write] [scope]`** — Runs automated tests and visual verification. Detects test runners (vitest/jest/pytest/cargo), sets up test harness if missing, captures screenshots for UI verification. Scopes: `staged`, `uncommitted`, `branch` (default). Add `write` to generate tests first (e.g., `/test write staged`).
 
 **`/review [scope]`** — Code review with P0-P3 prioritized findings. Uses parallel subagents for large changes, creates fix plans, and implements critical issues. Scopes: `staged`, `uncommitted`, `branch` (default).
 

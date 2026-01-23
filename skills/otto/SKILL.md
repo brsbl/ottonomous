@@ -26,7 +26,7 @@ When a skill asks questions or requests confirmation:
 | `spec` | `/spec {product_idea}` | spec file exists |
 | `task` | `/task {spec_id}` | tasks file exists |
 | `task:{id}:implement` | `/next {id}` | task status is done |
-| `task:{id}:test` | `/test staged` | tests pass |
+| `task:{id}:test` | `/test write staged` | tests pass |
 | `task:{id}:review` | `/review staged` | P0/P1 fixed |
 | `task:{id}:doc` | `/doc staged` | doc entry exists |
 | `build` | `npm run build` | exit 0 |
@@ -108,7 +108,7 @@ Update `current_phase` → `task:{id}:test`
 
 #### Phase: task:{id}:test
 
-**Invoke `/test staged`**
+**Invoke `/test write staged`**
 
 Update `current_phase` → `task:{id}:review`
 
