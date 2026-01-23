@@ -2,7 +2,7 @@
 
 <img width="3072" height="1428" alt="image 1 (1)" src="https://github.com/user-attachments/assets/2e8b420b-8b85-43af-9db7-764f6d4dc269" />
 
-A Claude Code plugin for autonomous product development. Describe an idea, get working code.
+A Claude Code plugin with skills for every stage of product development: research-based spec writing, task breakdown, testing, code review, and documentation. Run them manually as needed, or let `/otto` orchestrate the entire loop autonomously using subagents.
 
 ## Dependencies
 
