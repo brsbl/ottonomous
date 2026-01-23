@@ -1,6 +1,7 @@
 # Ottonomous
 
-<img width="1536" height="714" alt="thinner 1" src="https://github.com/user-attachments/assets/16405ada-0a77-4ba3-aed2-339997924eac" />
+<img width="350" height="163" alt="image 1" src="https://github.com/user-attachments/assets/71a86ba4-e069-4113-bc86-17bb3b21b19a" />
+
 
 ## Installation
 
