@@ -16,42 +16,42 @@
 
 ### Orchestration
 
-**`/otto <idea>`** — Fully autonomous product development loop. Takes a product idea and builds it end-to-end: researches competitors via web search, generates a 3-tier spec (core/expected/delightful), breaks into parallel task groups, and executes with fresh subagents (isolated context per task).
-
-Progress is committed every N tasks (configurable). At each commit, otto can run a **self-improvement cycle**: analyzes workflow friction from feedback that agents capture as they work, generates improvement tasks (max 3), executes them, then resumes product work. This lets the workflow adapt and get better as it runs.
+**`/otto <idea>`** — Autonomous product development. Takes an idea and builds it end-to-end with subagents: writes a spec, generates tasks, implements each task with test/review/doc phases, then produces a final summary. All skills are invoked via subagents with auto-approval of recommended options.
 
 ### Planning
 
-**`/spec`** — Interactive specification writing. Gathers context through an interview, researches via web search and browser automation (for navigating sites, capturing screenshots), and outputs structured specs. When called by `/otto`, chooses recommended options based on best practices instead of prompting.
+**`/spec [idea]`** — Interactive specification writing. Gathers context, researches via web search and browser automation, conducts an interview, and outputs structured specs with product requirements and technical design.
 
-**`/task <spec>`** — Breaks specs into atomic, parallelizable tasks. Each task has status (pending → in_progress → done), priority (0-4), and dependencies. Targets < 1 day per task, ≤ 3 files modified.
+**`/task <spec-id>`** — Generates parallelizable tasks from a spec. Each task has status (pending → in_progress → done), priority (0-4), and dependencies. Targets atomic units completable in one session, ≤3 files modified.
 
-**`/next`** — Picks and executes the highest priority unblocked task. Resolves dependencies, spawns a subagent for execution, then marks complete.
+**`/next [task-id]`** — Two modes: without argument, selects and returns the next unblocked task. With task id, implements that specific task.
 
 ### Quality
 
-**`/test`** — Canonical testing skill. Detects test runners (npm/vitest/jest/pytest/cargo), implements tests if none exist, runs automated tests, and performs visual UI verification with browser automation and screenshots.
+**`/test [scope]`** — Runs automated tests and visual verification. Detects test runners (vitest/jest/pytest/cargo), sets up test harness if missing, captures screenshots for UI verification. Scopes: `staged`, `uncommitted`, `branch` (default). Use `write` to generate tests for branch changes.
 
-**`/review`** — Parallel code review using multiple subagents. Finds bugs with priority levels: P0 (blocking), P1 (urgent), P2 (normal), P3 (low). When called by `/otto`, auto-fixes P0/P1 issues.
+**`/review [scope]`** — Code review with P0-P3 prioritized findings. Uses parallel subagents for large changes, creates fix plans, and implements critical issues. Scopes: `staged`, `uncommitted`, `branch` (default).
 
-**`/summary`** — Generates audience-specific change walkthroughs (developers, reviewers, stakeholders). Analyzes git diff, explains the "why" not just "what", and opens an HTML summary in your browser.
+### Documentation
+
+**`/doc [scope]`** — Documents code changes. Creates structured entries capturing what changed, why, and notable details. Scopes: `staged`, `uncommitted`, `branch` (default).
+
+**`/summary`** — Consolidates `/doc` entries into a styled HTML summary. Synthesizes documentation into a cohesive overview and opens in browser.
 
 ### Utilities
 
-**`/doc`** — Institutional memory for the codebase. Captures how features work, why code is structured a certain way, gotchas, and non-obvious patterns—anchored to specific source files. During `/otto` sessions, agents automatically add discoveries after each task. Entries auto-detect staleness when their anchored code changes. Use `/doc init` for first-time setup.
-
-**`/clean`** — Reset project to fresh state. Removes `.otto/`, generated code, and build artifacts. Preserves plugin files and git history.
+**`/clean`** — Resets project to fresh plugin state. Removes `.otto/`, generated code, and build artifacts. Preserves plugin files (skills/, .claude/) and git history. Requires confirmation.
 
 ## Workflows
 
 ### Manual
 ```
-/spec → /task → /next (repeat) → /test → /review → /summary
+/spec → /task → /next (repeat) → /test → /review → /doc → /summary
 ```
 
 ### Autonomous
 ```
-/otto <idea>   # Runs full loop: spec → tasks → execute → test → review
+/otto <idea>   # Full loop: spec → tasks → implement/test/review/doc per task → summary
 ```
 
 ## Architecture
@@ -60,28 +60,17 @@ Progress is committed every N tasks (configurable). At each commit, otto can run
 .otto/                       # Workflow artifacts (git-ignored)
 ├── specs/                   # Specification documents (.md)
 ├── tasks/                   # Task definitions (.json)
-├── docs/                    # Engineering knowledge base
+├── docs/                    # Change documentation entries
+├── summaries/               # Generated HTML summaries
 └── otto/
-    ├── .active              # Lock file during /otto sessions
-    └── sessions/            # Session state, feedback, screenshots
+    └── sessions/            # Session state (state.json)
 
 skills/                      # Skill implementations (SKILL.md + support files)
 ├── otto/
-│   └── lib/browser/         # Shared Playwright-based browser automation
+│   └── lib/browser/         # Playwright-based browser automation
 ├── summary/
-│   └── scripts/md-to-html.js  # Markdown → HTML renderer
+│   └── scripts/md-to-html.js
 └── ...
-```
-
-## Configuration
-
-`.otto/config.yaml` (auto-created on first `/otto` run):
-
-```yaml
-otto:
-  commit_interval: 5         # Commit progress every N tasks
-  max_duration_hours: 4      # Session timeout
-  self_improve: true         # Run self-improvement cycles at each commit (on/off)
 ```
 
 ## Feedback
