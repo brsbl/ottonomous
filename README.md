@@ -25,33 +25,19 @@
 
 ## Skills
 
-### Planning
+| Skill | Description |
+|-------|-------------|
+| `/spec [idea]` | Analyzes codebase, researches best practices, captures reference screenshots, and interviews you to build product requirements and technical design. |
+| `/task <spec-id>` | Generates atomic, parallelizable tasks from a spec with status, priority (P0-P4), and dependencies. |
+| `/next [task-id]` | Without arg: returns next unblocked task. With arg: implements that task. |
+| `/test <run\|write> [scope]` | `write`: set up test harness and generate tests. `run`: execute tests and verify UI with browser automation. |
+| `/review [scope]` | Multi-agent code review. Parallelizes by directory for large changes, prioritizes bugs (P0-P3), auto-fixes critical issues. |
+| `/doc [scope]` | Documents code changes with what/why/notable details. One entry per logical change. |
+| `/summary` | Synthesizes `/doc` entries into styled HTML summary, opens in browser. |
+| `/otto <idea>` | Autonomous end-to-end: spec → tasks → implement/test/review/doc loop → summary. Auto-approves decisions. |
+| `/reset` | Resets project to fresh plugin state. Removes `.otto/` and generated code, preserves plugin files. |
 
-**`/spec [product idea]`** — Analyzes your codebase, researches best practices, takes screenshots of reference projects using browser automation, and interactively interviews you until it has comprehensive product requirements and technical design decisions for your product idea.
-
-**`/task <spec-id>`** — Generates atomic, parallelizable tasks from a spec. Each task has status (pending → in_progress → done), priority (P0-P4), and optional dependencies.
-
-**`/next [task-id]`** — Without argument, selects and returns the highest priority, unblocked task that is not in progress or done. With a task id, implements that specific task.
-
-### Quality
-
-**`/test <run | write> [scope]`** — Use `write` to set up a test harness and write tests following a recommended testing strategy. Use `run` to run automated tests and verify UI changes using browser automation. Scope: `staged`, `uncommitted`, `branch` (default).
-
-**`/review [scope]`** — Runs a multi-tiered code review & bug fix process using subagents. For large changes (5+ files), orchestrator agent launches reiew subagents organized by directory or component. Subagents prioritize bugs (P0-P3), orchestrator agent synthesizes findings and creates a consolidated fix plan. Finally, orchestrator agent launches parallel subagents to auto-fix the P0 and P1 issues. Scope: `staged`, `uncommitted`, `branch` (default).
-
-### Documentation
-
-**`/doc [scope]`** — Documents code changes. Creates structured entries capturing what changed, why, and notable details (technical decisions, behavioral/data flow changes, key patterns). One doc entry created per logical change (e.g., one feature, one fix, one refactor). Scopes: `staged`, `uncommitted`, `branch` (default).
-
-**`/summary`** — Synthesizes all `/doc` entries into a cohesive summary of changes. Summary is saved to a styled HTML page that automatically opens in your browser for each browsing.
-
-### Orchestration
-
-**`/otto <product idea>`** — Autonomously goes through all of the stages of product development to build your idea end-to-end: writes a research-based spec, generates parallelizable tasks, implements each task in a loop with tests/code review/doc phases, then produces a final summary of changes viewable in your browser when done. An orchestrator agent invokes all of the above skills using subagents and auto-approves any needed decisions using recommended options.
-
-### Utilities
-
-**`/reset`** — Resets project to fresh plugin state. Removes `.otto/`, generated code, and build artifacts. Preserves plugin files (skills/, .claude/) and git history. Requires confirmation.
+**Scopes:** `staged`, `uncommitted`, `branch` (default)
 
 ## Architecture
 
