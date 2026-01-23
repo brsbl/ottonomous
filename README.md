@@ -13,6 +13,14 @@
 /plugin install ottonomous@brsbl-ottonomous
 ```
 
+## Workflow
+
+```
+                 ┌─────────────────────────────────┐
+/spec → /task →  │ /next → /test → /review → /doc  │ → /summary
+                 └──────── repeat per task ────────┘
+```
+
 ## Skills
 
 ### Planning
@@ -42,15 +50,6 @@
 ### Utilities
 
 **`/reset`** — Resets project to fresh plugin state. Removes `.otto/`, generated code, and build artifacts. Preserves plugin files (skills/, .claude/) and git history. Requires confirmation.
-
-
-## Workflow
-
-```
-                 ┌─────────────────────────────────┐
-/spec → /task →  │ /next → /test → /review → /doc  │ → /summary
-                 └──────── repeat per task ────────┘
-```
 
 ## Architecture
 
