@@ -1,51 +1,43 @@
 ---
 name: next
-description: Pick and work on the next highest priority unblocked task. Handles blockers with automatic retry logic. Activates when user wants to continue working, pick up the next task, keep going, or make progress on a spec. Invoke with /next.
+description: Pick or implement the next task. Without argument, returns the next task id. With task id, implements that task. Use to continue working through a task list.
+argument-hint: [task-id]
 ---
 
-# Next Task
+**Argument:** $ARGUMENTS
 
-Pick and work on the next highest priority unblocked task.
+| Argument | Behavior |
+|----------|----------|
+| (none) | Select and return next task id |
+| `{task-id}` | Implement the specified task |
 
-## Auto Mode
-
-**Check for AUTO_MODE at the start of every workflow:**
-
-```bash
-# AUTO_MODE only active during an active /otto session
-AUTO_MODE=$([[ -f .otto/otto/.active ]] && echo "true" || echo "false")
-MAX_BLOCKERS=$(grep "max_blockers:" .otto/config.yaml 2>/dev/null | awk '{print $2}' || echo "3")
-```
-
-**When `AUTO_MODE=true`:**
-- Skip `AskUserQuestion` when multiple specs have pending tasks
-- Auto-select spec with highest priority pending task (tie-break by task count)
-- Log: `[AUTO] Selected spec {id} with {n} pending tasks`
-
-## Workflow
+---
 
 ### 1. Find Tasks
 
-- Glob `.otto/tasks/*.json` to find task files
-- Read each file, check for pending tasks
-- If multiple specs have pending tasks, use `AskUserQuestion`:
+```bash
+ls .otto/tasks/*.json 2>/dev/null
+```
 
+Read each file, check for pending tasks.
+
+**If multiple specs have pending tasks**, use `AskUserQuestion`:
 ```
 Multiple specs have pending tasks:
-
-1. {spec-id-1}: {n} pending ({next-task-title})
-2. {spec-id-2}: {n} pending ({next-task-title})
+1. {spec-id-1}: {n} pending
+2. {spec-id-2}: {n} pending
 
 Which spec should I work on?
 ```
 
-- Read the selected task file
+---
 
 ### 2. Select Next Task
 
-Apply the "next task" algorithm:
+If `$ARGUMENTS` is empty, select the next task:
+
 1. Filter to tasks with status "pending"
-2. Filter to unblocked tasks (all depends_on are "done")
+2. Filter to unblocked tasks (all `depends_on` tasks are "done")
 3. Sort by priority (lower number = higher priority)
 4. Tie-break by ID (lower ID first)
 
@@ -57,59 +49,31 @@ Apply the "next task" algorithm:
 | Pending but blocked | "{n} tasks blocked. Waiting on: {blocker-ids}" |
 | No tasks in file | "No tasks found. Run `/task {spec-id}` to generate." |
 
-### 3. Start Work
+**Report the selected task:**
+```
+Next task: {id}
+Title: {title}
+Priority: {priority}
+```
 
-- Update task status to "in_progress" in JSON file
-- Stage: `git add .otto/tasks/{spec-id}.json`
-- Tell user: "Starting task {id}: {title}"
-- Begin implementing the task
+Stop here if no argument was provided.
+
+---
+
+### 3. Implement Task
+
+If `$ARGUMENTS` contains a task id, implement that task:
+
+1. Read the task from tasks.json
+2. Update task status to "in_progress"
+3. Stage: `git add .otto/tasks/{spec-id}.json`
+4. Tell user: "Starting task {id}: {title}"
+5. Implement the task as described
 
 ### 4. Complete
 
 When task is done:
 - Update task status to "done" in JSON file
-- Stage changes
+- Stage changes: `git add -A`
 
-**Next Steps:**
-> "Task complete! Next options:
-> - `/test` - Run tests and visual verification
-> - `/review` - Review changes for bugs before continuing
-> - `/next` - Pick up the next task
-> - `/summary` - Generate change documentation (if ready for PR)"
-
-### 5. Handle Blockers (AUTO_MODE)
-
-When task execution fails in AUTO_MODE:
-
-1. **Increment blocker_count** in the task JSON:
-   ```json
-   {
-     "blocker_count": 1
-   }
-   ```
-
-2. **Check against MAX_BLOCKERS:**
-   - If `blocker_count < MAX_BLOCKERS`: Retry the task
-   - If `blocker_count >= MAX_BLOCKERS`: Skip the task
-
-3. **On skip, update task:**
-   ```json
-   {
-     "skipped": true,
-     "skip_reason": "Exceeded max blocker attempts: {error_message}"
-   }
-   ```
-
-4. **Log the outcome:**
-   - Retry: `[BLOCKER] Task {id} failed ({blocker_count}/{MAX_BLOCKERS}): {error}. Retrying...`
-   - Skip: `[SKIPPED] Task {id} skipped after {MAX_BLOCKERS} failures: {error}`
-
-5. **Return to task selection** to pick the next unblocked task.
-
-**Blocker categories:**
-| Type | Examples | Response |
-|------|----------|----------|
-| `build` | TypeScript error, missing import | Attempt fix once, then skip |
-| `test` | Unit test fails | Log, continue |
-| `dependency` | Missing package | Try install, skip if fails |
-| `external` | API timeout, rate limit | Retry 2x, then skip |
+Report: "Task {id} complete."

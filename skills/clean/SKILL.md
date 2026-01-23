@@ -1,59 +1,43 @@
 ---
 name: clean
-description: Resets project to fresh plugin state. Removes all workflow artifacts (.otto/) and generated code while preserving plugin files and git history. Use when starting over, testing clean builds, or wiping generated code. Destructive - requires confirmation. Invoke with /clean.
+description: Resets project to fresh plugin state. Removes all workflow artifacts (.otto/) and generated code while preserving plugin files and git history. Use when starting over, testing clean builds, or wiping generated code. Destructive - requires confirmation.
 ---
 
-# Clean
+Reset project to freshly installed plugin state. This is destructive.
 
-Reset project to freshly installed plugin state. This is destructive and removes all generated code and workflow data.
+## Preserved Files (allowlist)
 
-## What Gets Preserved (allowlist)
-
-Only these files/directories survive:
+Only these survive:
 - `.claude/` - Settings
 - `.claude-plugin/` - Marketplace metadata
-- `skills/` - Plugin skills (includes browser automation in skills/otto/lib/)
+- `skills/` - Plugin skills
 - `.git/` - Version control
-- `README.md` - Project readme
-- `LICENSE` - License file
-- `.gitignore` - Git ignore rules
-- `.gitmodules` - Git submodules
+- `README.md`, `LICENSE`, `.gitignore`, `.gitmodules`
 
-## What Gets Removed
+## Removed Files
 
-**Everything else** - including but not limited to:
-- `.otto/` - Workflow data (specs, tasks, sessions)
-- `src/`, `dist/`, `public/` - App source code
+Everything else, including:
+- `.otto/` - Workflow data
+- `src/`, `dist/`, `public/` - App code
 - `node_modules/` - Dependencies
-- `package.json`, lockfiles - Package configs
+- `package.json`, lockfiles
 - Framework dirs (`.next/`, `.nuxt/`, etc.)
-- Build configs (`vite.config.*`, `tsconfig*.json`, etc.)
-
-This approach handles any framework without needing to enumerate them.
-
----
+- Build configs (`vite.config.*`, `tsconfig*.json`)
 
 ## Workflow
 
-### Step 1: Kill Active Processes
-
-Check for and kill any running otto processes:
+### 1. Kill Active Processes
 
 ```bash
-if [ -f ".otto/otto/.active" ]; then
-  SESSION_ID=$(cat .otto/otto/.active)
-  SESSION_DIR=".otto/otto/sessions/$SESSION_ID"
-  [ -f "$SESSION_DIR/browser.pid" ] && kill $(cat "$SESSION_DIR/browser.pid") 2>/dev/null || true
-  [ -f "$SESSION_DIR/report.pid" ] && kill $(cat "$SESSION_DIR/report.pid") 2>/dev/null || true
-fi
+for pid_file in .otto/otto/sessions/*/browser.pid; do
+  [ -f "$pid_file" ] && kill $(cat "$pid_file") 2>/dev/null || true
+done
 ```
 
-### Step 2: Preview What Will Be Removed
+### 2. Preview Removal
 
-List everything except preserved files with sizes:
-
+List items that will be removed with sizes:
 ```bash
-# List items that will be removed (everything except preserved files)
 find . -maxdepth 1 \
   ! -name '.' \
   ! -name '.claude' \
@@ -67,48 +51,27 @@ find . -maxdepth 1 \
   -exec du -sh {} \; 2>/dev/null | sort -hr
 ```
 
-Display preview to user:
-
+Show user:
 ```
 Will remove:
   node_modules/      180M
-  .next/              45M
   .otto/              12M
   src/                 2M
-  package.json         1K
   ...
 
-Total: ~239M
-
 Preserved:
-  .claude/
-  .claude-plugin/
-  skills/
-  .git/
-  README.md
-  LICENSE
-  .gitignore
-  .gitmodules
+  .claude/, skills/, .git/, README.md, LICENSE
 ```
 
-### Step 3: Confirm
+### 3. Confirm
 
-**Always ask for confirmation** - this is destructive:
+Use `AskUserQuestion`:
+> "This will delete all app code and workflow data. Continue?"
+> Options: "Yes, reset" / "Cancel"
 
-```
-Use AskUserQuestion:
+### 4. Remove
 
-Question: "This will delete all app code and workflow data. Continue?"
-
-Options:
-- Yes, reset to clean state
-- Cancel
-```
-
-### Step 4: Remove Everything Except Preserved Files
-
-After confirmation, remove using find:
-
+After confirmation:
 ```bash
 find . -maxdepth 1 \
   ! -name '.' \
@@ -123,58 +86,9 @@ find . -maxdepth 1 \
   -exec rm -rf {} +
 ```
 
-This operates on the filesystem directly (doesn't use git or read .gitignore).
-
-### Step 5: Report Results
+### 5. Report
 
 ```
-Cleaned. Removed all files except:
-  .claude/
-  .claude-plugin/
-  skills/
-  .git/
-  README.md
-  LICENSE
-  .gitignore
-  .gitmodules
-
-Project reset to fresh plugin state.
+Cleaned. Project reset to fresh plugin state.
 Run /otto to start a new build.
-```
-
----
-
-## Example
-
-```
-/clean
-```
-
-Output:
-```
-Checking for active processes... none found.
-
-Will remove:
-  node_modules/      180M
-  .next/              45M
-  .otto/              12M
-  src/                 2M
-  package.json         1K
-  tsconfig.json        1K
-
-Total: ~239M
-
-Preserved:
-  .claude/
-  .claude-plugin/
-  skills/
-  .git/
-  README.md
-
-This will delete all app code and workflow data. Continue?
-> Yes, reset to clean state
-
-Cleaned. Removed all files except preserved plugin files.
-
-Project reset to fresh plugin state.
 ```
