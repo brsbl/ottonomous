@@ -15,7 +15,7 @@ Each task should be an **atomic unit of work**:
 
 - **One deliverable**: Clear output that indicates completion
 - **Verifiable**: Specific "done" condition
-- **Atomic scope**: Completable in one session (~4-6 hours)
+- **Atomic scope**: Completable in one agent session
 - **File limit**: Ideally ≤3 files modified (split larger tasks)
 - **Minimal dependencies**: Only add `depends_on` when task truly cannot start without another
 
