@@ -36,25 +36,19 @@
 
 ### Orchestration
 
-**`/otto <idea>`** — Autonomously goes through all of the stages of product development to build your idea end-to-end: writes a research-based spec, generates parallelizable tasks, implements each task in a loop with tests/code review/doc phases, then produces a final summary of changes viewable in your browser when done. An orchestrator agent invokes all of the above skills using subagents and auto-approves any needed decisions using recommended options.
+**`/otto <product idea>`** — Autonomously goes through all of the stages of product development to build your idea end-to-end: writes a research-based spec, generates parallelizable tasks, implements each task in a loop with tests/code review/doc phases, then produces a final summary of changes viewable in your browser when done. An orchestrator agent invokes all of the above skills using subagents and auto-approves any needed decisions using recommended options.
 
 ### Utilities
 
 **`/clean`** — Resets project to fresh plugin state. Removes `.otto/`, generated code, and build artifacts. Preserves plugin files (skills/, .claude/) and git history. Requires confirmation.
 
 
-## Workflows
+## Workflow
 
-### Manual
 ```
                  ┌─────────────────────────────────┐
-/spec → /task → │ /next → /test → /review → /doc │ → /summary
+/spec → /task →  │ /next → /test → /review → /doc  │ → /summary
                  └──────── repeat per task ────────┘
-```
-
-### Autonomous
-```
-/otto <idea>
 ```
 
 ## Architecture
