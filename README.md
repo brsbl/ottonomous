@@ -16,28 +16,27 @@
 
 ### Planning
 
-**`/spec [product idea]`** — Analyzes your codebase, researches best practices, and interactively interviews you until it has comprehensive product requirements and technical design decisions for your product idea.
+**`/spec [product idea]`** — Analyzes your codebase, researches best practices, takes screenshots of reference projects using browser automation, and interactively interviews you until it has comprehensive product requirements and technical design decisions for your product idea.
 
-**`/task <spec-id>`** — Generates atomic, parallelizable tasks from a spec. Each task has status (pending → in_progress → done), priority (0-4), and optional dependencies.
+**`/task <spec-id>`** — Generates atomic, parallelizable tasks from a spec. Each task has status (pending → in_progress → done), priority (P0-P4), and optional dependencies.
 
 **`/next [task-id]`** — Without argument, selects and returns the highest priority, unblocked task that is not in progress or done. With a task id, implements that specific task.
 
 ### Quality
 
-**`/test <run | write> [scope]`** — Use `write` to set up a test harness and write tests following a recommended testing strategy. Use `run` to run automated tests and verify UI changes using browser automation. Scope of changes for tests: `staged`, `uncommitted`, `branch` (default).
+**`/test <run | write> [scope]`** — Use `write` to set up a test harness and write tests following a recommended testing strategy. Use `run` to run automated tests and verify UI changes using browser automation. Scope: `staged`, `uncommitted`, `branch` (default).
 
-**`/review [scope]`** — Code review with P0-P3 prioritized findings. Uses parallel subagents for large changes, creates fix plans, and implements critical issues. Scopes: `staged`, `uncommitted`, `branch` (default).
+**`/review [scope]`** — Runs a multi-tiered code review & bug fix process using subagents. For large changes (5+ files), orchestrator agent launches reiew subagents organized by directory or component. Subagents prioritize bugs (P0-P3), orchestrator agent synthesizes findings and creates a consolidated fix plan. Finally, orchestrator agent launches parallel subagents to auto-fix the P0 and P1 issues. Scope: `staged`, `uncommitted`, `branch` (default).
 
 ### Documentation
 
-**`/doc [scope]`** — Documents code changes. Creates structured entries capturing what changed, why, and notable details. Scopes: `staged`, `uncommitted`, `branch` (default).
+**`/doc [scope]`** — Documents code changes. Creates structured entries capturing what changed, why, and notable details (technical decisions, behavioral/data flow changes, key patterns). One doc entry created per logical change (e.g., one feature, one fix, one refactor). Scopes: `staged`, `uncommitted`, `branch` (default).
 
-**`/summary`** — Consolidates `/doc` entries into a styled HTML summary. Synthesizes documentation into a cohesive overview and opens in browser.
-
+**`/summary`** — Synthesizes all `/doc` entries into a cohesive summary of changes. Summary is saved to a styled HTML page that automatically opens in your browser for each browsing.
 
 ### Orchestration
 
-**`/otto <idea>`** — Autonomous product development. Takes an idea and builds it end-to-end with subagents: writes a spec, generates tasks, implements each task with test/review/doc phases, then produces a final summary. All skills are invoked via subagents with auto-approval of recommended options.
+**`/otto <idea>`** — Autonomously goes through all of the stages of product development to build your idea end-to-end: writes a research-based spec, generates parallelizable tasks, implements each task in a loop with tests/code review/doc phases, then produces a final summary of changes viewable in your browser when done. An orchestrator agent invokes all of the above skills using subagents and auto-approves any needed decisions using recommended options.
 
 ### Utilities
 
@@ -48,7 +47,7 @@
 
 ### Manual
 ```
-/spec → /task → /next (repeat) → /test → /review → /doc → /summary
+/spec → /task → /next → /test → /review → /doc → /summary
 ```
 
 ### Autonomous
