@@ -1,92 +1,64 @@
 ---
 name: task
-description: Generates parallelizable task lists from specs. Breaks specs into atomic, prioritized tasks with dependencies. Activates when user has a spec and mentions tasks, implementation, breakdown, work plan, or what to do next. Invoke with /task.
+description: Generates parallelizable task lists from specs. Breaks specs into atomic, prioritized tasks with dependencies. Activates when user has a spec and mentions tasks, implementation, breakdown, work plan, or what to do next.
 ---
 
-# Task Management
+# Task Generation
 
 Generate implementation tasks from an approved spec.
 
 **Usage:** `/task <spec-id>`
 
-## Auto Mode
-
-**Check for AUTO_MODE at the start of every workflow:**
-
-```bash
-# AUTO_MODE only active during an active /otto session
-AUTO_MODE=$([[ -f .otto/otto/.active ]] && echo "true" || echo "false")
-```
-
-**When `AUTO_MODE=true`:**
-- Skip `AskUserQuestion` confirmation in Phase 3
-- Save tasks immediately after generation
-- Log: `[AUTO] Tasks auto-confirmed: {task_ids}`
-
-## Quick Start
-
-**Check for pending tasks** before starting new work:
-
-```bash
-ls .otto/tasks/*.json 2>/dev/null
-```
-
 ## Task Design Principles
 
 Each task should be an **atomic unit of work**:
 
-- **One deliverable**: What concrete output indicates completion?
-- **One success state**: Clear, verifiable "done" condition
-- **Atomic scope**: Completable in one session
-  - Target: < 1 day of focused work
-  - Guideline: ≤ 3 files modified (if more, consider splitting)
-- **Minimal dependencies**: Only add `depends_on` when task truly cannot start without another completing
-  - Default assumption: tasks run in parallel
-  - Justify dependencies explicitly
+- **One deliverable**: Clear output that indicates completion
+- **Verifiable**: Specific "done" condition
+- **Atomic scope**: Completable in one session (~4-6 hours)
+- **File limit**: Ideally ≤3 files modified (split larger tasks)
+- **Minimal dependencies**: Only add `depends_on` when task truly cannot start without another
 
 ## Workflow
 
-### 1. Get Spec
+### 1. Read Spec
 
 Read the spec from `.otto/specs/$ARGUMENTS.md`
 
-If spec not found, report error and list available specs.
+If not found, list available specs:
+```bash
+ls .otto/specs/*.md 2>/dev/null
+```
 
-If spec status is not "approved", report: "Spec '{spec-id}' has status '{status}'. Only approved specs can generate tasks."
+If spec status is not "approved", report: "Spec has status '{status}'. Only approved specs can generate tasks."
 
-### 2. Analyze
+### 2. Analyze & Break Down
 
-Break spec into discrete, implementable tasks.
-
-**For each task, verify:**
-- [ ] Clear success criterion (what's "done"?)
-- [ ] Scope: completable in ~4-6 hours
-- [ ] File scope: ≤ 3 files (if more, split the task)
-- [ ] Dependencies justified (not arbitrary ordering)
+Break spec into discrete, implementable tasks following the design principles above.
 
 **Assign priorities:**
 - 0 = Critical (blocks other work)
-- 1 = High (important, do soon)
+- 1 = High (core functionality)
 - 2 = Normal (default)
 - 3 = Low (can defer)
 - 4 = Nice to have
 
-### 3. Propose
+### 3. Present for Confirmation
 
-Present task list as a table showing all fields:
+Show task list as a table:
 
 ```
 Proposed tasks for {spec-name}:
 
 | ID | Title | Priority | Depends On | Description |
 |----|-------|----------|------------|-------------|
-| 1 | Task title | P1 | none | Brief description of the task |
-| 2 | Another task | P2 | 1 | Brief description of the task |
+| 1 | Setup project | P0 | - | Initialize project structure |
+| 2 | Core feature | P1 | 1 | Implement main functionality |
 ```
 
-After the table, note parallelism:
-- "**Parallelism:** Tasks {ids} have no dependencies and can run in parallel."
-- "**Sequential:** {chain}" (e.g., "1→2→3")
+Note parallelism:
+- "**Parallel:** Tasks {ids} can run concurrently"
+- "**Sequential:** {chain}" (e.g., "1 → 2 → 3")
 
 Use `AskUserQuestion` to confirm or get changes.
 
@@ -101,22 +73,14 @@ Write to `.otto/tasks/{spec-id}.json`:
     {
       "id": "1",
       "title": "Task title",
-      "description": "Success: [what done looks like]. Touches: [files]. Scope: [estimate]",
+      "description": "Success: [done condition]. Files: [paths]. Scope: [estimate]",
       "status": "pending",
       "priority": 1,
-      "depends_on": [],
-      "blocker_count": 0,
-      "skipped": false,
-      "skip_reason": null
+      "depends_on": []
     }
   ]
 }
 ```
-
-**Blocker metadata fields:**
-- `blocker_count`: Number of consecutive failures (incremented by `/next` on failure)
-- `skipped`: Set to `true` when task is skipped due to max blockers
-- `skip_reason`: Reason the task was skipped (set when `skipped: true`)
 
 Stage: `git add .otto/tasks/{spec-id}.json`
 
@@ -124,5 +88,5 @@ Confirm: "Created {n} tasks for {spec-name}"
 
 ### 5. Next Steps
 
-Offer to start working:
-> "Would you like me to start on the first task? Run `/next` to begin."
+Offer to start:
+> "Run `/next` to begin working on the first task."
