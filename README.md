@@ -1,6 +1,6 @@
 # Ottonomous
 
-<img width="350" height="163" alt="image 1" src="https://github.com/user-attachments/assets/71a86ba4-e069-4113-bc86-17bb3b21b19a" />
+<img width="3072" height="1428" alt="image 1 (1)" src="https://github.com/user-attachments/assets/2e8b420b-8b85-43af-9db7-764f6d4dc269" />
 
 
 ## Installation
