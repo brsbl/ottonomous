@@ -47,12 +47,14 @@
 
 ### Manual
 ```
-/spec → /task → /next → /test → /review → /doc → /summary
+                 ┌─────────────────────────────────┐
+/spec → /task → │ /next → /test → /review → /doc │ → /summary
+                 └──────── repeat per task ────────┘
 ```
 
 ### Autonomous
 ```
-/otto <idea>   # Full loop: spec → tasks → implement/test/review/doc per task → summary
+/otto <idea>
 ```
 
 ## Architecture
