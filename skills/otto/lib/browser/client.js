@@ -13,11 +13,11 @@
  *   await client.disconnect();
  */
 
-import { chromium } from 'playwright';
+import { chromium } from "playwright";
 import {
   normalizePageName,
-  validateScreenshotOptions
-} from './server.utils.js';
+  validateScreenshotOptions,
+} from "./server.utils.js";
 
 const DEFAULT_TIMEOUT = 30000;
 
@@ -31,7 +31,7 @@ export async function connect(options = {}) {
   const { headless = true } = options;
 
   const browser = await chromium.launch({
-    headless
+    headless,
   });
 
   return new BrowserClient(browser);
@@ -45,9 +45,9 @@ export async function connect(options = {}) {
  */
 export async function waitForPageLoad(page, options = {}) {
   const { timeout = DEFAULT_TIMEOUT } = options;
-  await page.waitForLoadState('networkidle', { timeout }).catch(() => {
+  await page.waitForLoadState("networkidle", { timeout }).catch(() => {
     // Fall back to domcontentloaded if networkidle times out
-    return page.waitForLoadState('domcontentloaded', { timeout });
+    return page.waitForLoadState("domcontentloaded", { timeout });
   });
 }
 
@@ -60,7 +60,9 @@ export async function waitForPageLoad(page, options = {}) {
 export async function screenshot(page, options = {}) {
   const validation = validateScreenshotOptions(options);
   if (!validation.valid) {
-    throw new Error(`Invalid screenshot options: ${validation.errors.join(', ')}`);
+    throw new Error(
+      `Invalid screenshot options: ${validation.errors.join(", ")}`,
+    );
   }
   return page.screenshot(options);
 }
@@ -88,7 +90,7 @@ class BrowserClient {
 
     const context = await this.browser.newContext({
       viewport: { width: 1280, height: 720 },
-      ignoreHTTPSErrors: true
+      ignoreHTTPSErrors: true,
     });
     const page = await context.newPage();
     this.pages.set(normalized, page);
@@ -122,7 +124,7 @@ class BrowserClient {
       pages.push({
         name,
         url: page.url(),
-        title: await page.title().catch(() => '')
+        title: await page.title().catch(() => ""),
       });
     }
     return pages;

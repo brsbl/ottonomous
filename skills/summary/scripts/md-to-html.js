@@ -1,11 +1,16 @@
 #!/usr/bin/env node
 
+import fs from "node:fs";
+import path from "node:path";
+import hljs from "highlight.js";
 import { marked } from "marked";
 import { markedHighlight } from "marked-highlight";
-import hljs from "highlight.js";
-import fs from "fs";
-import path from "path";
-import { parseFrontmatter, generateMetadataHtml, parseArgs, escapeHtml } from "./md-to-html.utils.js";
+import {
+  escapeHtml,
+  generateMetadataHtml,
+  parseArgs,
+  parseFrontmatter,
+} from "./md-to-html.utils.js";
 
 // Configure marked with syntax highlighting
 marked.use(
@@ -15,7 +20,7 @@ marked.use(
       const language = hljs.getLanguage(lang) ? lang : "plaintext";
       return hljs.highlight(code, { language }).value;
     },
-  })
+  }),
 );
 
 // Enable GitHub Flavored Markdown
@@ -211,7 +216,9 @@ try {
 
   // Extract title from first heading or filename
   const titleMatch = markdown.match(/^#\s+(.+)$/m);
-  const title = escapeHtml(titleMatch ? titleMatch[1] : path.basename(inputPath, ".md"));
+  const title = escapeHtml(
+    titleMatch ? titleMatch[1] : path.basename(inputPath, ".md"),
+  );
 
   // Convert markdown to HTML
   const htmlContent = metadataHtml + marked(markdown);

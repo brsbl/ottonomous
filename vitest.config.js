@@ -1,9 +1,7 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    projects: [
-      'skills/*/vitest.config.js',
-    ],
+    projects: ["skills/**/vitest.config.js"],
   },
-})
+});

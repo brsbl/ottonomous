@@ -14,15 +14,15 @@
  *   GET /health          - Health check
  */
 
-import { chromium } from 'playwright';
-import http from 'http';
-import { URL } from 'url';
-import { getArg, isValidPort } from './server.utils.js';
+import http from "node:http";
+import { URL } from "node:url";
+import { chromium } from "playwright";
+import { getArg, isValidPort } from "./server.utils.js";
 
 const DEFAULT_PORT = 9222;
 const args = process.argv.slice(2);
-const PORT = parseInt(getArg(args, 'port', String(DEFAULT_PORT)), 10);
-const HEADLESS = args.includes('--headless');
+const PORT = Number.parseInt(getArg(args, "port", String(DEFAULT_PORT)), 10);
+const HEADLESS = args.includes("--headless");
 
 if (!isValidPort(PORT)) {
   console.error(`Invalid port: ${PORT}`);
@@ -35,7 +35,7 @@ const pages = new Map(); // name -> page
 async function ensureBrowser() {
   if (!browser) {
     browser = await chromium.launch({
-      headless: HEADLESS
+      headless: HEADLESS,
     });
     console.log(`Browser launched (headless: ${HEADLESS})`);
   }
@@ -50,7 +50,7 @@ async function getOrCreatePage(name) {
   const b = await ensureBrowser();
   const context = await b.newContext({
     viewport: { width: 1280, height: 720 },
-    ignoreHTTPSErrors: true
+    ignoreHTTPSErrors: true,
   });
   const page = await context.newPage();
   pages.set(name, page);
@@ -70,7 +70,7 @@ async function closePage(name) {
 }
 
 async function shutdown() {
-  console.log('Shutting down...');
+  console.log("Shutting down...");
   for (const [name, page] of pages) {
     await page.close().catch(() => {});
     console.log(`Page closed: ${name}`);
@@ -80,34 +80,36 @@ async function shutdown() {
     await browser.close();
     browser = null;
   }
-  console.log('Browser closed');
+  console.log("Browser closed");
 }
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = url.pathname;
 
-  res.setHeader('Content-Type', 'application/json');
+  res.setHeader("Content-Type", "application/json");
 
   try {
     // Health check
-    if (req.method === 'GET' && pathname === '/health') {
-      res.end(JSON.stringify({
-        status: 'ok',
-        browser: !!browser,
-        pages: Array.from(pages.keys())
-      }));
+    if (req.method === "GET" && pathname === "/health") {
+      res.end(
+        JSON.stringify({
+          status: "ok",
+          browser: !!browser,
+          pages: Array.from(pages.keys()),
+        }),
+      );
       return;
     }
 
     // List pages
-    if (req.method === 'GET' && pathname === '/pages') {
+    if (req.method === "GET" && pathname === "/pages") {
       const pageList = [];
       for (const [name, page] of pages) {
         pageList.push({
           name,
           url: page.url(),
-          title: await page.title().catch(() => '')
+          title: await page.title().catch(() => ""),
         });
       }
       res.end(JSON.stringify({ pages: pageList }));
@@ -115,19 +117,21 @@ const server = http.createServer(async (req, res) => {
     }
 
     // Create/get page
-    if (req.method === 'POST' && pathname.startsWith('/page/')) {
+    if (req.method === "POST" && pathname.startsWith("/page/")) {
       const name = decodeURIComponent(pathname.slice(6));
       const { page, created } = await getOrCreatePage(name);
-      res.end(JSON.stringify({
-        name,
-        created,
-        url: page.url()
-      }));
+      res.end(
+        JSON.stringify({
+          name,
+          created,
+          url: page.url(),
+        }),
+      );
       return;
     }
 
     // Close page
-    if (req.method === 'DELETE' && pathname.startsWith('/page/')) {
+    if (req.method === "DELETE" && pathname.startsWith("/page/")) {
       const name = decodeURIComponent(pathname.slice(6));
       const closed = await closePage(name);
       res.statusCode = closed ? 200 : 404;
@@ -136,30 +140,31 @@ const server = http.createServer(async (req, res) => {
     }
 
     // Shutdown
-    if (req.method === 'POST' && pathname === '/shutdown') {
-      res.end(JSON.stringify({ status: 'shutting_down' }));
+    if (req.method === "POST" && pathname === "/shutdown") {
+      res.end(JSON.stringify({ status: "shutting_down" }));
       await shutdown();
       process.exit(0);
     }
 
     // 404
     res.statusCode = 404;
-    res.end(JSON.stringify({ error: 'Not found' }));
-
+    res.end(JSON.stringify({ error: "Not found" }));
   } catch (error) {
-    console.error('Request error:', error);
+    console.error("Request error:", error);
     res.statusCode = 500;
     res.end(JSON.stringify({ error: error.message }));
   }
 });
 
-server.on('error', (error) => {
-  if (error.code === 'EADDRINUSE') {
+server.on("error", (error) => {
+  if (error.code === "EADDRINUSE") {
     console.error(`Error: Port ${PORT} is already in use`);
-    console.error(`Check if another browser server is running: lsof -i :${PORT}`);
+    console.error(
+      `Check if another browser server is running: lsof -i :${PORT}`,
+    );
     process.exit(1);
   }
-  console.error('Server error:', error);
+  console.error("Server error:", error);
   process.exit(1);
 });
 
@@ -169,12 +174,12 @@ server.listen(PORT, () => {
 });
 
 // Graceful shutdown handlers
-process.on('SIGINT', async () => {
+process.on("SIGINT", async () => {
   await shutdown();
   process.exit(0);
 });
 
-process.on('SIGTERM', async () => {
+process.on("SIGTERM", async () => {
   await shutdown();
   process.exit(0);
 });
