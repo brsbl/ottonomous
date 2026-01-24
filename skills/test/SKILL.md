@@ -227,7 +227,7 @@ Run the detected test command and save output to `.otto/test-results/output.log`
 
 Verify UI changes based on scope (use matching git diff command from table above):
 1. Identify which pages/routes were affected by code changes
-2. Navigate to those pages using browser automation (`skills/otto/lib/browser/client.js`)
+2. Navigate to those pages using browser automation (`./lib/browser/client.js`)
 3. Capture screenshots to `./test-screenshots/`
 4. Read each screenshot and check for:
    - Layout issues (overlapping elements, broken alignment)
@@ -237,9 +237,35 @@ Verify UI changes based on scope (use matching git diff command from table above
 
 **If issues found:** Fix the code causing the visual problem, retake screenshots, and verify the fix.
 
+## 12. Element-Based Testing
+
+Use ARIA snapshots to verify page structure and interact with elements.
+
+| Method | Purpose |
+|--------|---------|
+| `client.getAISnapshot(name)` | Get YAML accessibility tree with refs |
+| `client.selectSnapshotRef(name, ref)` | Get element handle by ref (e.g., "e1") |
+
+**Snapshot format:**
+```yaml
+- banner:
+  - link "Home" [ref=e1]
+- main:
+  - heading "Welcome" [ref=e2]:
+    - /level: 1
+  - button "Submit" [disabled] [ref=e3]
+```
+
+**Verify:**
+- Expected elements exist with correct roles
+- Accessible names match expected text
+- State attributes are correct ([checked], [disabled], [expanded])
+
+**Interact:** Use `selectSnapshotRef` to get element handles, then call `.click()`, `.fill()`, etc.
+
 **Repeat until both unit tests and visual verification pass.**
 
-## 12. Report
+## 13. Report
 
 Summarize results:
 - Lint: pass/fail (errors fixed if any)
