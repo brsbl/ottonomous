@@ -35,15 +35,15 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 
 | Skill | Description |
 |-------|-------------|
-| `/spec [product idea]` | Researches best practices, captures screenshots, interviews you to define requirements and technical design. |
-| `/task <spec-id>` | Generates atomic, parallelizable tasks from a spec with priority (P0-P4) and dependencies. |
+| `/spec [product idea]` | Analyzes codebase, researches best practices, captures reference screenshots, and interviews you to define requirements and technical design. |
+| `/task <spec-id>` | Generates atomic, parallelizable tasks from a spec with status, priority (P0-P4), and dependencies. |
 | `/next [task-id]` | Without arg: returns next unblocked task. With arg: implements that task. |
-| `/test <run\|write> [scope]` | Lint, type check, run tests, verify UI. `write` generates tests first. Auto-detects and sets up tools. |
-| `/review [scope]` | Parallel code review via subagents. Prioritizes bugs (P0-P3), auto-fixes critical issues. |
+| `/test <run\|write> [scope]` | Lint, type check, run tests, verify UI. `write` generates tests first. Auto-detects ESLint/Biome/Ruff/Clippy, TypeScript/mypy, and test runners. |
+| `/review [scope]` | Multi-agent code review. Parallelizes by directory for large changes, prioritizes bugs (P0-P3), auto-fixes critical issues. |
 | `/doc [scope]` | Documents code changes with what/why/notable details. One entry per logical change. |
-| `/summary` | Synthesizes `/doc` entries into styled HTML summary in your browser. |
-| `/otto <product idea>` | Autonomous end-to-end: spec → tasks → [next/test/review/doc] loop → summary. |
-| `/reset` | Removes `.otto/` and generated code, preserves plugin files. |
+| `/summary` | Synthesizes `/doc` entries into styled HTML summary that opens in your browser. |
+| `/otto <product idea>` | Autonomous end-to-end: spec → tasks → [next/test/review/doc] loop → summary. Auto-approves decisions based on best practices. |
+| `/reset` | Resets project to fresh state. Removes `.otto/` and generated code, preserves plugin files. |
 
 **Scopes:** `staged`, `uncommitted`, `branch` (default)
 
