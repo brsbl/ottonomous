@@ -2,10 +2,12 @@
  * Browser-injectable script for ARIA snapshot generation.
  * This script runs in the browser context (injected via page.addScriptTag).
  *
- * Provides:
- * - ARIA tree generation with element refs
- * - Accessible name computation
- * - YAML serialization for agent consumption
+ * Provides Playwright-compatible ARIA snapshots with cross-connection ref persistence.
+ * References are stored on window.__devBrowserRefs.
+ *
+ * After execution, two functions become available:
+ * - window.__devBrowser_getAISnapshot() - Generate ARIA snapshot
+ * - window.__devBrowser_selectSnapshotRef(ref) - Get element by ref
  */
 
 (function() {
@@ -15,6 +17,29 @@
   window.__devBrowserRefs = window.__devBrowserRefs || {};
 
   let refCounter = 0;
+
+  // ============================================
+  // YAML Escaping (matching dev-browser)
+  // ============================================
+
+  /**
+   * Escape a string for use as a YAML value
+   */
+  function yamlEscapeValue(str) {
+    if (!str) return '""';
+    // Check if escaping is needed
+    if (!/[\n\r\t\\"']/.test(str) && str === str.trim()) {
+      return `"${str}"`;
+    }
+    // Escape special characters
+    let escaped = str
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r')
+      .replace(/\t/g, '\\t');
+    return `"${escaped}"`;
+  }
 
   // ============================================
   // DOM Utilities
@@ -256,7 +281,41 @@
   }
 
   /**
-   * Get additional accessible properties for an element
+   * Get state attributes for inline display (dev-browser format)
+   * Returns array of strings like ["checked", "disabled"]
+   */
+  function getStateAttributes(element) {
+    const states = [];
+    const tag = element.tagName.toLowerCase();
+
+    // Checked state (only for checkboxes and radios)
+    if (tag === 'input' && ['checkbox', 'radio'].includes(element.type)) {
+      if (element.checked) states.push('checked');
+    }
+
+    // Disabled state
+    if (element.disabled) {
+      states.push('disabled');
+    }
+
+    // Required
+    if (element.required) {
+      states.push('required');
+    }
+
+    // Expanded state
+    const expanded = element.getAttribute('aria-expanded');
+    if (expanded === 'true') states.push('expanded');
+
+    // Selected state
+    const selected = element.getAttribute('aria-selected');
+    if (selected === 'true') states.push('selected');
+
+    return states;
+  }
+
+  /**
+   * Get additional accessible properties for an element (non-boolean values)
    */
   function getAccessibleProperties(element) {
     const props = {};
@@ -275,33 +334,6 @@
       } else if (tag === 'textarea') {
         props.value = element.value.substring(0, 100) + (element.value.length > 100 ? '...' : '');
       }
-    }
-
-    // Checked state (only for checkboxes and radios)
-    if (tag === 'input' && ['checkbox', 'radio'].includes(element.type)) {
-      props.checked = element.checked;
-    }
-
-    // Disabled state
-    if (element.disabled) {
-      props.disabled = true;
-    }
-
-    // Required
-    if (element.required) {
-      props.required = true;
-    }
-
-    // Expanded state
-    const expanded = element.getAttribute('aria-expanded');
-    if (expanded !== null) {
-      props.expanded = expanded === 'true';
-    }
-
-    // Selected state
-    const selected = element.getAttribute('aria-selected');
-    if (selected !== null) {
-      props.selected = selected === 'true';
     }
 
     // Level (for headings)
@@ -365,6 +397,7 @@
 
     const role = getAriaRole(element);
     const name = getAccessibleName(element);
+    const states = getStateAttributes(element);
     const props = getAccessibleProperties(element);
 
     // Determine if this element should be included
@@ -394,6 +427,7 @@
     const node = {
       role,
       name: hasName ? name : undefined,
+      states: states.length > 0 ? states : undefined,
       props: Object.keys(props).length > 0 ? props : undefined,
       children: children.length > 0 ? children : undefined
     };
@@ -407,11 +441,11 @@
   }
 
   // ============================================
-  // YAML Serialization
+  // YAML Serialization (dev-browser format)
   // ============================================
 
   /**
-   * Serialize the ARIA tree to YAML format
+   * Serialize the ARIA tree to YAML format (dev-browser compatible)
    */
   function serializeToYaml(node, indent = 0) {
     if (!node) return '';
@@ -427,28 +461,46 @@
       return lines.filter(Boolean).join('\n');
     }
 
-    // Build the role/name string
+    // Build the role/name/states/ref string (dev-browser format)
     let roleStr = node.role;
+
+    // Add name in quotes
     if (node.name) {
-      // Escape quotes in name and truncate if too long
       let displayName = node.name;
       if (displayName.length > 60) {
         displayName = displayName.substring(0, 57) + '...';
       }
-      displayName = displayName.replace(/"/g, '\\"').replace(/\n/g, ' ');
+      displayName = displayName.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
       roleStr += ` "${displayName}"`;
     }
+
+    // Add state attributes inline [checked] [disabled] etc.
+    if (node.states) {
+      for (const state of node.states) {
+        roleStr += ` [${state}]`;
+      }
+    }
+
+    // Add ref
     if (node.ref) {
       roleStr += ` [ref=${node.ref}]`;
     }
 
+    // Determine if we need a colon (has children or properties)
+    const hasContent = (node.props && Object.keys(node.props).length > 0) ||
+                       (node.children && node.children.length > 0);
+
+    if (hasContent) {
+      roleStr += ':';
+    }
+
     lines.push(`${spaces}- ${roleStr}`);
 
-    // Add properties
+    // Add properties as /key: value
     if (node.props) {
       for (const [key, value] of Object.entries(node.props)) {
-        let valueStr = typeof value === 'string' ? `"${value.replace(/"/g, '\\"')}"` : value;
-        lines.push(`${spaces}  /${key}: ${valueStr}`);
+        const valueStr = typeof value === 'string' ? yamlEscapeValue(value) : value;
+        lines.push(`${spaces}  - /${key}: ${valueStr}`);
       }
     }
 
@@ -477,6 +529,24 @@
 
     const tree = buildAriaNode(document.body);
     return serializeToYaml(tree);
+  };
+
+  /**
+   * Get an element by its snapshot ref
+   * @param {string} ref - The ref (e.g., "e1", "e5")
+   * @returns {Element} The DOM element
+   */
+  window.__devBrowser_selectSnapshotRef = function(ref) {
+    const refs = window.__devBrowserRefs;
+    if (!refs) {
+      throw new Error('No snapshot refs found. Call getAISnapshot first.');
+    }
+    const element = refs[ref];
+    if (!element) {
+      const available = Object.keys(refs).join(', ');
+      throw new Error(`Ref "${ref}" not found. Available refs: ${available}`);
+    }
+    return element;
   };
 
 })();
