@@ -18,6 +18,7 @@ import {
   normalizePageName,
   validateScreenshotOptions,
 } from "./server.utils.js";
+import { getSnapshotScript } from "./snapshot/index.js";
 
 const DEFAULT_TIMEOUT = 30000;
 
@@ -37,18 +38,80 @@ export async function connect(options = {}) {
   return new BrowserClient(browser);
 }
 
+// Domains to ignore when checking for pending requests (ads, tracking, etc.)
+const IGNORED_DOMAINS = [
+  'google-analytics.com', 'googletagmanager.com', 'doubleclick.net',
+  'facebook.com', 'facebook.net', 'twitter.com', 'linkedin.com',
+  'hotjar.com', 'mixpanel.com', 'segment.com', 'amplitude.com',
+  'sentry.io', 'newrelic.com', 'datadoghq.com',
+  'adsense', 'adservice', 'analytics', 'tracking', 'beacon'
+];
+
 /**
- * Wait for a page to finish loading.
+ * Wait for a page to finish loading using Performance API monitoring.
+ * Monitors document.readyState and pending network requests, filtering out
+ * ads and tracking requests that may never complete.
  * @param {import('playwright').Page} page - Playwright page
  * @param {object} options - Wait options
  * @param {number} options.timeout - Timeout in ms (default: 30000)
+ * @param {number} options.idleTime - Time with no activity to consider loaded (default: 500)
  */
 export async function waitForPageLoad(page, options = {}) {
-  const { timeout = DEFAULT_TIMEOUT } = options;
-  await page.waitForLoadState("networkidle", { timeout }).catch(() => {
-    // Fall back to domcontentloaded if networkidle times out
-    return page.waitForLoadState("domcontentloaded", { timeout });
-  });
+  const { timeout = DEFAULT_TIMEOUT, idleTime = 500 } = options;
+
+  const startTime = Date.now();
+
+  // First, wait for domcontentloaded
+  await page.waitForLoadState("domcontentloaded", { timeout });
+
+  // Then monitor for network idle using Performance API
+  const isPageLoaded = async () => {
+    return page.evaluate((ignoredDomains) => {
+      // Check document ready state
+      if (document.readyState !== 'complete') {
+        return { ready: false, reason: 'document not complete' };
+      }
+
+      // Use Performance API to check for pending requests
+      if (typeof PerformanceObserver !== 'undefined' && performance.getEntriesByType) {
+        const resources = performance.getEntriesByType('resource');
+        const pendingResources = resources.filter(entry => {
+          // Check if resource is still loading (responseEnd is 0 or not set)
+          if (entry.responseEnd > 0) return false;
+
+          // Filter out ignored domains
+          const url = entry.name.toLowerCase();
+          for (const domain of ignoredDomains) {
+            if (url.includes(domain)) return false;
+          }
+
+          return true;
+        });
+
+        if (pendingResources.length > 0) {
+          return { ready: false, reason: `${pendingResources.length} pending requests` };
+        }
+      }
+
+      return { ready: true };
+    }, IGNORED_DOMAINS);
+  };
+
+  // Poll until page is loaded or timeout
+  while (Date.now() - startTime < timeout) {
+    const result = await isPageLoaded();
+    if (result.ready) {
+      // Wait for idle time to ensure no new requests
+      await page.waitForTimeout(idleTime);
+      const secondCheck = await isPageLoaded();
+      if (secondCheck.ready) {
+        return;
+      }
+    }
+    await page.waitForTimeout(100);
+  }
+
+  // Fallback: if we reach here, just continue (page is likely usable)
 }
 
 /**
@@ -128,6 +191,46 @@ class BrowserClient {
       });
     }
     return pages;
+  }
+
+  /**
+   * Get an ARIA snapshot of a page for AI agent consumption.
+   * Returns a YAML representation of the accessibility tree with element refs.
+   * @param {string} name - Page name
+   * @returns {Promise<string>} YAML accessibility tree
+   */
+  async getAISnapshot(name) {
+    const page = await this.page(name);
+    const script = getSnapshotScript();
+
+    // Inject the snapshot script into the browser context
+    await page.addScriptTag({ content: script });
+
+    // Generate and return the snapshot
+    return page.evaluate(() => window.__devBrowser_getAISnapshot());
+  }
+
+  /**
+   * Get an element handle by its snapshot ref.
+   * Must call getAISnapshot first to generate refs.
+   * @param {string} name - Page name
+   * @param {string} ref - Element ref (e.g., "e1", "e5")
+   * @returns {Promise<import('playwright').ElementHandle>} Element handle
+   */
+  async selectSnapshotRef(name, ref) {
+    const page = await this.page(name);
+
+    return page.evaluateHandle((r) => {
+      const refs = window.__devBrowserRefs;
+      if (!refs) {
+        throw new Error("No refs available. Call getAISnapshot first.");
+      }
+      const element = refs[r];
+      if (!element) {
+        throw new Error(`Ref "${r}" not found. Available refs: ${Object.keys(refs).join(", ")}`);
+      }
+      return element;
+    }, ref);
   }
 
   /**
