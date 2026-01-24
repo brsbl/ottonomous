@@ -38,7 +38,7 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 | `/spec [product idea]` | Researches best practices then interviews you to define product requirements and technical design. |
 | `/task <spec-id>` | Creates atomic, parallelizable tasks from a spec each with status, priority (P0-P4), and dependencies. |
 | `/next [task-id]` | Without arg: returns next unblocked task. With arg: implements that task. |
-| `/test <run\|write> [scope]` | Lint, type check, run tests, verify UI. `write` generates tests first. Auto-detects ESLint/Biome/Ruff/Clippy, TypeScript/mypy, and test runners. |
+| `/test <run\|write> [scope]` | `run` lint, type check, run tests, verify UI. `write` set up tests, linting and typechecking (if needed). |
 | `/review [scope]` | Multi-agent code review. Parallelizes by directory for large changes, prioritizes bugs (P0-P3), auto-fixes critical issues. |
 | `/doc [scope]` | Documents code changes with what/why/notable details. One entry per logical change. |
 | `/summary` | Synthesizes `/doc` entries into styled HTML summary that opens in your browser. |
