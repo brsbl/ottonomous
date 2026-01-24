@@ -8,14 +8,18 @@
  * @returns {string} Escaped string
  */
 export function escapeHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/[&<>"']/g, c => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;'
-  }[c]));
+  if (!str) return "";
+  return String(str).replace(
+    /[&<>"']/g,
+    (c) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[c],
+  );
 }
 
 /**
@@ -34,12 +38,12 @@ export function parseFrontmatter(markdown) {
   const content = markdown.slice(frontmatterMatch[0].length);
   const frontmatter = frontmatterMatch[1];
 
-  frontmatter.split('\n').forEach((line) => {
-    const [key, ...rest] = line.split(': ');
+  for (const line of frontmatter.split("\n")) {
+    const [key, ...rest] = line.split(": ");
     if (key && rest.length) {
-      meta[key.trim()] = rest.join(': ').trim();
+      meta[key.trim()] = rest.join(": ").trim();
     }
-  });
+  }
 
   return { content, meta };
 }
@@ -57,12 +61,14 @@ export function generateMetadataHtml(meta) {
   }
 
   if (meta.branch) {
-    const commits = meta.commits ? ` (${escapeHtml(meta.commits)} commits)` : '';
+    const commits = meta.commits
+      ? ` (${escapeHtml(meta.commits)} commits)`
+      : "";
     parts.push(`<strong>Branch:</strong> ${escapeHtml(meta.branch)}${commits}`);
   }
 
   if (meta.files_changed) {
-    let linesHtml = '';
+    let linesHtml = "";
     if (meta.lines) {
       const match = meta.lines.match(/\+(\d+)\/-(\d+)/);
       if (match) {
@@ -71,14 +77,16 @@ export function generateMetadataHtml(meta) {
         linesHtml = ` (${escapeHtml(meta.lines)})`;
       }
     }
-    parts.push(`<strong>Total Files:</strong> ${escapeHtml(meta.files_changed)} files changed${linesHtml}`);
+    parts.push(
+      `<strong>Total Files:</strong> ${escapeHtml(meta.files_changed)} files changed${linesHtml}`,
+    );
   }
 
   if (parts.length === 0) {
-    return '';
+    return "";
   }
 
-  return `<div class="metadata">${parts.join(' ')}</div>`;
+  return `<div class="metadata">${parts.join(" ")}</div>`;
 }
 
 /**
@@ -92,7 +100,7 @@ export function parseArgs(args) {
   }
 
   const inputPath = args[0];
-  const outputPath = args[1] || inputPath.replace(/\.md$/, '.html');
+  const outputPath = args[1] || inputPath.replace(/\.md$/, ".html");
 
   return { inputPath, outputPath };
 }

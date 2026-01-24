@@ -34,18 +34,18 @@ export function isValidPort(port) {
  */
 export async function parseJsonBody(req) {
   return new Promise((resolve, reject) => {
-    let body = '';
-    req.on('data', chunk => {
+    let body = "";
+    req.on("data", (chunk) => {
       body += chunk;
     });
-    req.on('end', () => {
+    req.on("end", () => {
       try {
         resolve(body ? JSON.parse(body) : {});
-      } catch (error) {
-        reject(new Error('Invalid JSON body'));
+      } catch (_error) {
+        reject(new Error("Invalid JSON body"));
       }
     });
-    req.on('error', reject);
+    req.on("error", reject);
   });
 }
 
@@ -55,10 +55,13 @@ export async function parseJsonBody(req) {
  * @returns {string} Normalized name
  */
 export function normalizePageName(name) {
-  if (!name || typeof name !== 'string') {
-    return 'default';
+  if (!name || typeof name !== "string") {
+    return "default";
   }
-  return name.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-_]/g, "-");
 }
 
 /**
@@ -72,7 +75,7 @@ export function buildResponse(success, data = {}, error = null) {
   return {
     success,
     ...data,
-    ...(error ? { error } : {})
+    ...(error ? { error } : {}),
   };
 }
 
@@ -84,26 +87,30 @@ export function buildResponse(success, data = {}, error = null) {
 export function validateScreenshotOptions(options = {}) {
   const errors = [];
 
-  if (options.path && typeof options.path !== 'string') {
-    errors.push('path must be a string');
+  if (options.path && typeof options.path !== "string") {
+    errors.push("path must be a string");
   }
 
-  if (options.fullPage !== undefined && typeof options.fullPage !== 'boolean') {
-    errors.push('fullPage must be a boolean');
+  if (options.fullPage !== undefined && typeof options.fullPage !== "boolean") {
+    errors.push("fullPage must be a boolean");
   }
 
-  if (options.type && !['png', 'jpeg'].includes(options.type)) {
+  if (options.type && !["png", "jpeg"].includes(options.type)) {
     errors.push('type must be "png" or "jpeg"');
   }
 
   if (options.quality !== undefined) {
-    if (typeof options.quality !== 'number' || options.quality < 0 || options.quality > 100) {
-      errors.push('quality must be a number between 0 and 100');
+    if (
+      typeof options.quality !== "number" ||
+      options.quality < 0 ||
+      options.quality > 100
+    ) {
+      errors.push("quality must be a number between 0 and 100");
     }
   }
 
   return {
     valid: errors.length === 0,
-    errors
+    errors,
   };
 }
