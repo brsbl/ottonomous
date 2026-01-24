@@ -1,6 +1,6 @@
 ---
 name: test
-description: Runs automated tests and visual verification. Detects test runners (vitest/jest/pytest/cargo), captures screenshots, and can generate tests for code changes.
+description: Runs lint, type check, tests, and visual verification. Auto-detects tools (ESLint/Biome, TypeScript/mypy, vitest/jest/pytest/cargo) and sets up missing ones.
 argument-hint: <run | write> [staged | uncommitted | branch]
 ---
 
@@ -8,14 +8,14 @@ argument-hint: <run | write> [staged | uncommitted | branch]
 
 | Command | Behavior |
 |---------|----------|
-| `run` | Run tests + visual verify (branch) |
-| `run staged` | Run tests + visual verify staged changes |
-| `run uncommitted` | Run tests + visual verify uncommitted changes |
-| `run branch` | Run tests + visual verify branch changes |
-| `write` | Generate tests, then run (branch) |
-| `write staged` | Generate tests for staged, then run |
-| `write uncommitted` | Generate tests for uncommitted, then run |
-| `write branch` | Generate tests for branch, then run |
+| `run` | Lint + type check + tests + visual verify (branch) |
+| `run staged` | Lint + type check + tests + visual verify staged changes |
+| `run uncommitted` | Lint + type check + tests + visual verify uncommitted changes |
+| `run branch` | Lint + type check + tests + visual verify branch changes |
+| `write` | Generate tests, then run full pipeline (branch) |
+| `write staged` | Generate tests for staged, then run full pipeline |
+| `write uncommitted` | Generate tests for uncommitted, then run full pipeline |
+| `write branch` | Generate tests for branch, then run full pipeline |
 
 **Scope determines which files to analyze:**
 
