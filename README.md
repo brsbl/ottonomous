@@ -35,15 +35,15 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 
 | Skill | Description |
 |-------|-------------|
-| `/spec [idea]` | Interview + research to define requirements and technical design. |
-| `/task <spec-id>` | Break spec into atomic tasks with priority (P0-P4) and dependencies. |
-| `/next [task-id]` | Get next unblocked task, or implement a specific one. |
-| `/test <run\|write> [scope]` | Lint, type check, test, verify UI. `write` generates tests first. Auto-detects/sets up tools. |
-| `/review [scope]` | Parallel code review via subagents. Prioritizes bugs P0-P3, auto-fixes critical. |
-| `/doc [scope]` | Document changes: what, why, notable details. |
-| `/summary` | Combine docs into styled HTML summary. |
-| `/otto <idea>` | Autonomous: spec → tasks → [next/test/review/doc] loop → summary. |
-| `/reset` | Remove `.otto/` and generated code, keep plugin files. |
+| `/spec [product idea]` | Researches best practices, captures screenshots, interviews you to define requirements and technical design. |
+| `/task <spec-id>` | Generates atomic, parallelizable tasks from a spec with priority (P0-P4) and dependencies. |
+| `/next [task-id]` | Without arg: returns next unblocked task. With arg: implements that task. |
+| `/test <run\|write> [scope]` | Lint, type check, run tests, verify UI. `write` generates tests first. Auto-detects and sets up tools. |
+| `/review [scope]` | Parallel code review via subagents. Prioritizes bugs (P0-P3), auto-fixes critical issues. |
+| `/doc [scope]` | Documents code changes with what/why/notable details. One entry per logical change. |
+| `/summary` | Synthesizes `/doc` entries into styled HTML summary in your browser. |
+| `/otto <product idea>` | Autonomous end-to-end: spec → tasks → [next/test/review/doc] loop → summary. |
+| `/reset` | Removes `.otto/` and generated code, preserves plugin files. |
 
 **Scopes:** `staged`, `uncommitted`, `branch` (default)
 
