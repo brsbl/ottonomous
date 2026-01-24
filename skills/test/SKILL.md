@@ -8,14 +8,14 @@ argument-hint: <run | write> [staged | uncommitted | branch]
 
 | Command | Behavior |
 |---------|----------|
-| `run` | Lint + type check + tests + visual verify (branch) |
-| `run staged` | Lint + type check + tests + visual verify staged changes |
-| `run uncommitted` | Lint + type check + tests + visual verify uncommitted changes |
-| `run branch` | Lint + type check + tests + visual verify branch changes |
+| `run` | Lint + type check + run tests + visually verify UI (branch) |
+| `run staged` | Lint + type check + run tests + visually verify UI (staged) |
+| `run uncommitted` | Lint + type check + run tests + visually verify UI (uncommitted) |
+| `run branch` | Lint + type check + run tests + visually verify UI (branch) |
 | `write` | Generate tests, then run full pipeline (branch) |
-| `write staged` | Generate tests for staged, then run full pipeline |
-| `write uncommitted` | Generate tests for uncommitted, then run full pipeline |
-| `write branch` | Generate tests for branch, then run full pipeline |
+| `write staged` | Generate tests, then run full pipeline (staged) |
+| `write uncommitted` | Generate tests, then run full pipeline (uncommitted) |
+| `write branch` | Generate tests, then run full pipeline (branch) |
 
 **Scope determines which files to analyze:**
 
