@@ -1,6 +1,6 @@
 ---
 name: test
-description: Runs automated tests and visual verification. Detects test runners (vitest/jest/pytest/cargo), captures screenshots, and can generate tests for code changes.
+description: Runs lint, type check, tests, and visual verification. Auto-detects tools (ESLint/Biome, TypeScript/mypy, vitest/jest/pytest/cargo) and sets up missing ones.
 argument-hint: <run | write> [staged | uncommitted | branch]
 ---
 
@@ -8,14 +8,14 @@ argument-hint: <run | write> [staged | uncommitted | branch]
 
 | Command | Behavior |
 |---------|----------|
-| `run` | Run tests + visual verify (branch) |
-| `run staged` | Run tests + visual verify staged changes |
-| `run uncommitted` | Run tests + visual verify uncommitted changes |
-| `run branch` | Run tests + visual verify branch changes |
-| `write` | Generate tests, then run (branch) |
-| `write staged` | Generate tests for staged, then run |
-| `write uncommitted` | Generate tests for uncommitted, then run |
-| `write branch` | Generate tests for branch, then run |
+| `run` | Lint + type check + run tests + visually verify UI (branch) |
+| `run staged` | Lint + type check + run tests + visually verify UI (staged) |
+| `run uncommitted` | Lint + type check + run tests + visually verify UI (uncommitted) |
+| `run branch` | Lint + type check + run tests + visually verify UI (branch) |
+| `write` | Generate tests, then run full pipeline (branch) |
+| `write staged` | Generate tests, then run full pipeline (staged) |
+| `write uncommitted` | Generate tests, then run full pipeline (uncommitted) |
+| `write branch` | Generate tests, then run full pipeline (branch) |
 
 **Scope determines which files to analyze:**
 
@@ -73,7 +73,111 @@ Add to `package.json`:
 
 ---
 
-## 3. Generate Tests (write mode)
+## 3. Detect Linter
+
+| File/Config | Linter | Command |
+|-------------|--------|---------|
+| `.eslintrc*` or `eslint.config.*` | ESLint | `npx eslint .` |
+| `biome.json` | Biome | `npx biome check .` |
+| `pyproject.toml` with `[tool.ruff]` | Ruff | `ruff check .` |
+| `Cargo.toml` | Clippy | `cargo clippy -- -D warnings` |
+| `go.mod` | go vet | `go vet ./...` |
+
+If no linter found, set one up:
+
+## 4. Setup Linter (if needed)
+
+**JavaScript/TypeScript:**
+```bash
+npm install -D eslint @eslint/js
+```
+
+Create `eslint.config.js`:
+```javascript
+import js from '@eslint/js'
+
+export default [
+  js.configs.recommended,
+  {
+    rules: {
+      'no-unused-vars': 'warn',
+      'no-undef': 'error',
+    },
+  },
+]
+```
+
+**Python:**
+```bash
+pip install ruff
+```
+
+Add to `pyproject.toml`:
+```toml
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "W"]
+```
+
+**Rust:** Clippy is included with rustup, no setup needed.
+
+**Go:** go vet is built-in, no setup needed.
+
+---
+
+## 5. Detect Type Checker
+
+| File/Config | Checker | Command |
+|-------------|---------|---------|
+| `tsconfig.json` | TypeScript | `npx tsc --noEmit` |
+| `pyproject.toml` with mypy | mypy | `mypy .` |
+| `Cargo.toml` | (built into cargo) | (covered by `cargo clippy`) |
+| `go.mod` | (built into go) | (covered by `go vet`) |
+
+If no type checker found for TypeScript/Python projects, set one up:
+
+## 6. Setup Type Checker (if needed)
+
+**TypeScript (if .ts/.tsx files exist but no tsconfig.json):**
+```bash
+npm install -D typescript
+npx tsc --init
+```
+
+The generated `tsconfig.json` provides sensible defaults. Adjust `strict` and `target` as needed.
+
+**Python (if .py files exist but no mypy config):**
+```bash
+pip install mypy
+```
+
+Add to `pyproject.toml`:
+```toml
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_ignores = true
+```
+
+**Rust/Go:** Type checking is built into the compiler, no setup needed.
+
+---
+
+## 7. Run Lint
+
+Run the detected linter command.
+
+**If lint errors found:** Fix the issues before proceeding. Re-run until all lint checks pass.
+
+## 8. Run Type Check
+
+Run the detected type checker command.
+
+**If type errors found:** Fix the issues before proceeding. Re-run until all type checks pass.
+
+---
+
+## 9. Generate Tests (write mode)
 
 If `write` is specified, generate tests for code changes before running.
 
@@ -113,13 +217,13 @@ For each testable function, ensure coverage of:
 
 ---
 
-## 4. Run Tests
+## 10. Run Tests
 
 Run the detected test command and save output to `.otto/test-results/output.log`.
 
 **If tests fail:** Read the error output, fix the code, and re-run until all tests pass.
 
-## 5. Visual Verification
+## 11. Visual Verification
 
 Verify UI changes based on scope (use matching git diff command from table above):
 1. Identify which pages/routes were affected by code changes
@@ -135,9 +239,11 @@ Verify UI changes based on scope (use matching git diff command from table above
 
 **Repeat until both unit tests and visual verification pass.**
 
-## 6. Report
+## 12. Report
 
 Summarize results:
+- Lint: pass/fail (errors fixed if any)
+- Type check: pass/fail (errors fixed if any)
 - Unit test pass/fail counts
 - Pages/components visually verified
 - Location of screenshots and logs
