@@ -41,7 +41,7 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 | `/test <run\|write> [scope]` | `run` lint, type check, run tests, verify UI. `write` set up tests, linting and typechecking (if needed). |
 | `/review [scope]` | Multi-agent code review split by directory or component for large changes. Bugs prioritized (P0-P3) and critical issues auto-fixed. |
 | `/doc [scope]` | Documents code changes with what/why/notable details. One entry per logical change. |
-| `/summary` | Synthesizes `/doc` entries into styled HTML summary that opens in your browser. |
+| `/summary` | Combines `/doc` entries into styled HTML summary that opens in your browser. |
 | `/otto <product idea>` | Autonomous end-to-end: spec → tasks → [next/test/review/doc] loop → summary. Auto-approves decisions based on best practices. |
 | `/reset` | Resets project to fresh state. Removes `.otto/` and generated code, preserves plugin files. |
 
