@@ -105,13 +105,14 @@ export async function waitForPageLoad(page, options = {}) {
       await page.waitForTimeout(idleTime);
       const secondCheck = await isPageLoaded();
       if (secondCheck.ready) {
-        return;
+        return { ready: true };
       }
     }
     await page.waitForTimeout(100);
   }
 
-  // Fallback: if we reach here, just continue (page is likely usable)
+  // Timeout reached
+  return { ready: false, reason: 'timeout' };
 }
 
 /**
@@ -201,10 +202,15 @@ class BrowserClient {
    */
   async getAISnapshot(name) {
     const page = await this.page(name);
-    const script = getSnapshotScript();
 
-    // Inject the snapshot script into the browser context
-    await page.addScriptTag({ content: script });
+    // Only inject if not already present
+    const hasSnapshot = await page.evaluate(
+      () => typeof window.__devBrowser_getAISnapshot === 'function'
+    );
+    if (!hasSnapshot) {
+      const script = getSnapshotScript();
+      await page.addScriptTag({ content: script });
+    }
 
     // Generate and return the snapshot
     return page.evaluate(() => window.__devBrowser_getAISnapshot());
