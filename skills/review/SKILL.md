@@ -22,6 +22,7 @@ argument-hint: [staged | uncommitted | branch]
 | 2. Synthesize | Collect and deduplicate findings |
 | 3. Fix Plan | Create implementation plan |
 | 4. Implement | Fix issues |
+| 5. Commit | Stage and commit fixes |
 
 ### Review Criteria
 
@@ -120,6 +121,21 @@ After fixes complete, report:
 | [P0] Null reference | ✓ Fixed |
 | [P1] Race condition | ✓ Fixed |
 ```
+
+### 6. Commit Fixes
+
+After all fixes are implemented and verified:
+
+1. Stage all modified files: `git add <files>`
+2. Create a commit with message summarizing the review fixes:
+   ```
+   Fix review issues P{highest}-P{lowest}
+
+   - [P{N}] Brief description of fix
+   - [P{N}] Brief description of fix
+   ...
+   ```
+3. Report commit hash to user
 
 ---
 

@@ -59,10 +59,10 @@ const IGNORED_DOMAINS = [
 export async function waitForPageLoad(page, options = {}) {
   const { timeout = DEFAULT_TIMEOUT, idleTime = 500 } = options;
 
-  const startTime = Date.now();
-
   // First, wait for domcontentloaded
   await page.waitForLoadState("domcontentloaded", { timeout });
+
+  const startTime = Date.now();
 
   // Then monitor for network idle using Performance API
   const isPageLoaded = async () => {
@@ -112,7 +112,7 @@ export async function waitForPageLoad(page, options = {}) {
   }
 
   // Timeout reached
-  return { ready: false, reason: 'timeout' };
+  throw new Error('Page load timeout: page did not stabilize within the timeout period');
 }
 
 /**
@@ -201,7 +201,11 @@ class BrowserClient {
    * @returns {Promise<string>} YAML accessibility tree
    */
   async getAISnapshot(name) {
-    const page = await this.page(name);
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
 
     // Only inject if not already present
     const hasSnapshot = await page.evaluate(
@@ -224,7 +228,11 @@ class BrowserClient {
    * @returns {Promise<import('playwright').ElementHandle>} Element handle
    */
   async selectSnapshotRef(name, ref) {
-    const page = await this.page(name);
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
 
     return page.evaluateHandle((r) => {
       const refs = window.__devBrowserRefs;

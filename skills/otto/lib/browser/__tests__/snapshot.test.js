@@ -187,6 +187,7 @@ describe("Snapshot functionality", () => {
     // Generate snapshot and get ref
     const snapshot = await client.getAISnapshot("click-test");
     const refMatch = snapshot.match(/button "Click Me" \[ref=(e\d+)\]/);
+    expect(refMatch).not.toBeNull();
     const ref = refMatch[1];
 
     // Get element and click it

@@ -136,8 +136,8 @@
     'h6': 'heading',
     'header': 'banner',
     'hr': 'separator',
-    'img[alt]': 'img',
     'img[alt=""]': 'presentation',
+    'img[alt]': 'img',
     'img:not([alt])': 'img',
     'input[type="button"]': 'button',
     'input[type="checkbox"]': 'checkbox',
@@ -292,6 +292,10 @@
     if (tag === 'input' && ['checkbox', 'radio'].includes(element.type)) {
       if (element.checked) states.push('checked');
     }
+
+    // ARIA checked state (for custom checkbox/radio implementations)
+    const ariaChecked = element.getAttribute('aria-checked');
+    if (ariaChecked === 'true') states.push('checked');
 
     // Disabled state
     if (element.disabled) {
@@ -543,8 +547,13 @@
     }
     const element = refs[ref];
     if (!element) {
-      const available = Object.keys(refs).join(', ');
+      const refKeys = Object.keys(refs);
+      const available = refKeys.slice(0, 20).join(', ') +
+        (refKeys.length > 20 ? ` ... (${refKeys.length} total)` : '');
       throw new Error(`Ref "${ref}" not found. Available refs: ${available}`);
+    }
+    if (!element.isConnected) {
+      throw new Error(`Ref "${ref}" points to a detached element. Regenerate snapshot.`);
     }
     return element;
   };
