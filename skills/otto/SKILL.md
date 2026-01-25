@@ -30,7 +30,7 @@ When a skill asks questions or requests confirmation:
 | `task:{id}:review` | `/review staged` | P0/P1 fixed |
 | `task:{id}:doc` | `/doc staged` | doc entry exists |
 | `build` | `npm run build` | exit 0 |
-| `test` | `/test run` | tests pass |
+| `test` | `/test all` | tests pass |
 | `review` | `/review branch` | P0/P1 fixed |
 | `summary` | `/summary` | HTML created |
 
@@ -147,7 +147,7 @@ Update `current_phase` → `test`
 
 ### Phase: test
 
-**Invoke `/test run`**
+**Invoke `/test all`**
 
 Update `current_phase` → `review`
 
