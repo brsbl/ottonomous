@@ -212,7 +212,7 @@ describe.skipIf(!playwrightAvailable)("Snapshot functionality", () => {
   });
 });
 
-describe("waitForPageLoad improvements", () => {
+describe.skipIf(!playwrightAvailable)("waitForPageLoad improvements", () => {
   let client;
 
   beforeAll(async () => {
