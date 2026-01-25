@@ -227,7 +227,7 @@ Run the detected test command and save output to `.otto/test-results/output.log`
 
 Verify UI changes based on scope (use matching git diff command from table above):
 1. Identify which pages/routes were affected by code changes
-2. Navigate to those pages using browser automation (`skills/otto/lib/browser/client.js`)
+2. Navigate to those pages using browser automation (`./lib/browser/client.js`)
 3. Capture screenshots to `./test-screenshots/`
 4. Read each screenshot and check for:
    - Layout issues (overlapping elements, broken alignment)
