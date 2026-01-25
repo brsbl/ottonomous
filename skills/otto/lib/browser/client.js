@@ -40,11 +40,25 @@ export async function connect(options = {}) {
 
 // Domains to ignore when checking for pending requests (ads, tracking, etc.)
 const IGNORED_DOMAINS = [
-  'google-analytics.com', 'googletagmanager.com', 'doubleclick.net',
-  'facebook.com', 'facebook.net', 'twitter.com', 'linkedin.com',
-  'hotjar.com', 'mixpanel.com', 'segment.com', 'amplitude.com',
-  'sentry.io', 'newrelic.com', 'datadoghq.com',
-  'adsense', 'adservice', 'analytics', 'tracking', 'beacon'
+  "google-analytics.com",
+  "googletagmanager.com",
+  "doubleclick.net",
+  "facebook.com",
+  "facebook.net",
+  "twitter.com",
+  "linkedin.com",
+  "hotjar.com",
+  "mixpanel.com",
+  "segment.com",
+  "amplitude.com",
+  "sentry.io",
+  "newrelic.com",
+  "datadoghq.com",
+  "adsense",
+  "adservice",
+  "analytics",
+  "tracking",
+  "beacon",
 ];
 
 /**
@@ -68,14 +82,17 @@ export async function waitForPageLoad(page, options = {}) {
   const isPageLoaded = async () => {
     return page.evaluate((ignoredDomains) => {
       // Check document ready state
-      if (document.readyState !== 'complete') {
-        return { ready: false, reason: 'document not complete' };
+      if (document.readyState !== "complete") {
+        return { ready: false, reason: "document not complete" };
       }
 
       // Use Performance API to check for pending requests
-      if (typeof PerformanceObserver !== 'undefined' && performance.getEntriesByType) {
-        const resources = performance.getEntriesByType('resource');
-        const pendingResources = resources.filter(entry => {
+      if (
+        typeof PerformanceObserver !== "undefined" &&
+        performance.getEntriesByType
+      ) {
+        const resources = performance.getEntriesByType("resource");
+        const pendingResources = resources.filter((entry) => {
           // Check if resource is still loading (responseEnd is 0 or not set)
           if (entry.responseEnd > 0) return false;
 
@@ -89,7 +106,10 @@ export async function waitForPageLoad(page, options = {}) {
         });
 
         if (pendingResources.length > 0) {
-          return { ready: false, reason: `${pendingResources.length} pending requests` };
+          return {
+            ready: false,
+            reason: `${pendingResources.length} pending requests`,
+          };
         }
       }
 
@@ -112,7 +132,9 @@ export async function waitForPageLoad(page, options = {}) {
   }
 
   // Timeout reached
-  throw new Error('Page load timeout: page did not stabilize within the timeout period');
+  throw new Error(
+    "Page load timeout: page did not stabilize within the timeout period",
+  );
 }
 
 /**
@@ -209,7 +231,7 @@ class BrowserClient {
 
     // Only inject if not already present
     const hasSnapshot = await page.evaluate(
-      () => typeof window.__devBrowser_getAISnapshot === 'function'
+      () => typeof window.__devBrowser_getAISnapshot === "function",
     );
     if (!hasSnapshot) {
       const script = getSnapshotScript();
@@ -241,7 +263,9 @@ class BrowserClient {
       }
       const element = refs[r];
       if (!element) {
-        throw new Error(`Ref "${r}" not found. Available refs: ${Object.keys(refs).join(", ")}`);
+        throw new Error(
+          `Ref "${r}" not found. Available refs: ${Object.keys(refs).join(", ")}`,
+        );
       }
       return element;
     }, ref);

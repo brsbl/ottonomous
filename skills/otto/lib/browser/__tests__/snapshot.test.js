@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { connect, waitForPageLoad } from "../client.js";
 
 describe("Snapshot functionality", () => {
@@ -104,7 +104,7 @@ describe("Snapshot functionality", () => {
 
     // Clear any existing refs
     await page.evaluate(() => {
-      delete window.__devBrowserRefs;
+      window.__devBrowserRefs = undefined;
     });
 
     // Should throw when trying to select a ref

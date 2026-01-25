@@ -10,9 +10,7 @@
  * - window.__devBrowser_selectSnapshotRef(ref) - Get element by ref
  */
 
-(function() {
-  'use strict';
-
+(() => {
   // Store element references for later retrieval
   window.__devBrowserRefs = window.__devBrowserRefs || {};
 
@@ -32,12 +30,12 @@
       return `"${str}"`;
     }
     // Escape special characters
-    let escaped = str
-      .replace(/\\/g, '\\\\')
+    const escaped = str
+      .replace(/\\/g, "\\\\")
       .replace(/"/g, '\\"')
-      .replace(/\n/g, '\\n')
-      .replace(/\r/g, '\\r')
-      .replace(/\t/g, '\\t');
+      .replace(/\n/g, "\\n")
+      .replace(/\r/g, "\\r")
+      .replace(/\t/g, "\\t");
     return `"${escaped}"`;
   }
 
@@ -52,15 +50,15 @@
     if (!element || element.nodeType !== Node.ELEMENT_NODE) return false;
 
     // Check for hidden attribute
-    if (element.hasAttribute('hidden')) return false;
-    if (element.getAttribute('aria-hidden') === 'true') return false;
+    if (element.hasAttribute("hidden")) return false;
+    if (element.getAttribute("aria-hidden") === "true") return false;
 
     const style = window.getComputedStyle(element);
 
     // Check display and visibility
-    if (style.display === 'none') return false;
-    if (style.visibility === 'hidden') return false;
-    if (style.opacity === '0') return false;
+    if (style.display === "none") return false;
+    if (style.visibility === "hidden") return false;
+    if (style.opacity === "0") return false;
 
     // Check dimensions (with some tolerance)
     const rect = element.getBoundingClientRect();
@@ -82,23 +80,36 @@
     const role = getAriaRole(element);
 
     // Form elements
-    if (['button', 'input', 'select', 'textarea'].includes(tag)) return true;
+    if (["button", "input", "select", "textarea"].includes(tag)) return true;
 
     // Links with href
-    if (tag === 'a' && element.hasAttribute('href')) return true;
+    if (tag === "a" && element.hasAttribute("href")) return true;
 
     // Elements with tabindex
-    if (element.hasAttribute('tabindex')) {
-      const tabindex = parseInt(element.getAttribute('tabindex'), 10);
+    if (element.hasAttribute("tabindex")) {
+      const tabindex = Number.parseInt(element.getAttribute("tabindex"), 10);
       if (tabindex >= 0) return true;
     }
 
     // ARIA interactive roles
     const interactiveRoles = [
-      'button', 'link', 'checkbox', 'radio', 'switch', 'tab',
-      'menuitem', 'menuitemcheckbox', 'menuitemradio', 'option',
-      'combobox', 'textbox', 'searchbox', 'slider', 'spinbutton',
-      'scrollbar', 'treeitem'
+      "button",
+      "link",
+      "checkbox",
+      "radio",
+      "switch",
+      "tab",
+      "menuitem",
+      "menuitemcheckbox",
+      "menuitemradio",
+      "option",
+      "combobox",
+      "textbox",
+      "searchbox",
+      "slider",
+      "spinbutton",
+      "scrollbar",
+      "treeitem",
     ];
     if (interactiveRoles.includes(role)) return true;
 
@@ -116,68 +127,68 @@
    * Map of HTML elements to their implicit ARIA roles
    */
   const implicitRoles = {
-    'a[href]': 'link',
-    'a:not([href])': 'generic',
-    'article': 'article',
-    'aside': 'complementary',
-    'button': 'button',
-    'datalist': 'listbox',
-    'details': 'group',
-    'dialog': 'dialog',
-    'fieldset': 'group',
-    'figure': 'figure',
-    'footer': 'contentinfo',
-    'form': 'form',
-    'h1': 'heading',
-    'h2': 'heading',
-    'h3': 'heading',
-    'h4': 'heading',
-    'h5': 'heading',
-    'h6': 'heading',
-    'header': 'banner',
-    'hr': 'separator',
-    'img[alt=""]': 'presentation',
-    'img[alt]': 'img',
-    'img:not([alt])': 'img',
-    'input[type="button"]': 'button',
-    'input[type="checkbox"]': 'checkbox',
-    'input[type="email"]': 'textbox',
-    'input[type="image"]': 'button',
-    'input[type="number"]': 'spinbutton',
-    'input[type="password"]': 'textbox',
-    'input[type="radio"]': 'radio',
-    'input[type="range"]': 'slider',
-    'input[type="reset"]': 'button',
-    'input[type="search"]': 'searchbox',
-    'input[type="submit"]': 'button',
-    'input[type="tel"]': 'textbox',
-    'input[type="text"]': 'textbox',
-    'input[type="url"]': 'textbox',
-    'input:not([type])': 'textbox',
-    'li': 'listitem',
-    'main': 'main',
-    'menu': 'list',
-    'nav': 'navigation',
-    'ol': 'list',
-    'optgroup': 'group',
-    'option': 'option',
-    'output': 'status',
-    'progress': 'progressbar',
-    'section[aria-label]': 'region',
-    'section[aria-labelledby]': 'region',
-    'section': 'generic',
-    'select': 'combobox',
-    'select[multiple]': 'listbox',
-    'summary': 'button',
-    'table': 'table',
-    'tbody': 'rowgroup',
-    'td': 'cell',
-    'textarea': 'textbox',
-    'tfoot': 'rowgroup',
-    'th': 'columnheader',
-    'thead': 'rowgroup',
-    'tr': 'row',
-    'ul': 'list'
+    "a[href]": "link",
+    "a:not([href])": "generic",
+    article: "article",
+    aside: "complementary",
+    button: "button",
+    datalist: "listbox",
+    details: "group",
+    dialog: "dialog",
+    fieldset: "group",
+    figure: "figure",
+    footer: "contentinfo",
+    form: "form",
+    h1: "heading",
+    h2: "heading",
+    h3: "heading",
+    h4: "heading",
+    h5: "heading",
+    h6: "heading",
+    header: "banner",
+    hr: "separator",
+    'img[alt=""]': "presentation",
+    "img[alt]": "img",
+    "img:not([alt])": "img",
+    'input[type="button"]': "button",
+    'input[type="checkbox"]': "checkbox",
+    'input[type="email"]': "textbox",
+    'input[type="image"]': "button",
+    'input[type="number"]': "spinbutton",
+    'input[type="password"]': "textbox",
+    'input[type="radio"]': "radio",
+    'input[type="range"]': "slider",
+    'input[type="reset"]': "button",
+    'input[type="search"]': "searchbox",
+    'input[type="submit"]': "button",
+    'input[type="tel"]': "textbox",
+    'input[type="text"]': "textbox",
+    'input[type="url"]': "textbox",
+    "input:not([type])": "textbox",
+    li: "listitem",
+    main: "main",
+    menu: "list",
+    nav: "navigation",
+    ol: "list",
+    optgroup: "group",
+    option: "option",
+    output: "status",
+    progress: "progressbar",
+    "section[aria-label]": "region",
+    "section[aria-labelledby]": "region",
+    section: "generic",
+    select: "combobox",
+    "select[multiple]": "listbox",
+    summary: "button",
+    table: "table",
+    tbody: "rowgroup",
+    td: "cell",
+    textarea: "textbox",
+    tfoot: "rowgroup",
+    th: "columnheader",
+    thead: "rowgroup",
+    tr: "row",
+    ul: "list",
   };
 
   /**
@@ -185,21 +196,21 @@
    */
   function getAriaRole(element) {
     // Explicit role takes precedence
-    const explicitRole = element.getAttribute('role');
+    const explicitRole = element.getAttribute("role");
     if (explicitRole) {
-      return explicitRole.split(' ')[0].toLowerCase();
+      return explicitRole.split(" ")[0].toLowerCase();
     }
 
     const tag = element.tagName.toLowerCase();
 
     // Check specific selectors first (more specific matches)
     for (const [selector, role] of Object.entries(implicitRoles)) {
-      if (selector.includes('[') || selector.includes(':')) {
+      if (selector.includes("[") || selector.includes(":")) {
         try {
           if (element.matches(selector)) {
             return role;
           }
-        } catch (e) {
+        } catch (_e) {
           // Invalid selector, skip
         }
       }
@@ -210,7 +221,7 @@
       return implicitRoles[tag];
     }
 
-    return 'generic';
+    return "generic";
   }
 
   // ============================================
@@ -222,62 +233,69 @@
    */
   function getAccessibleName(element) {
     // 1. aria-labelledby
-    const labelledBy = element.getAttribute('aria-labelledby');
+    const labelledBy = element.getAttribute("aria-labelledby");
     if (labelledBy) {
-      const names = labelledBy.split(/\s+/).map(id => {
-        const ref = document.getElementById(id);
-        return ref ? ref.textContent.trim() : '';
-      }).filter(Boolean);
-      if (names.length) return names.join(' ');
+      const names = labelledBy
+        .split(/\s+/)
+        .map((id) => {
+          const ref = document.getElementById(id);
+          return ref ? ref.textContent.trim() : "";
+        })
+        .filter(Boolean);
+      if (names.length) return names.join(" ");
     }
 
     // 2. aria-label
-    const ariaLabel = element.getAttribute('aria-label');
+    const ariaLabel = element.getAttribute("aria-label");
     if (ariaLabel) return ariaLabel.trim();
 
     // 3. Element-specific labelling
     const tag = element.tagName.toLowerCase();
 
     // For inputs, check associated label
-    if (['input', 'select', 'textarea'].includes(tag)) {
+    if (["input", "select", "textarea"].includes(tag)) {
       const id = element.id;
       if (id) {
         const label = document.querySelector(`label[for="${CSS.escape(id)}"]`);
         if (label) return label.textContent.trim();
       }
       // Check for wrapping label
-      const parentLabel = element.closest('label');
+      const parentLabel = element.closest("label");
       if (parentLabel) {
         // Get text not in the input itself
         const clone = parentLabel.cloneNode(true);
-        clone.querySelectorAll('input, select, textarea').forEach(el => el.remove());
+        for (const el of clone.querySelectorAll("input, select, textarea")) {
+          el.remove();
+        }
         return clone.textContent.trim();
       }
     }
 
     // For images, use alt text
-    if (tag === 'img') {
-      const alt = element.getAttribute('alt');
+    if (tag === "img") {
+      const alt = element.getAttribute("alt");
       if (alt !== null) return alt.trim();
     }
 
     // For buttons, links, and headings, use text content
-    if (['button', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag) ||
-        ['button', 'link', 'heading'].includes(getAriaRole(element))) {
+    if (
+      ["button", "a", "h1", "h2", "h3", "h4", "h5", "h6"].includes(tag) ||
+      ["button", "link", "heading"].includes(getAriaRole(element))
+    ) {
       return element.textContent.trim();
     }
 
     // 4. Title attribute as fallback
-    const title = element.getAttribute('title');
+    const title = element.getAttribute("title");
     if (title) return title.trim();
 
     // 5. Placeholder as last resort for inputs
-    if (['input', 'textarea'].includes(tag)) {
-      const placeholder = element.getAttribute('placeholder');
+    if (["input", "textarea"].includes(tag)) {
+      const placeholder = element.getAttribute("placeholder");
       if (placeholder) return placeholder.trim();
     }
 
-    return '';
+    return "";
   }
 
   /**
@@ -289,31 +307,31 @@
     const tag = element.tagName.toLowerCase();
 
     // Checked state (only for checkboxes and radios)
-    if (tag === 'input' && ['checkbox', 'radio'].includes(element.type)) {
-      if (element.checked) states.push('checked');
+    if (tag === "input" && ["checkbox", "radio"].includes(element.type)) {
+      if (element.checked) states.push("checked");
     }
 
     // ARIA checked state (for custom checkbox/radio implementations)
-    const ariaChecked = element.getAttribute('aria-checked');
-    if (ariaChecked === 'true') states.push('checked');
+    const ariaChecked = element.getAttribute("aria-checked");
+    if (ariaChecked === "true") states.push("checked");
 
     // Disabled state
     if (element.disabled) {
-      states.push('disabled');
+      states.push("disabled");
     }
 
     // Required
     if (element.required) {
-      states.push('required');
+      states.push("required");
     }
 
     // Expanded state
-    const expanded = element.getAttribute('aria-expanded');
-    if (expanded === 'true') states.push('expanded');
+    const expanded = element.getAttribute("aria-expanded");
+    if (expanded === "true") states.push("expanded");
 
     // Selected state
-    const selected = element.getAttribute('aria-selected');
-    if (selected === 'true') states.push('selected');
+    const selected = element.getAttribute("aria-selected");
+    if (selected === "true") states.push("selected");
 
     return states;
   }
@@ -326,27 +344,29 @@
     const tag = element.tagName.toLowerCase();
 
     // Placeholder
-    if (['input', 'textarea'].includes(tag)) {
-      const placeholder = element.getAttribute('placeholder');
+    if (["input", "textarea"].includes(tag)) {
+      const placeholder = element.getAttribute("placeholder");
       if (placeholder) props.placeholder = placeholder;
     }
 
     // Value for inputs
-    if (element.value !== undefined && element.value !== '') {
-      if (tag === 'input' && element.type !== 'password') {
+    if (element.value !== undefined && element.value !== "") {
+      if (tag === "input" && element.type !== "password") {
         props.value = element.value;
-      } else if (tag === 'textarea') {
-        props.value = element.value.substring(0, 100) + (element.value.length > 100 ? '...' : '');
+      } else if (tag === "textarea") {
+        props.value =
+          element.value.substring(0, 100) +
+          (element.value.length > 100 ? "..." : "");
       }
     }
 
     // Level (for headings)
-    if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
-      props.level = parseInt(tag[1], 10);
+    if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(tag)) {
+      props.level = Number.parseInt(tag[1], 10);
     }
-    const ariaLevel = element.getAttribute('aria-level');
+    const ariaLevel = element.getAttribute("aria-level");
     if (ariaLevel) {
-      props.level = parseInt(ariaLevel, 10);
+      props.level = Number.parseInt(ariaLevel, 10);
     }
 
     return props;
@@ -361,33 +381,82 @@
    */
   const includedRoles = new Set([
     // Landmarks
-    'banner', 'complementary', 'contentinfo', 'form', 'main',
-    'navigation', 'region', 'search',
+    "banner",
+    "complementary",
+    "contentinfo",
+    "form",
+    "main",
+    "navigation",
+    "region",
+    "search",
     // Structure
-    'article', 'heading', 'list', 'listitem', 'table', 'row',
-    'cell', 'columnheader', 'rowheader', 'figure',
+    "article",
+    "heading",
+    "list",
+    "listitem",
+    "table",
+    "row",
+    "cell",
+    "columnheader",
+    "rowheader",
+    "figure",
     // Widgets
-    'button', 'link', 'checkbox', 'radio', 'switch', 'tab',
-    'tablist', 'tabpanel', 'textbox', 'searchbox', 'combobox',
-    'menu', 'menubar', 'menuitem', 'menuitemcheckbox', 'menuitemradio',
-    'option', 'listbox', 'tree', 'treeitem', 'grid', 'treegrid',
-    'slider', 'spinbutton', 'progressbar', 'dialog', 'alertdialog',
-    'alert', 'status', 'tooltip', 'img'
+    "button",
+    "link",
+    "checkbox",
+    "radio",
+    "switch",
+    "tab",
+    "tablist",
+    "tabpanel",
+    "textbox",
+    "searchbox",
+    "combobox",
+    "menu",
+    "menubar",
+    "menuitem",
+    "menuitemcheckbox",
+    "menuitemradio",
+    "option",
+    "listbox",
+    "tree",
+    "treeitem",
+    "grid",
+    "treegrid",
+    "slider",
+    "spinbutton",
+    "progressbar",
+    "dialog",
+    "alertdialog",
+    "alert",
+    "status",
+    "tooltip",
+    "img",
   ]);
 
   /**
    * Roles that are typically containers and shouldn't get refs
    */
   const containerRoles = new Set([
-    'list', 'table', 'row', 'rowgroup', 'tablist', 'menu', 'menubar',
-    'listbox', 'tree', 'grid', 'treegrid', 'group'
+    "list",
+    "table",
+    "row",
+    "rowgroup",
+    "tablist",
+    "menu",
+    "menubar",
+    "listbox",
+    "tree",
+    "grid",
+    "treegrid",
+    "group",
   ]);
 
   /**
    * Generate a unique ref for an element
    */
   function generateRef(element) {
-    const ref = 'e' + (++refCounter);
+    const ref = `e${++refCounter}`;
     window.__devBrowserRefs[ref] = element;
     return ref;
   }
@@ -433,7 +502,7 @@
       name: hasName ? name : undefined,
       states: states.length > 0 ? states : undefined,
       props: Object.keys(props).length > 0 ? props : undefined,
-      children: children.length > 0 ? children : undefined
+      children: children.length > 0 ? children : undefined,
     };
 
     // Add ref for interactive elements or named elements (not pure containers)
@@ -452,9 +521,9 @@
    * Serialize the ARIA tree to YAML format (dev-browser compatible)
    */
   function serializeToYaml(node, indent = 0) {
-    if (!node) return '';
+    if (!node) return "";
 
-    const spaces = '  '.repeat(indent);
+    const spaces = "  ".repeat(indent);
     const lines = [];
 
     // Handle array of nodes at root level
@@ -462,7 +531,7 @@
       for (const child of node) {
         lines.push(serializeToYaml(child, indent));
       }
-      return lines.filter(Boolean).join('\n');
+      return lines.filter(Boolean).join("\n");
     }
 
     // Build the role/name/states/ref string (dev-browser format)
@@ -472,9 +541,12 @@
     if (node.name) {
       let displayName = node.name;
       if (displayName.length > 60) {
-        displayName = displayName.substring(0, 57) + '...';
+        displayName = `${displayName.substring(0, 57)}...`;
       }
-      displayName = displayName.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
+      displayName = displayName
+        .replace(/\\/g, "\\\\")
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, "\\n");
       roleStr += ` "${displayName}"`;
     }
 
@@ -491,11 +563,12 @@
     }
 
     // Determine if we need a colon (has children or properties)
-    const hasContent = (node.props && Object.keys(node.props).length > 0) ||
-                       (node.children && node.children.length > 0);
+    const hasContent =
+      (node.props && Object.keys(node.props).length > 0) ||
+      (node.children && node.children.length > 0);
 
     if (hasContent) {
-      roleStr += ':';
+      roleStr += ":";
     }
 
     lines.push(`${spaces}- ${roleStr}`);
@@ -503,7 +576,8 @@
     // Add properties as /key: value
     if (node.props) {
       for (const [key, value] of Object.entries(node.props)) {
-        const valueStr = typeof value === 'string' ? yamlEscapeValue(value) : value;
+        const valueStr =
+          typeof value === "string" ? yamlEscapeValue(value) : value;
         lines.push(`${spaces}  - /${key}: ${valueStr}`);
       }
     }
@@ -515,7 +589,7 @@
       }
     }
 
-    return lines.filter(Boolean).join('\n');
+    return lines.filter(Boolean).join("\n");
   }
 
   // ============================================
@@ -526,7 +600,7 @@
    * Generate an ARIA snapshot of the page
    * @returns {string} YAML representation of the accessibility tree
    */
-  window.__devBrowser_getAISnapshot = function() {
+  window.__devBrowser_getAISnapshot = () => {
     // Reset refs for fresh snapshot
     window.__devBrowserRefs = {};
     refCounter = 0;
@@ -540,22 +614,24 @@
    * @param {string} ref - The ref (e.g., "e1", "e5")
    * @returns {Element} The DOM element
    */
-  window.__devBrowser_selectSnapshotRef = function(ref) {
+  window.__devBrowser_selectSnapshotRef = (ref) => {
     const refs = window.__devBrowserRefs;
     if (!refs) {
-      throw new Error('No snapshot refs found. Call getAISnapshot first.');
+      throw new Error("No snapshot refs found. Call getAISnapshot first.");
     }
     const element = refs[ref];
     if (!element) {
       const refKeys = Object.keys(refs);
-      const available = refKeys.slice(0, 20).join(', ') +
-        (refKeys.length > 20 ? ` ... (${refKeys.length} total)` : '');
+      const available =
+        refKeys.slice(0, 20).join(", ") +
+        (refKeys.length > 20 ? ` ... (${refKeys.length} total)` : "");
       throw new Error(`Ref "${ref}" not found. Available refs: ${available}`);
     }
     if (!element.isConnected) {
-      throw new Error(`Ref "${ref}" points to a detached element. Regenerate snapshot.`);
+      throw new Error(
+        `Ref "${ref}" points to a detached element. Regenerate snapshot.`,
+      );
     }
     return element;
   };
-
 })();
