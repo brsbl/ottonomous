@@ -1,7 +1,19 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { connect, waitForPageLoad } from "../client.js";
 
-describe("Snapshot functionality", () => {
+// Check if playwright is available
+let playwrightAvailable = false;
+try {
+  await import("playwright");
+  playwrightAvailable = true;
+} catch {
+  // playwright not installed
+}
+
+const { connect, waitForPageLoad } = playwrightAvailable
+  ? await import("../client.js")
+  : { connect: null, waitForPageLoad: null };
+
+describe.skipIf(!playwrightAvailable)("Snapshot functionality", () => {
   let client;
 
   beforeAll(async () => {
