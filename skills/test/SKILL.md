@@ -246,7 +246,17 @@ Summarize results:
 
 Use `browser` mode for visual verification and element interaction testing.
 
-**Note:** Browsers run in headless mode (invisible) by default. Do not pass `headless: false` unless explicitly requested by the user.
+**Important:** Create ONE browser client at the start and reuse it for all testing. Do not create multiple browser instances.
+
+## B0. Initialize Browser (once)
+
+Create a single browser client at the start of browser testing:
+```javascript
+import { connect, waitForPageLoad } from './lib/browser/client.js'
+const client = await connect() // headless by default, reuse throughout session
+```
+
+Keep this `client` instance and reuse it for all subsequent steps. Only call `client.disconnect()` at the very end when all testing is complete.
 
 ## B1. Get Changed Files
 
@@ -261,14 +271,15 @@ Map code changes to UI locations:
 
 ## B3. Navigate to Page
 
-Use browser client to load the page (headless by default):
+Reuse the existing client to get or create named pages:
 ```javascript
-import { connect, waitForPageLoad } from './lib/browser/client.js'
-const client = await connect() // headless: true by default
+// Get or create a named page (reuses existing page if already open)
 const page = await client.page('test')
 await page.goto('http://localhost:3000/affected-route')
 await waitForPageLoad(page)
 ```
+
+**Page reuse:** `client.page('test')` returns the same page instance if called again with the same name. Use this to navigate to different URLs without opening new windows.
 
 ## B4. Visual Inspection
 
@@ -325,7 +336,12 @@ If problems found:
 2. Re-navigate to the page
 3. Re-verify the fix
 
-## B9. Report (browser mode)
+## B9. Cleanup & Report
+
+**Close the browser** when all testing is complete:
+```javascript
+await client.disconnect()
+```
 
 Summarize results:
 - Pages tested
@@ -340,5 +356,5 @@ Summarize results:
 Use `all` mode to run both `run` and `browser` modes sequentially.
 
 1. Execute steps 1-11 (run mode)
-2. Execute steps B1-B9 (browser mode)
+2. Execute steps B0-B9 (browser mode)
 3. Combined report with all results

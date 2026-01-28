@@ -19,12 +19,6 @@
     "indentWidth": 2
   },
   "files": {
-    "ignore": [
-      "node_modules",
-      "**/node_modules/**",
-      ".otto",
-      ".local",
-      "lib/agentation/**"
-    ]
+    "ignore": ["node_modules", "**/node_modules/**", ".otto", ".local"]
   }
 }
