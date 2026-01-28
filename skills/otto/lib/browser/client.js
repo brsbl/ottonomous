@@ -15,15 +15,15 @@
 
 import { chromium } from "playwright";
 import {
+  clearSubmittedFeedback,
+  getDesignFeedbackScript,
+  waitForSubmission,
+} from "./design-feedback/index.js";
+import {
   normalizePageName,
   validateScreenshotOptions,
 } from "./server.utils.js";
 import { getSnapshotScript } from "./snapshot/index.js";
-import {
-  getDesignFeedbackScript,
-  clearSubmittedFeedback,
-  waitForSubmission,
-} from "./design-feedback/index.js";
 
 const DEFAULT_TIMEOUT = 30000;
 

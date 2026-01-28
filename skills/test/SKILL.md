@@ -246,6 +246,8 @@ Summarize results:
 
 Use `browser` mode for visual verification and element interaction testing.
 
+**Note:** Browsers run in headless mode (invisible) by default. Do not pass `headless: false` unless explicitly requested by the user.
+
 ## B1. Get Changed Files
 
 Use the scope to determine which files changed (see git commands in table above).
@@ -259,11 +261,13 @@ Map code changes to UI locations:
 
 ## B3. Navigate to Page
 
-Use browser client to load the page:
+Use browser client to load the page (headless by default):
 ```javascript
-import { createBrowserClient } from './lib/browser/client.js'
-const client = await createBrowserClient()
-await client.navigate('http://localhost:3000/affected-route')
+import { connect, waitForPageLoad } from './lib/browser/client.js'
+const client = await connect() // headless: true by default
+const page = await client.page('test')
+await page.goto('http://localhost:3000/affected-route')
+await waitForPageLoad(page)
 ```
 
 ## B4. Visual Inspection
@@ -279,7 +283,7 @@ await client.navigate('http://localhost:3000/affected-route')
 
 Use `getAISnapshot()` to get the accessibility tree with refs:
 ```javascript
-const snapshot = await client.getAISnapshot('page-name')
+const snapshot = await client.getAISnapshot('test')
 ```
 
 **Snapshot format:**
@@ -296,7 +300,7 @@ const snapshot = await client.getAISnapshot('page-name')
 
 Use `selectSnapshotRef()` to get element handles:
 ```javascript
-const button = await client.selectSnapshotRef('page-name', 'e3')
+const button = await client.selectSnapshotRef('test', 'e3')
 await button.click()
 ```
 

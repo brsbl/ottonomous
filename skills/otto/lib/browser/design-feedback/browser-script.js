@@ -10,9 +10,7 @@
 //
 // =============================================================================
 
-(function () {
-  "use strict";
-
+(() => {
   // Prevent double initialization
   if (window.__designFeedbackInitialized) return;
   window.__designFeedbackInitialized = true;
@@ -29,7 +27,7 @@
 
   let isActive = false;
   let hoveredElement = null;
-  let selectedElement = null;
+  let _selectedElement = null;
   let feedbackCounter = 0;
 
   // =============================================================================
@@ -283,7 +281,7 @@
   let toolbarEl = null;
   let overlayEl = null;
   let popupEl = null;
-  let markers = [];
+  const markers = [];
 
   function injectStyles() {
     styleEl = document.createElement("style");
@@ -365,9 +363,10 @@
   function getElementIdentifier(element) {
     const tag = element.tagName.toLowerCase();
     const id = element.id ? `#${element.id}` : "";
-    const classes = element.className && typeof element.className === "string"
-      ? "." + element.className.trim().split(/\s+/).slice(0, 2).join(".")
-      : "";
+    const classes =
+      element.className && typeof element.className === "string"
+        ? `.${element.className.trim().split(/\s+/).slice(0, 2).join(".")}`
+        : "";
     return `${tag}${id}${classes}`;
   }
 
@@ -398,9 +397,12 @@
       let selector = current.tagName.toLowerCase();
 
       if (current.className && typeof current.className === "string") {
-        const classes = current.className.trim().split(/\s+/).filter(c => c && !c.startsWith("df-"));
+        const classes = current.className
+          .trim()
+          .split(/\s+/)
+          .filter((c) => c && !c.startsWith("df-"));
         if (classes.length) {
-          selector += "." + classes.slice(0, 2).join(".");
+          selector += `.${classes.slice(0, 2).join(".")}`;
         }
       }
 
@@ -408,7 +410,7 @@
       const parent = current.parentElement;
       if (parent) {
         const siblings = Array.from(parent.children).filter(
-          child => child.tagName === current.tagName
+          (child) => child.tagName === current.tagName,
         );
         if (siblings.length > 1) {
           const index = siblings.indexOf(current) + 1;
@@ -477,7 +479,7 @@
   // =============================================================================
 
   function showPopup(element) {
-    selectedElement = element;
+    _selectedElement = element;
     overlayEl.classList.add("selected");
 
     const rect = element.getBoundingClientRect();
@@ -594,7 +596,7 @@
       popupEl.remove();
       popupEl = null;
     }
-    selectedElement = null;
+    _selectedElement = null;
     hideOverlay();
   }
 
@@ -649,7 +651,9 @@
     closePopup();
 
     // Dispatch custom event for listeners
-    window.dispatchEvent(new CustomEvent("designFeedback:submitted", { detail: feedback }));
+    window.dispatchEvent(
+      new CustomEvent("designFeedback:submitted", { detail: feedback }),
+    );
   }
 
   // Send all saved feedback to Claude
@@ -661,7 +665,9 @@
     updateSavedCount();
 
     // Dispatch custom event for listeners
-    window.dispatchEvent(new CustomEvent("designFeedback:submitted", { detail: saved }));
+    window.dispatchEvent(
+      new CustomEvent("designFeedback:submitted", { detail: saved }),
+    );
   }
 
   function addMarker(element, number) {
@@ -783,12 +789,12 @@
     toolbarEl?.remove();
     overlayEl?.remove();
     popupEl?.remove();
-    markers.forEach(m => m.remove());
+    for (const m of markers) m.remove();
 
-    delete window.__designFeedbackInitialized;
-    delete window.__designFeedbackAPI;
-    delete window.__designFeedbackSaved;
-    delete window.__designFeedbackSubmit;
+    window.__designFeedbackInitialized = undefined;
+    window.__designFeedbackAPI = undefined;
+    window.__designFeedbackSaved = undefined;
+    window.__designFeedbackSubmit = undefined;
   }
 
   // Initialize
