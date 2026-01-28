@@ -2,6 +2,7 @@
 name: spec
 description: Writes product specifications through collaborative interview with web research. Activates when user mentions planning, requirements, design, new features, architecture, proposals, or needs a spec/PRD/blueprint.
 argument-hint: [product idea]
+model: opus
 ---
 
 **Product Idea:** $ARGUMENTS
@@ -85,8 +86,13 @@ Revise until approved.
 
 Generate unique ID from product idea:
 ```bash
-slug=$(echo "$ARGUMENTS" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | cut -c1-30)
-hash=$(echo "$ARGUMENTS$(date +%s%N)" | { sha1sum 2>/dev/null || shasum; } | cut -c1-4)
+slug="${ARGUMENTS,,}"          # Convert to lowercase
+slug="${slug// /-}"            # Replace spaces with hyphens
+slug="${slug:0:30}"            # Truncate to 30 characters
+
+hash=$(sha1sum <<< "$ARGUMENTS$(date +%s%N)" 2>/dev/null || shasum <<< "$ARGUMENTS$(date +%s%N)")
+hash="${hash:0:4}"
+
 id="${slug}-${hash}"
 
 mkdir -p .otto/specs

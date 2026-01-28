@@ -1,6 +1,7 @@
 ---
 name: agentation
 description: Add Agentation visual feedback toolbar to a Next.js project
+model: opus
 ---
 
 # Agentation Setup

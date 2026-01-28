@@ -2,6 +2,7 @@
 name: test
 description: Runs lint, type check, tests, and visual verification. Auto-detects tools (ESLint/Biome, TypeScript/mypy, vitest/jest/pytest/cargo) and sets up missing ones.
 argument-hint: <run | write | browser | annotate | all> [staged | uncommitted | branch | URL]
+model: opus
 ---
 
 **Arguments:** $ARGUMENTS

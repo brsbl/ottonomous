@@ -2,6 +2,7 @@
 name: doc
 description: Documents code changes. Creates structured entries capturing what changed, why, and notable details. Use after implementing features.
 argument-hint: [staged | uncommitted | branch]
+model: opus
 ---
 
 **Scope:** $ARGUMENTS

@@ -1,6 +1,7 @@
 ---
 name: reset
 description: Resets project to fresh plugin state. Removes all workflow artifacts (.otto/) and generated code while preserving plugin files and git history. Use when starting over or wiping generated code. Destructive - requires confirmation.
+model: opus
 ---
 
 Reset project to freshly installed plugin state. This is destructive.
@@ -38,17 +39,19 @@ done
 
 List items that will be removed with sizes:
 ```bash
-find . -maxdepth 1 \
-  ! -name '.' \
-  ! -name '.claude' \
-  ! -name '.claude-plugin' \
-  ! -name 'skills' \
-  ! -name '.git' \
-  ! -name 'README.md' \
-  ! -name 'LICENSE' \
-  ! -name '.gitignore' \
-  ! -name '.gitmodules' \
-  -exec du -sh {} \; 2>/dev/null | sort -hr
+to_remove=()
+for item in ./* ./.*; do
+  [[ ! -e "$item" ]] && continue
+  name="${item##*/}"
+  case "$name" in
+    .|..|.claude|.claude-plugin|skills|.git|README.md|LICENSE|.gitignore|.gitmodules) ;;
+    *) to_remove+=("$item") ;;
+  esac
+done
+
+if [[ ${#to_remove[@]} -gt 0 ]]; then
+  du -sh "${to_remove[@]}" 2>/dev/null | sort -hr
+fi
 ```
 
 Show user:
