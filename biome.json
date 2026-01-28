@@ -24,7 +24,7 @@
       "**/node_modules/**",
       ".otto",
       ".local",
-      "lib/agentation"
+      "lib/agentation/**"
     ]
   }
 }
