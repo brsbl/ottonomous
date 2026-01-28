@@ -1,7 +1,7 @@
 ---
 name: next
 description: Pick or implement the next task. Without argument, returns the next task id. With task id, implements that task. Use to continue working through a task list.
-argument-hint: [task-id]
+argument-hint: [task-id|batch]
 ---
 
 **Argument:** $ARGUMENTS
@@ -10,6 +10,7 @@ argument-hint: [task-id]
 |----------|----------|
 | (none) | Select and return next task id |
 | `{task-id}` | Implement the specified task |
+| `batch` | Run all unblocked tasks at highest priority in parallel |
 
 ---
 
@@ -57,6 +58,40 @@ Priority: {priority}
 ```
 
 Stop here if no argument was provided.
+
+---
+
+### 2b. Batch Mode
+
+If `$ARGUMENTS` is `batch`:
+
+1. Filter to tasks with status "pending"
+2. Filter to unblocked tasks (all `depends_on` tasks are "done")
+3. Select only tasks at the **highest priority level** (lowest number)
+
+**If no unblocked tasks:** Show same messages as single-task mode.
+
+**If only 1 task:** Fall through to normal single-task implementation (Section 3).
+
+**Launch parallel subagents:**
+
+For each task at the highest priority level, launch a subagent using the Task tool:
+- Use `run_in_background: true` for concurrent execution
+- Each subagent implements one task following Section 3 logic
+- Mark all tasks as "in_progress" before launching
+
+**Report:**
+```
+Launching {n} priority-{p} tasks in parallel:
+- Task {id1}: {title1}
+- Task {id2}: {title2}
+...
+```
+
+**Monitor and complete:**
+- Wait for all subagents to finish
+- Report results: "Completed {n}/{total} tasks"
+- Suggest: "Run `/next batch` again for next priority level."
 
 ---
 
