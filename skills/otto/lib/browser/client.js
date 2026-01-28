@@ -19,6 +19,10 @@ import {
   validateScreenshotOptions,
 } from "./server.utils.js";
 import { getSnapshotScript } from "./snapshot/index.js";
+import {
+  getAgentationScript,
+  clearAnnotationQueue as clearPageAnnotationQueue,
+} from "./agentation/index.js";
 
 const DEFAULT_TIMEOUT = 30000;
 
@@ -269,6 +273,142 @@ class BrowserClient {
       }
       return element;
     }, ref);
+  }
+
+  /**
+   * Inject Agentation annotation overlay into a page.
+   * Safe to call multiple times - prevents double initialization.
+   * @param {string} name - Page name
+   * @returns {Promise<void>}
+   */
+  async injectAgentation(name) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+
+    // Only inject if not already present
+    const hasAgentation = await page.evaluate(
+      () => !!window.__agentationInitialized,
+    );
+    if (!hasAgentation) {
+      const script = getAgentationScript();
+      await page.addScriptTag({ content: script });
+    }
+  }
+
+  /**
+   * Activate annotation mode in a page (user can click to annotate).
+   * @param {string} name - Page name
+   * @returns {Promise<void>}
+   */
+  async activateAnnotationMode(name) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+    await page.evaluate(() => window.__agentationAPI?.activate());
+  }
+
+  /**
+   * Deactivate annotation mode in a page.
+   * @param {string} name - Page name
+   * @returns {Promise<void>}
+   */
+  async deactivateAnnotationMode(name) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+    await page.evaluate(() => window.__agentationAPI?.deactivate());
+  }
+
+  /**
+   * Get pending annotations from a page without clearing them.
+   * @param {string} name - Page name
+   * @returns {Promise<Array<Object>>} Array of annotation objects
+   */
+  async getAnnotations(name) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+    return page.evaluate(() => window.__agentationQueue?.slice() || []);
+  }
+
+  /**
+   * Clear and return all annotations from a page's queue.
+   * @param {string} name - Page name
+   * @returns {Promise<Array<Object>>} Array of cleared annotation objects
+   */
+  async clearAnnotationQueue(name) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+    return clearPageAnnotationQueue(page);
+  }
+
+  /**
+   * Watch for annotations and call callback for each one.
+   * Continues polling until aborted via signal.
+   *
+   * @param {string} name - Page name
+   * @param {(annotation: Object) => Promise<void>} callback - Called for each new annotation
+   * @param {Object} options - Polling options
+   * @param {number} [options.interval=500] - Poll interval in ms
+   * @param {AbortSignal} [options.signal] - AbortSignal to cancel polling
+   * @returns {Promise<void>} Resolves when polling is cancelled
+   */
+  async watchAnnotations(name, callback, options = {}) {
+    const { interval = 500, signal } = options;
+    const normalized = normalizePageName(name);
+
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+
+    while (!signal?.aborted) {
+      try {
+        // Get and clear new annotations
+        const annotations = await clearPageAnnotationQueue(page);
+
+        // Process each annotation
+        for (const annotation of annotations) {
+          await callback(annotation);
+        }
+
+        // Wait before next poll
+        await new Promise((resolve) => {
+          const timeout = setTimeout(resolve, interval);
+          if (signal) {
+            signal.addEventListener(
+              "abort",
+              () => {
+                clearTimeout(timeout);
+                resolve();
+              },
+              { once: true },
+            );
+          }
+        });
+      } catch (error) {
+        // Page might have been closed or navigated
+        if (
+          error.message?.includes("Target closed") ||
+          error.message?.includes("Execution context was destroyed")
+        ) {
+          break;
+        }
+        throw error;
+      }
+    }
   }
 
   /**
