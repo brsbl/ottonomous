@@ -56,6 +56,7 @@ Sessions group related tasks that share context and can be implemented together 
 .otto/                       # Workflow artifacts (git-ignored)
 ├── specs/                   # Specification documents (.md)
 ├── tasks/                   # Sessions and tasks (.json)
+├── reviews/                 # Review fix plans (.json)
 ├── docs/                    # Change documentation entries
 ├── summaries/               # Generated HTML summaries
 └── otto/
