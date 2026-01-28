@@ -1,12 +1,12 @@
 // =============================================================================
-// Agentation Browser Script (Vanilla JS)
+// Design Feedback Browser Script (Vanilla JS)
 // =============================================================================
 //
-// A standalone annotation overlay that can be injected into any web page.
-// Provides click-to-annotate functionality and pushes annotations to a queue.
+// A standalone feedback overlay that can be injected into any web page.
+// Provides click-to-annotate functionality and pushes feedback to a queue.
 //
 // Usage: Inject via page.addScriptTag({ content: script })
-// Access annotations via: window.__agentationQueue
+// Access feedback via: window.__designFeedbackQueue
 //
 // =============================================================================
 
@@ -14,27 +14,30 @@
   "use strict";
 
   // Prevent double initialization
-  if (window.__agentationInitialized) return;
-  window.__agentationInitialized = true;
+  if (window.__designFeedbackInitialized) return;
+  window.__designFeedbackInitialized = true;
 
   // =============================================================================
   // State
   // =============================================================================
 
-  /** @type {Array<Object>} */
-  window.__agentationQueue = window.__agentationQueue || [];
+  /** @type {Array<Object>} Saved feedback (not yet submitted to Claude) */
+  window.__designFeedbackSaved = window.__designFeedbackSaved || [];
+
+  /** @type {Array<Object>} Submitted feedback (ready for Claude to consume) */
+  window.__designFeedbackSubmit = window.__designFeedbackSubmit || [];
 
   let isActive = false;
   let hoveredElement = null;
   let selectedElement = null;
-  let annotationCounter = 0;
+  let feedbackCounter = 0;
 
   // =============================================================================
   // Styles
   // =============================================================================
 
   const STYLES = `
-    .agentation-overlay {
+    .df-overlay {
       position: fixed;
       pointer-events: none;
       border: 2px solid #3b82f6;
@@ -44,12 +47,12 @@
       transition: all 0.1s ease;
     }
 
-    .agentation-overlay.selected {
+    .df-overlay.selected {
       border-color: #22c55e;
       background: rgba(34, 197, 94, 0.1);
     }
 
-    .agentation-toolbar {
+    .df-toolbar {
       position: fixed;
       bottom: 20px;
       left: 50%;
@@ -64,7 +67,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    .agentation-toolbar button {
+    .df-toolbar button {
       padding: 8px 16px;
       border: none;
       border-radius: 8px;
@@ -74,30 +77,45 @@
       transition: all 0.15s ease;
     }
 
-    .agentation-toolbar .annotate-btn {
+    .df-toolbar .annotate-btn {
       background: #3b82f6;
       color: white;
     }
 
-    .agentation-toolbar .annotate-btn:hover {
+    .df-toolbar .annotate-btn:hover {
       background: #2563eb;
     }
 
-    .agentation-toolbar .annotate-btn.active {
+    .df-toolbar .annotate-btn.active {
       background: #22c55e;
     }
 
-    .agentation-toolbar .close-btn {
+    .df-toolbar .close-btn {
       background: #374151;
       color: #9ca3af;
     }
 
-    .agentation-toolbar .close-btn:hover {
+    .df-toolbar .close-btn:hover {
       background: #4b5563;
       color: white;
     }
 
-    .agentation-toolbar .count {
+    .df-toolbar .send-all-btn {
+      background: #22c55e;
+      color: white;
+    }
+
+    .df-toolbar .send-all-btn:hover {
+      background: #16a34a;
+    }
+
+    .df-toolbar .send-all-btn:disabled {
+      background: #374151;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+
+    .df-toolbar .count {
       display: flex;
       align-items: center;
       padding: 0 12px;
@@ -105,7 +123,7 @@
       font-size: 13px;
     }
 
-    .agentation-popup {
+    .df-popup {
       position: fixed;
       width: 320px;
       background: #1a1a2e;
@@ -113,10 +131,10 @@
       box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
       z-index: 2147483647;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      animation: agentation-popup-in 0.2s ease;
+      animation: df-popup-in 0.2s ease;
     }
 
-    @keyframes agentation-popup-in {
+    @keyframes df-popup-in {
       from {
         opacity: 0;
         transform: scale(0.95) translateY(-10px);
@@ -127,7 +145,7 @@
       }
     }
 
-    .agentation-popup-header {
+    .df-popup-header {
       padding: 12px 16px;
       border-bottom: 1px solid #2a2a4a;
       display: flex;
@@ -135,14 +153,14 @@
       gap: 8px;
     }
 
-    .agentation-popup-element {
+    .df-popup-element {
       color: #a78bfa;
       font-size: 13px;
       font-weight: 500;
       font-family: ui-monospace, monospace;
     }
 
-    .agentation-popup-text {
+    .df-popup-text {
       color: #9ca3af;
       font-size: 12px;
       max-width: 200px;
@@ -151,11 +169,11 @@
       white-space: nowrap;
     }
 
-    .agentation-popup-body {
+    .df-popup-body {
       padding: 12px 16px;
     }
 
-    .agentation-popup textarea {
+    .df-popup textarea {
       width: 100%;
       min-height: 80px;
       padding: 10px 12px;
@@ -169,16 +187,16 @@
       box-sizing: border-box;
     }
 
-    .agentation-popup textarea:focus {
+    .df-popup textarea:focus {
       outline: none;
       border-color: #3b82f6;
     }
 
-    .agentation-popup textarea::placeholder {
+    .df-popup textarea::placeholder {
       color: #6b7280;
     }
 
-    .agentation-popup-actions {
+    .df-popup-actions {
       padding: 12px 16px;
       border-top: 1px solid #2a2a4a;
       display: flex;
@@ -186,7 +204,7 @@
       gap: 8px;
     }
 
-    .agentation-popup-actions button {
+    .df-popup-actions button {
       padding: 8px 16px;
       border: none;
       border-radius: 8px;
@@ -196,30 +214,44 @@
       transition: all 0.15s ease;
     }
 
-    .agentation-popup-actions .cancel-btn {
+    .df-popup-actions .cancel-btn {
       background: transparent;
       color: #9ca3af;
     }
 
-    .agentation-popup-actions .cancel-btn:hover {
+    .df-popup-actions .cancel-btn:hover {
       color: white;
     }
 
-    .agentation-popup-actions .submit-btn {
-      background: #3b82f6;
-      color: white;
+    .df-popup-actions .save-btn {
+      background: #374151;
+      color: #e5e5e5;
     }
 
-    .agentation-popup-actions .submit-btn:hover {
-      background: #2563eb;
+    .df-popup-actions .save-btn:hover {
+      background: #4b5563;
     }
 
-    .agentation-popup-actions .submit-btn:disabled {
+    .df-popup-actions .save-btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
 
-    .agentation-marker {
+    .df-popup-actions .submit-btn {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .df-popup-actions .submit-btn:hover {
+      background: #2563eb;
+    }
+
+    .df-popup-actions .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .df-marker {
       position: absolute;
       width: 24px;
       height: 24px;
@@ -238,7 +270,7 @@
       transition: transform 0.15s ease;
     }
 
-    .agentation-marker:hover {
+    .df-marker:hover {
       transform: scale(1.15);
     }
   `;
@@ -261,7 +293,7 @@
 
   function createToolbar() {
     toolbarEl = document.createElement("div");
-    toolbarEl.className = "agentation-toolbar";
+    toolbarEl.className = "df-toolbar";
 
     const annotateBtn = document.createElement("button");
     annotateBtn.className = "annotate-btn";
@@ -269,7 +301,12 @@
 
     const countSpan = document.createElement("span");
     countSpan.className = "count";
-    countSpan.textContent = "0 annotations";
+    countSpan.textContent = "0 saved";
+
+    const sendAllBtn = document.createElement("button");
+    sendAllBtn.className = "send-all-btn";
+    sendAllBtn.textContent = "Send All";
+    sendAllBtn.disabled = true;
 
     const closeBtn = document.createElement("button");
     closeBtn.className = "close-btn";
@@ -277,6 +314,7 @@
 
     toolbarEl.appendChild(annotateBtn);
     toolbarEl.appendChild(countSpan);
+    toolbarEl.appendChild(sendAllBtn);
     toolbarEl.appendChild(closeBtn);
     document.body.appendChild(toolbarEl);
 
@@ -289,12 +327,13 @@
       }
     });
 
+    sendAllBtn.addEventListener("click", sendAllFeedback);
     closeBtn.addEventListener("click", cleanup);
   }
 
   function createOverlay() {
     overlayEl = document.createElement("div");
-    overlayEl.className = "agentation-overlay";
+    overlayEl.className = "df-overlay";
     overlayEl.style.display = "none";
     document.body.appendChild(overlayEl);
   }
@@ -359,7 +398,7 @@
       let selector = current.tagName.toLowerCase();
 
       if (current.className && typeof current.className === "string") {
-        const classes = current.className.trim().split(/\s+/).filter(c => c && !c.startsWith("agentation"));
+        const classes = current.className.trim().split(/\s+/).filter(c => c && !c.startsWith("df-"));
         if (classes.length) {
           selector += "." + classes.slice(0, 2).join(".");
         }
@@ -446,7 +485,7 @@
     const elementText = getElementText(element);
 
     popupEl = document.createElement("div");
-    popupEl.className = "agentation-popup";
+    popupEl.className = "df-popup";
 
     // Position popup near element but ensure it stays in viewport
     let left = rect.right + 10;
@@ -469,40 +508,46 @@
 
     // Build popup using safe DOM methods
     const header = document.createElement("div");
-    header.className = "agentation-popup-header";
+    header.className = "df-popup-header";
 
     const elementSpan = document.createElement("span");
-    elementSpan.className = "agentation-popup-element";
+    elementSpan.className = "df-popup-element";
     elementSpan.textContent = elementId;
     header.appendChild(elementSpan);
 
     if (elementText) {
       const textSpan = document.createElement("span");
-      textSpan.className = "agentation-popup-text";
+      textSpan.className = "df-popup-text";
       textSpan.textContent = `"${elementText}"`;
       header.appendChild(textSpan);
     }
 
     const body = document.createElement("div");
-    body.className = "agentation-popup-body";
+    body.className = "df-popup-body";
 
     const textarea = document.createElement("textarea");
     textarea.placeholder = "What should change?";
     body.appendChild(textarea);
 
     const actions = document.createElement("div");
-    actions.className = "agentation-popup-actions";
+    actions.className = "df-popup-actions";
 
     const cancelBtn = document.createElement("button");
     cancelBtn.className = "cancel-btn";
     cancelBtn.textContent = "Cancel";
 
+    const saveBtn = document.createElement("button");
+    saveBtn.className = "save-btn";
+    saveBtn.textContent = "Save";
+    saveBtn.disabled = true;
+
     const submitBtn = document.createElement("button");
     submitBtn.className = "submit-btn";
-    submitBtn.textContent = "Add";
+    submitBtn.textContent = "Submit";
     submitBtn.disabled = true;
 
     actions.appendChild(cancelBtn);
+    actions.appendChild(saveBtn);
     actions.appendChild(submitBtn);
 
     popupEl.appendChild(header);
@@ -514,14 +559,16 @@
     textarea.focus();
 
     textarea.addEventListener("input", () => {
-      submitBtn.disabled = !textarea.value.trim();
+      const hasText = !!textarea.value.trim();
+      saveBtn.disabled = !hasText;
+      submitBtn.disabled = !hasText;
     });
 
     textarea.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         if (textarea.value.trim()) {
-          submitAnnotation(element, textarea.value.trim());
+          submitFeedback(element, textarea.value.trim());
         }
       }
       if (e.key === "Escape") {
@@ -530,9 +577,14 @@
     });
 
     cancelBtn.addEventListener("click", closePopup);
+    saveBtn.addEventListener("click", () => {
+      if (textarea.value.trim()) {
+        saveFeedback(element, textarea.value.trim());
+      }
+    });
     submitBtn.addEventListener("click", () => {
       if (textarea.value.trim()) {
-        submitAnnotation(element, textarea.value.trim());
+        submitFeedback(element, textarea.value.trim());
       }
     });
   }
@@ -547,15 +599,15 @@
   }
 
   // =============================================================================
-  // Annotation Submission
+  // Feedback Submission
   // =============================================================================
 
-  function submitAnnotation(element, note) {
-    annotationCounter++;
+  function createFeedback(element, note) {
+    feedbackCounter++;
     const rect = element.getBoundingClientRect();
 
-    const annotation = {
-      id: `ann_${Date.now()}_${annotationCounter}`,
+    return {
+      id: `fb_${Date.now()}_${feedbackCounter}`,
       selector: getCSSSelector(element),
       boundingBox: {
         x: rect.left + window.scrollX,
@@ -570,25 +622,52 @@
       elementPath: getElementPath(element),
       element: getElementIdentifier(element),
     };
+  }
 
-    window.__agentationQueue.push(annotation);
+  // Save feedback locally (for batch submission later)
+  function saveFeedback(element, note) {
+    const feedback = createFeedback(element, note);
+    window.__designFeedbackSaved.push(feedback);
 
     // Add visual marker
-    addMarker(element, annotationCounter);
+    addMarker(element, feedbackCounter);
 
     // Update counter
-    updateAnnotationCount();
+    updateSavedCount();
+
+    closePopup();
+  }
+
+  // Submit feedback immediately to Claude
+  function submitFeedback(element, note) {
+    const feedback = createFeedback(element, note);
+    window.__designFeedbackSubmit.push(feedback);
+
+    // Add visual marker
+    addMarker(element, feedbackCounter);
 
     closePopup();
 
     // Dispatch custom event for listeners
-    window.dispatchEvent(new CustomEvent("agentation:annotation", { detail: annotation }));
+    window.dispatchEvent(new CustomEvent("designFeedback:submitted", { detail: feedback }));
+  }
+
+  // Send all saved feedback to Claude
+  function sendAllFeedback() {
+    const saved = window.__designFeedbackSaved.splice(0);
+    if (saved.length === 0) return;
+
+    window.__designFeedbackSubmit.push(...saved);
+    updateSavedCount();
+
+    // Dispatch custom event for listeners
+    window.dispatchEvent(new CustomEvent("designFeedback:submitted", { detail: saved }));
   }
 
   function addMarker(element, number) {
     const rect = element.getBoundingClientRect();
     const marker = document.createElement("div");
-    marker.className = "agentation-marker";
+    marker.className = "df-marker";
     marker.textContent = String(number);
     marker.style.left = `${rect.left + window.scrollX - 12}px`;
     marker.style.top = `${rect.top + window.scrollY - 12}px`;
@@ -596,10 +675,14 @@
     markers.push(marker);
   }
 
-  function updateAnnotationCount() {
-    const count = window.__agentationQueue.length;
+  function updateSavedCount() {
+    const count = window.__designFeedbackSaved.length;
     const countEl = toolbarEl.querySelector(".count");
-    countEl.textContent = `${count} annotation${count !== 1 ? "s" : ""}`;
+    countEl.textContent = `${count} saved`;
+
+    // Enable/disable Send All button
+    const sendAllBtn = toolbarEl.querySelector(".send-all-btn");
+    sendAllBtn.disabled = count === 0;
   }
 
   // =============================================================================
@@ -610,7 +693,7 @@
     if (!isActive || popupEl) return;
 
     const element = document.elementFromPoint(e.clientX, e.clientY);
-    if (!element || element.closest(".agentation-toolbar, .agentation-popup, .agentation-overlay")) {
+    if (!element || element.closest(".df-toolbar, .df-popup, .df-overlay")) {
       hideOverlay();
       return;
     }
@@ -623,7 +706,7 @@
     if (!isActive) return;
 
     const element = document.elementFromPoint(e.clientX, e.clientY);
-    if (!element || element.closest(".agentation-toolbar, .agentation-popup")) {
+    if (!element || element.closest(".df-toolbar, .df-popup")) {
       return;
     }
 
@@ -665,7 +748,7 @@
     document.addEventListener("keydown", handleKeydown, true);
 
     // Public API
-    window.__agentationAPI = {
+    window.__designFeedbackAPI = {
       activate: () => {
         isActive = true;
         const annotateBtn = toolbarEl.querySelector(".annotate-btn");
@@ -679,11 +762,14 @@
         annotateBtn.textContent = "Annotate";
         hideOverlay();
       },
-      getAnnotations: () => window.__agentationQueue.slice(),
-      clearQueue: () => {
-        const cleared = window.__agentationQueue.splice(0);
-        return cleared;
-      },
+      // Get saved feedback (not yet submitted)
+      getSaved: () => window.__designFeedbackSaved.slice(),
+      // Get submitted feedback (ready for Claude)
+      getSubmitted: () => window.__designFeedbackSubmit.slice(),
+      // Clear and return submitted feedback
+      clearSubmitted: () => window.__designFeedbackSubmit.splice(0),
+      // Send all saved feedback
+      sendAll: sendAllFeedback,
       cleanup: cleanup,
     };
   }
@@ -699,9 +785,10 @@
     popupEl?.remove();
     markers.forEach(m => m.remove());
 
-    delete window.__agentationInitialized;
-    delete window.__agentationAPI;
-    delete window.__agentationQueue;
+    delete window.__designFeedbackInitialized;
+    delete window.__designFeedbackAPI;
+    delete window.__designFeedbackSaved;
+    delete window.__designFeedbackSubmit;
   }
 
   // Initialize

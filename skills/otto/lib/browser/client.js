@@ -20,9 +20,10 @@ import {
 } from "./server.utils.js";
 import { getSnapshotScript } from "./snapshot/index.js";
 import {
-  getAgentationScript,
-  clearAnnotationQueue as clearPageAnnotationQueue,
-} from "./agentation/index.js";
+  getDesignFeedbackScript,
+  clearSubmittedFeedback,
+  waitForSubmission,
+} from "./design-feedback/index.js";
 
 const DEFAULT_TIMEOUT = 30000;
 
@@ -179,7 +180,7 @@ class BrowserClient {
     }
 
     const context = await this.browser.newContext({
-      viewport: { width: 1280, height: 720 },
+      viewport: { width: 1920, height: 1080 },
       ignoreHTTPSErrors: true,
     });
     const page = await context.newPage();
@@ -276,12 +277,12 @@ class BrowserClient {
   }
 
   /**
-   * Inject Agentation annotation overlay into a page.
+   * Inject design feedback overlay into a page.
    * Safe to call multiple times - prevents double initialization.
    * @param {string} name - Page name
    * @returns {Promise<void>}
    */
-  async injectAgentation(name) {
+  async injectDesignFeedback(name) {
     const normalized = normalizePageName(name);
     if (!this.pages.has(normalized)) {
       throw new Error(`Page "${name}" not found. Create it first with page().`);
@@ -289,126 +290,116 @@ class BrowserClient {
     const page = this.pages.get(normalized);
 
     // Only inject if not already present
-    const hasAgentation = await page.evaluate(
-      () => !!window.__agentationInitialized,
+    const hasOverlay = await page.evaluate(
+      () => !!window.__designFeedbackInitialized,
     );
-    if (!hasAgentation) {
-      const script = getAgentationScript();
+    if (!hasOverlay) {
+      const script = getDesignFeedbackScript();
       await page.addScriptTag({ content: script });
     }
   }
 
   /**
-   * Activate annotation mode in a page (user can click to annotate).
+   * Activate design feedback mode in a page (user can click to annotate).
    * @param {string} name - Page name
    * @returns {Promise<void>}
    */
-  async activateAnnotationMode(name) {
+  async activateDesignFeedbackMode(name) {
     const normalized = normalizePageName(name);
     if (!this.pages.has(normalized)) {
       throw new Error(`Page "${name}" not found. Create it first with page().`);
     }
     const page = this.pages.get(normalized);
-    await page.evaluate(() => window.__agentationAPI?.activate());
+    await page.evaluate(() => window.__designFeedbackAPI?.activate());
   }
 
   /**
-   * Deactivate annotation mode in a page.
+   * Deactivate design feedback mode in a page.
    * @param {string} name - Page name
    * @returns {Promise<void>}
    */
-  async deactivateAnnotationMode(name) {
+  async deactivateDesignFeedbackMode(name) {
     const normalized = normalizePageName(name);
     if (!this.pages.has(normalized)) {
       throw new Error(`Page "${name}" not found. Create it first with page().`);
     }
     const page = this.pages.get(normalized);
-    await page.evaluate(() => window.__agentationAPI?.deactivate());
+    await page.evaluate(() => window.__designFeedbackAPI?.deactivate());
   }
 
   /**
-   * Get pending annotations from a page without clearing them.
+   * Get submitted design feedback from a page (ready for processing).
+   * Does not clear the queue.
    * @param {string} name - Page name
-   * @returns {Promise<Array<Object>>} Array of annotation objects
+   * @returns {Promise<Array<Object>>} Array of submitted feedback objects
    */
-  async getAnnotations(name) {
+  async getSubmittedFeedback(name) {
     const normalized = normalizePageName(name);
     if (!this.pages.has(normalized)) {
       throw new Error(`Page "${name}" not found. Create it first with page().`);
     }
     const page = this.pages.get(normalized);
-    return page.evaluate(() => window.__agentationQueue?.slice() || []);
+    return page.evaluate(() => window.__designFeedbackSubmit?.slice() || []);
   }
 
   /**
-   * Clear and return all annotations from a page's queue.
+   * Clear and return submitted design feedback from a page.
    * @param {string} name - Page name
-   * @returns {Promise<Array<Object>>} Array of cleared annotation objects
+   * @returns {Promise<Array<Object>>} Array of cleared feedback objects
    */
-  async clearAnnotationQueue(name) {
+  async clearSubmittedFeedback(name) {
     const normalized = normalizePageName(name);
     if (!this.pages.has(normalized)) {
       throw new Error(`Page "${name}" not found. Create it first with page().`);
     }
     const page = this.pages.get(normalized);
-    return clearPageAnnotationQueue(page);
+    return clearSubmittedFeedback(page);
   }
 
   /**
-   * Watch for annotations and call callback for each one.
-   * Continues polling until aborted via signal.
+   * Get saved design feedback count (not yet submitted).
+   * @param {string} name - Page name
+   * @returns {Promise<number>}
+   */
+  async getSavedFeedbackCount(name) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+    return page.evaluate(() => window.__designFeedbackSaved?.length || 0);
+  }
+
+  /**
+   * Trigger "Send All" to submit all saved feedback.
+   * @param {string} name - Page name
+   * @returns {Promise<void>}
+   */
+  async sendAllFeedback(name) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+    await page.evaluate(() => window.__designFeedbackAPI?.sendAll());
+  }
+
+  /**
+   * Wait for design feedback to be submitted.
+   * Blocks until user clicks Submit or Send All.
    *
    * @param {string} name - Page name
-   * @param {(annotation: Object) => Promise<void>} callback - Called for each new annotation
-   * @param {Object} options - Polling options
-   * @param {number} [options.interval=500] - Poll interval in ms
-   * @param {AbortSignal} [options.signal] - AbortSignal to cancel polling
-   * @returns {Promise<void>} Resolves when polling is cancelled
+   * @param {Object} options - Wait options
+   * @param {number} [options.timeout=0] - Timeout in ms (0 = no timeout)
+   * @returns {Promise<Array<Object>>} Array of submitted feedback objects
    */
-  async watchAnnotations(name, callback, options = {}) {
-    const { interval = 500, signal } = options;
+  async waitForFeedbackSubmission(name, options = {}) {
     const normalized = normalizePageName(name);
-
     if (!this.pages.has(normalized)) {
       throw new Error(`Page "${name}" not found. Create it first with page().`);
     }
     const page = this.pages.get(normalized);
-
-    while (!signal?.aborted) {
-      try {
-        // Get and clear new annotations
-        const annotations = await clearPageAnnotationQueue(page);
-
-        // Process each annotation
-        for (const annotation of annotations) {
-          await callback(annotation);
-        }
-
-        // Wait before next poll
-        await new Promise((resolve) => {
-          const timeout = setTimeout(resolve, interval);
-          if (signal) {
-            signal.addEventListener(
-              "abort",
-              () => {
-                clearTimeout(timeout);
-                resolve();
-              },
-              { once: true },
-            );
-          }
-        });
-      } catch (error) {
-        // Page might have been closed or navigated
-        if (
-          error.message?.includes("Target closed") ||
-          error.message?.includes("Execution context was destroyed")
-        ) {
-          break;
-        }
-        throw error;
-      }
-    }
+    return waitForSubmission(page, options);
   }
 
   /**
