@@ -138,8 +138,11 @@ If `$ARGUMENTS` is a task id (numeric, not starting with "S"):
 3. Stage: `git add .otto/tasks/{spec-id}.json`
 4. Report: "Starting task {id}: {title}"
 
-**Launch subagent** using Task tool to implement the task:
+**Launch subagent using Task tool:**
 - Provide task title, description, and file hints
+- Select subagent based on task type:
+  - If task type is `frontend`: use `subagent_type: "frontend-developer"`
+  - If task type is `backend`: use `subagent_type: "backend-architect"`
 - Subagent implements the task as described
 - Wait for subagent to complete
 
@@ -161,8 +164,11 @@ If `$ARGUMENTS` is a session id (starts with "S"):
 3. Stage: `git add .otto/tasks/{spec-id}.json`
 4. Report: "Starting session {id}: {title} ({n} tasks)"
 
-**Launch subagent** using Task tool to implement the session:
+**Launch subagent using Task tool:**
 - Provide session title and all task details
+- For each task, select subagent based on task type:
+  - If task type is `frontend`: use `subagent_type: "frontend-developer"`
+  - If task type is `backend`: use `subagent_type: "backend-architect"`
 - Subagent implements tasks sequentially, respecting internal `depends_on`
 - For each task: mark "in_progress", implement, mark "done", stage
 - Wait for subagent to complete

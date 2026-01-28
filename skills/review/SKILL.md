@@ -58,6 +58,24 @@ model: opus
 
 **Do NOT flag:** trivial style issues, pre-existing problems, hypothetical issues, documentation gaps, or missing tests.
 
+### 1b. Analyze Change Types
+
+Categorize files by change type to assign appropriate reviewers:
+
+**Architectural changes** (use `architect-reviewer`):
+- API routes, endpoints, controllers
+- Database schemas, migrations
+- Service interfaces, dependency injection
+- Configuration files (docker, CI/CD)
+- Directory structure changes
+
+**Implementation changes** (use `senior-code-reviewer`):
+- UI components, styling
+- Business logic within existing patterns
+- Bug fixes, refactoring
+- Test files
+- Utility functions
+
 **Output Format:**
 ```
 ### [P{N}] {Brief title}
@@ -68,10 +86,19 @@ model: opus
 
 ### 2. Review Changes (Launch Subagents)
 
+**Assign files to reviewer types:**
+- Group architectural change files → assign to `architect-reviewer` subagents
+- Group implementation change files → assign to `senior-code-reviewer` subagents
+- If file fits both categories, assign to both reviewers
+
 **Always launch at minimum 1 review subagent. Scale based on change size:**
 - Small changes (1-4 files): 1 subagent
 - Medium changes (5-10 files): 2-3 subagents grouped by directory/component
 - Large changes (10+ files): 3-5 subagents grouped by directory/component
+
+**Launch subagents using Task tool:**
+- Use `subagent_type: "architect-reviewer"` for architectural files
+- Use `subagent_type: "senior-code-reviewer"` for implementation files
 
 **Each review subagent receives:**
 - File list to review

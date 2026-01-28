@@ -39,9 +39,9 @@ Sessions group related tasks that share context and can be implemented together 
 |-------|-------------|
 | `/spec [product idea]` | Researches best practices then interviews you to define product requirements and technical design. |
 | `/task <spec-id>` | Creates atomic tasks grouped into sessions. Each session is a unit of work with shared context. |
-| `/next [task\|session\|id\|batch]` | `task`/`session`: returns next id. `{id}`: launches subagent to implement. `batch`: parallel sessions. |
+| `/next [task\|session\|id\|batch]` | `task`/`session`: returns next id. `{id}`: launches subagent to implement. `batch`: parallel sessions. Uses `frontend-developer` or `backend-architect` based on task type. |
 | `/test <run\|write> [scope]` | `run` lint, type check, run tests, verify UI. `write` set up tests, linting and typechecking (if needed). |
-| `/review [scope]` | Multi-agent code review split by directory or component. Creates a fix plan for issues found. |
+| `/review [scope]` | Multi-agent code review split by directory or component. Uses `architect-reviewer` and `senior-code-reviewer` based on change type. Creates a fix plan for issues found. |
 | `/review fix [P0\|P0-P1\|all]` | Multi-agent fix implementation. Runs fixes from the plan in parallel batches. |
 | `/doc [scope]` | Documents code changes with what/why/notable details. One entry per logical change. |
 | `/summary` | Combines `/doc` entries into styled HTML summary that opens in your browser. |
@@ -63,6 +63,14 @@ Sessions group related tasks that share context and can be implemented together 
     └── sessions/            # Otto session state (state.json)
 
 skills/                      # Skill implementations (SKILL.md + support files)
+├── next/
+│   └── agents/              # Implementation agents
+│       ├── frontend-developer.md
+│       └── backend-architect.md
+├── review/
+│   └── agents/              # Review agents
+│       ├── architect-reviewer.md
+│       └── senior-code-reviewer.md
 ├── otto/
 │   └── lib/browser/         # Playwright-based browser automation
 ├── summary/

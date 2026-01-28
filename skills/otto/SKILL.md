@@ -21,21 +21,21 @@ When a skill asks questions or requests confirmation:
 
 ## Phase Reference
 
-| Phase | Action | Verify |
-|-------|--------|--------|
-| `init` | Create session, branch | state.json exists |
-| `spec` | `/spec {product_idea}` | spec file exists |
-| `task` | `/task {spec_id}` | tasks file exists |
-| `session:{id}:implement` | `/next {id}` | session status is done |
-| `session:{id}:test` | `/test write staged` | tests pass |
-| `session:{id}:review` | `/review staged` | review complete |
-| `session:{id}:fix` | `/review fix P0-P1` | P0/P1 fixed (if any) |
-| `session:{id}:doc` | `/doc staged` | doc entry exists |
-| `build` | `npm run build` | exit 0 |
-| `test` | `/test all` | tests pass |
-| `review` | `/review branch` | review complete |
-| `review:fix` | `/review fix P0-P1` | P0/P1 fixed (if any) |
-| `summary` | `/summary` | HTML created |
+| Phase | Action | Verify | Agents |
+|-------|--------|--------|--------|
+| `init` | Create session, branch | state.json exists | - |
+| `spec` | `/spec {product_idea}` | spec file exists | - |
+| `task` | `/task {spec_id}` | tasks file exists | - |
+| `session:{id}:implement` | `/next {id}` | session status is done | `frontend-developer`, `backend-architect` per task type |
+| `session:{id}:test` | `/test write staged` | tests pass | - |
+| `session:{id}:review` | `/review staged` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
+| `session:{id}:fix` | `/review fix P0-P1` | P0/P1 fixed (if any) | - |
+| `session:{id}:doc` | `/doc staged` | doc entry exists | - |
+| `build` | `npm run build` | exit 0 | - |
+| `test` | `/test all` | tests pass | - |
+| `review` | `/review branch` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
+| `review:fix` | `/review fix P0-P1` | P0/P1 fixed (if any) | - |
+| `summary` | `/summary` | HTML created | - |
 
 ---
 
@@ -107,6 +107,10 @@ Returns the next session id without implementing.
 
 **Invoke `/next {session-id}`**
 
+Subagent implements tasks using specialized agents:
+- Frontend tasks → `frontend-developer`
+- Backend tasks → `backend-architect`
+
 (Subagent implements all tasks in the session, updating each task status as it goes)
 
 Update `current_phase` → `session:{id}:test`
@@ -120,6 +124,10 @@ Update `current_phase` → `session:{id}:review`
 #### Phase: session:{id}:review
 
 **Invoke `/review staged`** (creates fix plan)
+
+Uses specialized reviewers based on change type:
+- Architectural changes → `architect-reviewer`
+- Implementation changes → `senior-code-reviewer`
 
 If review finds P0/P1 issues:
 - Update `current_phase` → `session:{id}:fix`

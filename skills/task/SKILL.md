@@ -44,6 +44,10 @@ Break spec into discrete, implementable tasks following the design principles ab
 - 3 = Low (can defer)
 - 4 = Nice to have
 
+**Assign task type:**
+- `frontend` - UI components, styling, client-side state, React/Vue/etc., browser APIs
+- `backend` - APIs, database, server logic, authentication, infrastructure
+
 ### 2b. Group into Sessions
 
 Group related tasks into **sessions** — units of work that can be completed in one agent session.
@@ -70,16 +74,16 @@ Show sessions with nested task tables:
 Proposed sessions for {spec-name}:
 
 ## Session S1: {session-title} (P{priority})
-| ID | Title | Priority | Depends On |
-|----|-------|----------|------------|
-| 1 | Setup project | P0 | - |
-| 2 | Core types | P0 | 1 |
+| ID | Title | Type | Priority | Depends On |
+|----|-------|------|----------|------------|
+| 1 | Setup project | backend | P0 | - |
+| 2 | Core types | backend | P0 | 1 |
 
 ## Session S2: {session-title} (P{priority}, depends on S1)
-| ID | Title | Priority | Depends On |
-|----|-------|----------|------------|
-| 3 | Core feature | P1 | 2 |
-| 4 | Feature tests | P1 | 3 |
+| ID | Title | Type | Priority | Depends On |
+|----|-------|------|----------|------------|
+| 3 | Core feature | frontend | P1 | 2 |
+| 4 | Feature tests | frontend | P1 | 3 |
 ```
 
 Note parallelism:
@@ -112,6 +116,7 @@ Write to `.otto/tasks/{spec-id}.json`:
       "description": "Success: [done condition]. Files: [paths]. Scope: [estimate]",
       "status": "pending",
       "priority": 1,
+      "type": "frontend | backend",
       "depends_on": [],
       "session_id": "S1"
     }

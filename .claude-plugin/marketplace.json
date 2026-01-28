@@ -19,6 +19,12 @@
         "./skills/next",
         "./skills/doc",
         "./skills/clean"
+      ],
+      "agents": [
+        "./skills/next/agents/frontend-developer.md",
+        "./skills/next/agents/backend-architect.md",
+        "./skills/review/agents/architect-reviewer.md",
+        "./skills/review/agents/senior-code-reviewer.md"
       ]
     }
   ],
