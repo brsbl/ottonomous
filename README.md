@@ -41,7 +41,8 @@ Sessions group related tasks that share context and can be implemented together 
 | `/task <spec-id>` | Creates atomic tasks grouped into sessions. Each session is a unit of work with shared context. |
 | `/next [task\|session\|id\|batch]` | `task`/`session`: returns next id. `{id}`: launches subagent to implement. `batch`: parallel sessions. |
 | `/test <run\|write> [scope]` | `run` lint, type check, run tests, verify UI. `write` set up tests, linting and typechecking (if needed). |
-| `/review [scope]` | Multi-agent code review split by directory or component. Use `/review fix` to implement fixes. |
+| `/review [scope]` | Multi-agent code review split by directory or component. Creates a fix plan for issues found. |
+| `/review fix [P0\|P0-P1\|all]` | Multi-agent fix implementation. Runs fixes from the plan in parallel batches. |
 | `/doc [scope]` | Documents code changes with what/why/notable details. One entry per logical change. |
 | `/summary` | Combines `/doc` entries into styled HTML summary that opens in your browser. |
 | `/otto <product idea>` | Autonomous spec → tasks → [next/test/review/doc] per session → summary. |
