@@ -151,17 +151,28 @@ export async function waitForSubmission(page, options = {}) {
 
         let timeoutId = null;
 
-        const handler = () => {
-          if (timeoutId) clearTimeout(timeoutId);
-          window.removeEventListener("designFeedback:submitted", handler);
+        const submitHandler = () => {
+          cleanup();
           resolve(window.__designFeedbackSubmit.splice(0));
         };
 
-        window.addEventListener("designFeedback:submitted", handler);
+        const closeHandler = () => {
+          cleanup();
+          resolve([]); // Empty array signals close
+        };
+
+        const cleanup = () => {
+          if (timeoutId) clearTimeout(timeoutId);
+          window.removeEventListener("designFeedback:submitted", submitHandler);
+          window.removeEventListener("designFeedback:closed", closeHandler);
+        };
+
+        window.addEventListener("designFeedback:submitted", submitHandler);
+        window.addEventListener("designFeedback:closed", closeHandler);
 
         if (timeout > 0) {
           timeoutId = setTimeout(() => {
-            window.removeEventListener("designFeedback:submitted", handler);
+            cleanup();
             reject(new Error("Timeout waiting for feedback submission"));
           }, timeout);
         }

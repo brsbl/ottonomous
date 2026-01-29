@@ -248,7 +248,7 @@ Use `browser` mode for visual verification and element interaction testing.
 
 **Important:** Create ONE browser client at the start and reuse it for all testing. Do not create multiple browser instances.
 
-## B0. Initialize Browser (once)
+### 1. Initialize Browser
 
 Create a single browser client at the start of browser testing:
 ```javascript
@@ -258,18 +258,18 @@ const client = await connect() // headless by default, reuse throughout session
 
 Keep this `client` instance and reuse it for all subsequent steps. Only call `client.disconnect()` at the very end when all testing is complete.
 
-## B1. Get Changed Files
+### 2. Get Changed Files
 
 Use the scope to determine which files changed (see git commands in table above).
 
-## B2. Identify Affected Pages/Routes
+### 3. Identify Affected Pages
 
 Map code changes to UI locations:
 - Component files → pages that render them
 - API routes → pages that call them
 - Style files → pages that use them
 
-## B3. Navigate to Page
+### 4. Navigate to Page
 
 Reuse the existing client to get or create named pages:
 ```javascript
@@ -281,7 +281,7 @@ await waitForPageLoad(page)
 
 **Page reuse:** `client.page('test')` returns the same page instance if called again with the same name. Use this to navigate to different URLs without opening new windows.
 
-## B4. Visual Inspection
+### 5. Visual Inspection
 
 1. Capture screenshot to `./test-screenshots/`
 2. Read the screenshot and check for:
@@ -290,7 +290,7 @@ await waitForPageLoad(page)
    - Styling problems (wrong colors, fonts, spacing)
    - Error states or blank screens
 
-## B5. Get ARIA Snapshot
+### 6. Get ARIA Snapshot
 
 Use `getAISnapshot()` to get the accessibility tree with refs:
 ```javascript
@@ -307,7 +307,7 @@ const snapshot = await client.getAISnapshot('test')
   - button "Submit" [disabled] [ref=e3]
 ```
 
-## B6. Interact with Elements
+### 7. Interact with Elements
 
 Use `selectSnapshotRef()` to get element handles:
 ```javascript
@@ -321,7 +321,7 @@ await button.click()
 - Check state changes ([checked], [disabled], [expanded])
 - Verify expected behavior after interactions
 
-## B7. Multi-Step Flows
+### 8. Multi-Step Flows
 
 Test user journeys by chaining interactions:
 1. Fill form inputs
@@ -329,14 +329,14 @@ Test user journeys by chaining interactions:
 3. Verify success state or navigation
 4. Check for expected content changes
 
-## B8. Fix Issues
+### 9. Fix Issues
 
 If problems found:
 1. Fix the code causing the issue
 2. Re-navigate to the page
 3. Re-verify the fix
 
-## B9. Cleanup & Report
+### 10. Cleanup & Report
 
 **Close the browser** when all testing is complete:
 ```javascript
@@ -355,6 +355,6 @@ Summarize results:
 
 Use `all` mode to run both `run` and `browser` modes sequentially.
 
-1. Execute steps 1-11 (run mode)
-2. Execute steps B0-B9 (browser mode)
+1. Execute Run Mode (steps 1-11)
+2. Execute Browser Mode (steps 1-10)
 3. Combined report with all results

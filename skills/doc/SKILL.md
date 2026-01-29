@@ -44,8 +44,10 @@ Filename: `.otto/docs/{branch}-{short-description}.md` (replace `/` with `-`, e.
 {Technical decisions, behavioral changes, data flow, key patterns}
 ```
 
-### 3. Stage
+### 3. Stage and Report
 
 ```bash
 git add .otto/docs/
 ```
+
+Report: "Documented changes to `.otto/docs/{filename}.md`"

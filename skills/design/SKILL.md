@@ -1,253 +1,129 @@
 ---
 name: design
-description: Interactive design tools for UI development. Live feedback loop for annotating elements and editing code.
-argument-hint: <feedback> [URL]
+description: Spec-driven design and UI implementation. Define tokens, generate components, preview layouts with terminal mockups, implement pages, iterate with browser annotations.
+argument-hint: [spec-id] | <system | components | mock | implement | feedback> [args]
 model: opus
+model-invokable: false
 ---
 
 **Arguments:** $ARGUMENTS
 
 | Command | Behavior |
 |---------|----------|
-| `feedback` | Live annotation loop (default: http://localhost:5173) |
-| `feedback <url>` | Live annotation loop with custom URL |
+| `/design` | Full flow with most recent spec |
+| `/design <spec-id>` | Full flow with specified spec |
+| `system` | Design system interview wizard |
+| `components` | Generate base component set |
+| `mock <spec-id>` | Terminal wireframes for spec |
+| `implement <spec-id>` | Generate code from approved mocks |
+| `feedback [url]` | Live browser annotation loop |
 
 ---
 
-# Feedback Mode
+## Routing
 
-Use `feedback` mode for live, interactive code editing based on user annotations.
+Parse the first argument to determine the mode:
 
-## Two Interaction Models
+| First Arg | Mode File |
+|-----------|-----------|
+| `system` | [modes/system.md](modes/system.md) |
+| `components` | [modes/components.md](modes/components.md) |
+| `mock` | [modes/mock.md](modes/mock.md) |
+| `implement` | [modes/implement.md](modes/implement.md) |
+| `feedback` | [modes/feedback.md](modes/feedback.md) |
+| `<spec-id>` or none | Full flow (see below) |
 
-The feedback overlay supports two ways to send annotations to Claude:
+---
 
-### 1. Submit (Immediate)
-Click **Submit** to send a single annotation immediately. Claude processes it right away.
+## Full Flow
 
-Best for: Quick fixes, one-off changes, iterative refinement.
+When no mode is specified or a spec-id is provided, run the full design flow.
 
-### 2. Save + Send All (Batch)
-Click **Save** to store annotations locally. When ready, click **Send All** in the toolbar to batch submit all saved annotations.
+### 1. Resolve Spec
 
-Best for: Collecting multiple related changes, reviewing before submitting, complex multi-element updates.
+If argument provided:
+- Look up `.otto/specs/{spec-id}.md`
+- Error if not found
 
-## F1. Launch Browser
+If no argument:
+- Find most recent spec in `.otto/specs/` by modification time
+- Error if no specs exist
 
-Launch a non-headless browser and navigate to the dev server:
+### 2. Auto-Skip Detection
 
-```javascript
-import { connect, waitForPageLoad } from 'skills/otto/lib/browser/client.js'
+Check what already exists to skip completed phases:
 
-const client = await connect({ headless: false })
-const page = await client.page('feedback')
-await page.goto(url) // Default: http://localhost:5173
-await waitForPageLoad(page)
+```bash
+# Check for design tokens
+if [ -f "src/lib/design-tokens.ts" ]; then
+  SKIP_SYSTEM=true
+fi
+
+# Check for base components
+if [ -d "src/components/ui" ] && [ "$(ls -A src/components/ui 2>/dev/null)" ]; then
+  SKIP_COMPONENTS=true
+fi
 ```
 
-## F2. Inject Feedback Overlay
+### 3. Execute Phases
 
-Inject the design feedback overlay for element selection:
-
-```javascript
-await client.injectDesignFeedback('feedback')
-await client.activateDesignFeedbackMode('feedback')
-```
-
-The overlay provides:
-- **Annotate** button - Toggle annotation mode (click elements to select)
-- **N saved** - Count of saved (not yet submitted) annotations
-- **Send All** - Batch submit all saved annotations
-- **Close** - Exit feedback mode
-
-When clicking an element, the popup shows:
-- **Cancel** - Dismiss without saving
-- **Save** - Store locally for batch submission later
-- **Submit** - Send immediately to Claude
-
-## F3. Wait for Feedback
-
-Wait for the user to submit feedback (either via Submit or Send All):
-
-```javascript
-// Wait indefinitely for user to submit
-const feedback = await client.waitForFeedbackSubmission('feedback')
-
-// Or with timeout
-const feedback = await client.waitForFeedbackSubmission('feedback', { timeout: 60000 })
-```
-
-Feedback structure:
-```javascript
-{
-  id: "fb_1706123456789_1",
-  selector: ".sidebar > button.primary",
-  boundingBox: { x: 100, y: 200, width: 80, height: 32 },
-  text: "Submit",
-  note: "Make this button blue and larger",
-  timestamp: 1706123456789,
-  ariaRole: "button",
-  elementPath: "div.sidebar > button.btn.primary",
-  element: "button.btn.primary"
-}
-```
-
-## F4. Process Feedback
-
-For each feedback item received:
-
-### F4.1 Get Page Context
-
-Get ARIA snapshot for additional context:
-
-```javascript
-const ariaSnapshot = await client.getAISnapshot('feedback')
-```
-
-### F4.2 Find Source Files
-
-Use multiple strategies to locate the source file:
-
-1. **Grep for selector classes/IDs:**
-   ```bash
-   grep -r "primary" --include="*.tsx" --include="*.jsx" --include="*.css"
-   ```
-
-2. **Search for element text content:**
-   ```bash
-   grep -r "Submit" --include="*.tsx" --include="*.jsx"
-   ```
-
-3. **Component name heuristic:** Look for React components matching the element structure
-
-4. **User hint:** If the note contains "in file X" or "@filename", prioritize that file
-
-### F4.3 Edit Code
-
-Based on the feedback note and context:
-
-1. Read the identified source file(s)
-2. Locate the specific element using selector/text context
-3. Make the requested change
-4. Write the updated file
-
-**Common feedback patterns:**
-
-| Note pattern | Action |
-|--------------|--------|
-| "Make this blue" | Change color/background-color CSS |
-| "Make this larger" | Increase font-size/padding/dimensions |
-| "Add a border" | Add border CSS property |
-| "Change text to X" | Update text content |
-| "Remove this" | Delete the element |
-| "Move this above Y" | Reorder elements in markup |
-
-### F4.4 Wait for Hot Reload
-
-After editing, wait for HMR to update the page:
-
-```javascript
-await waitForPageLoad(page, { idleTime: 1000 })
-```
-
-### F4.5 Verify Change
-
-1. Take screenshot for comparison
-2. Get fresh ARIA snapshot
-3. Confirm the change was applied
-
-## F5. Main Loop
-
-```javascript
-while (true) {
-  // Wait for user to submit feedback
-  const feedbackItems = await client.waitForFeedbackSubmission('feedback')
-
-  for (const feedback of feedbackItems) {
-    // Get context
-    const snapshot = await client.getAISnapshot('feedback')
-
-    // Find source and edit
-    await processFeedback(feedback, snapshot)
-
-    // Wait for hot reload
-    await waitForPageLoad(page, { idleTime: 1000 })
-  }
-}
-```
-
-## F6. Handle Edge Cases
-
-**Element has no clear source file:**
-- Ask user which file contains this element
-- Use broader grep patterns
-
-**Feedback is ambiguous:**
-- Ask clarifying question before editing
-- Example: "Make this bigger" - bigger how? font, padding, or overall size?
-
-**Hot reload fails:**
-- Detect page errors or blank screen
-- Undo the change if possible
-- Notify user and wait for next instruction
-
-**Multiple matching elements:**
-- Use ARIA snapshot context to disambiguate
-- Use bounding box to identify the specific instance
-
-## F7. Exit Feedback Mode
-
-User can exit feedback loop by:
-- Clicking "Close" button on the overlay
-- Pressing Escape key
-- Closing the browser window
-
-When exiting, disconnect the browser client:
-
-```javascript
-await client.disconnect()
-```
-
-## F8. Example Session
+Run phases in sequence, skipping as appropriate:
 
 ```
-$ /design feedback http://localhost:5173
-
-Opening browser at http://localhost:5173...
-Feedback overlay injected. Click elements to annotate.
-
-[User clicks a button, types "Make this green", clicks Submit]
-
-Received feedback:
-  Element: button.submit-btn
-  Note: "Make this green"
-
-Finding source file...
-  Found: src/components/Form.tsx:45
-
-Editing Form.tsx...
-  Changed: className="submit-btn" → className="submit-btn bg-green-500"
-
-Waiting for hot reload...
-Change applied successfully.
-
-[User clicks header, types "Center this", clicks Save]
-[User clicks subheader, types "Make italic", clicks Save]
-[User clicks "Send All"]
-
-Received 2 feedback items:
-  1. h1.page-title: "Center this"
-  2. p.subtitle: "Make italic"
-
-Processing batch...
-  Editing Home.tsx (2 changes)...
-
-Waiting for hot reload...
-All changes applied successfully.
-
-[User clicks Close]
-
-Feedback session ended.
-  Total feedback processed: 3
-  Files modified: 2
+Phase 1: System      (skip if design-tokens.ts exists)
+Phase 2: Components  (skip if components/ui/ has files)
+Phase 3: Mock        (always run)
+Phase 4: Implement   (always run)
+Phase 5: Feedback    (always run)
 ```
+
+Report skipped phases at the start:
+```
+Design flow for spec: my-app-a1b2
+
+Skipping: System (design-tokens.ts exists)
+Skipping: Components (ui/ has 9 components)
+
+Starting at: Mock
+```
+
+### 4. Phase Transitions
+
+After each phase completes successfully:
+1. Summarize what was created
+2. Confirm before proceeding to next phase
+3. Allow user to stop or jump to specific phase
+
+---
+
+## Output Directory
+
+All design artifacts go to `.otto/design/`:
+
+| Output | Path |
+|--------|------|
+| Style guide source | `.otto/design/style-guide.md` |
+| Style guide HTML | `.otto/design/style-guide.html` |
+| Wireframe mocks | `.otto/design/mocks/{spec-id}/` |
+
+Project outputs go to source:
+
+| Output | Path |
+|--------|------|
+| Design tokens | `src/lib/design-tokens.ts` |
+| Tailwind config | `tailwind.config.ts` |
+| Base components | `src/components/ui/` |
+| Component stories | `src/components/ui.stories/` |
+| Feature pages | `src/pages/` or `src/app/` |
+
+---
+
+## Accessibility Requirements
+
+All generated code must meet WCAG 2.1 AA:
+
+- 4.5:1 contrast ratio for text
+- 3:1 contrast ratio for UI elements
+- Visible focus indicators
+- Full keyboard navigation
+- Proper ARIA labels

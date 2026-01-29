@@ -781,6 +781,9 @@
   }
 
   function cleanup() {
+    // Dispatch close event BEFORE removing listeners and state
+    window.dispatchEvent(new CustomEvent("designFeedback:closed"));
+
     document.removeEventListener("mousemove", handleMouseMove, true);
     document.removeEventListener("click", handleClick, true);
     document.removeEventListener("keydown", handleKeydown, true);

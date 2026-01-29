@@ -54,11 +54,10 @@ Synthesize doc entries into a cohesive summary (don't just copy them).
 
 Save to `.otto/summaries/{branch}-{date}.html` using `skills/summary/scripts/md-to-html.js`.
 
-Open in browser.
-
 ### 5. Report
 
 ```
 Summary: .otto/summaries/{branch}-{date}.html
-Opened in browser.
 ```
+
+Open in browser.

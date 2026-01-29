@@ -31,15 +31,18 @@ model: opus
 **Review Mode** (`/review [scope]`):
 | Phase | Purpose |
 |-------|---------|
-| 1. Review | Analyze changes using review criteria (launches subagents) |
-| 2. Synthesize | Collect and deduplicate findings |
-| 3. Fix Plan | Create implementation plan and persist to file |
+| 1. Analyze | Categorize changes and assign reviewers |
+| 2. Review | Launch subagents to analyze changes |
+| 3. Synthesize | Collect and deduplicate findings |
+| 4. Persist | Create fix plan JSON and report |
 
 **Fix Mode** (`/review fix [priorities]`):
 | Phase | Purpose |
 |-------|---------|
-| 4. Implement | Fix issues using parallel subagents |
-| 5. Commit | Stage and commit fixes |
+| 1. Load | Load or generate fix plan |
+| 2. Filter | Select fixes by priority |
+| 3. Implement | Fix issues using parallel subagents |
+| 4. Commit | Stage and commit fixes |
 
 ### Review Criteria
 
@@ -58,7 +61,7 @@ model: opus
 
 **Do NOT flag:** trivial style issues, pre-existing problems, hypothetical issues, documentation gaps, or missing tests.
 
-### 1b. Analyze Change Types
+### 1. Analyze Change Types
 
 Categorize files by change type to assign appropriate reviewers:
 
@@ -84,7 +87,7 @@ Categorize files by change type to assign appropriate reviewers:
 {Optional: up to 3 lines showing fix}
 ```
 
-### 2. Review Changes (Launch Subagents)
+### 2. Review Changes
 
 **Assign files to reviewer types:**
 - Group architectural change files → assign to `architect-reviewer` subagents
@@ -114,7 +117,7 @@ Wait for all review subagents to complete before synthesizing.
 
 ### 3. Synthesize Findings
 
-After review completes (yours or subagents'):
+After all review subagents complete:
 
 1. **Collect** all findings
 2. **Deduplicate** if multiple reviewers covered overlapping areas
@@ -140,19 +143,17 @@ Present unified findings:
 **Verdict: [CORRECT / NEEDS FIXES]**
 ```
 
-### 4. Create Fix Plan and Persist
+### 4. Persist Fix Plan
 
-For each issue, define:
+For each finding, define:
 - What to fix
 - Where (file, line)
 - How (approach)
-- Dependencies
+- Dependencies (which fixes must complete first)
 
-Group fixes for parallel implementation:
-- **Batch A**: Independent fixes (can run in parallel)
-- **Batch B**: Dependent fixes (must wait)
+**If no findings (CORRECT):** Skip creating fix-plan.json, report "No issues found".
 
-**Persist fix plan to `.otto/reviews/fix-plan.json`:**
+**Write fix plan to `.otto/reviews/fix-plan.json`:**
 ```json
 {
   "version": 1,
@@ -160,31 +161,32 @@ Group fixes for parallel implementation:
   "scope": "{scope}",
   "branch": "{current branch}",
   "commit_sha": "{HEAD commit}",
-  "findings": {
-    "summary": { "p0": 0, "p1": 0, "p2": 0, "p3": 0 },
-    "verdict": "CORRECT | NEEDS FIXES",
-    "items": [
-      {
-        "id": "f1",
-        "priority": "P0",
-        "title": "Brief title",
-        "location": { "file": "path/to/file.ts", "line": 123 },
-        "description": "Why it's a bug",
-        "suggested_fix": "Optional code snippet"
-      }
-    ]
-  },
-  "fix_plan": {
-    "batches": [
-      { "id": "A", "description": "Independent fixes", "fixes": [...] },
-      { "id": "B", "description": "Dependent fixes", "fixes": [...] }
-    ]
-  },
-  "status": "pending"
+  "summary": { "p0": 0, "p1": 0, "p2": 0, "p3": 0 },
+  "verdict": "CORRECT | NEEDS FIXES",
+  "fixes": [
+    {
+      "id": "f1",
+      "priority": "P0",
+      "title": "Brief title",
+      "location": { "file": "path/to/file.ts", "line": 123 },
+      "description": "Why it's a bug",
+      "suggested_fix": "Optional code snippet",
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "f2",
+      "priority": "P1",
+      "title": "Another issue",
+      "location": { "file": "path/to/other.ts", "line": 456 },
+      "description": "Description",
+      "suggested_fix": "Optional",
+      "status": "pending",
+      "depends_on": ["f1"]
+    }
+  ]
 }
 ```
-
-**If no findings (CORRECT):** Skip creating fix-plan.json, report "No issues found".
 
 **Report:**
 ```
@@ -201,13 +203,13 @@ Run `/review fix` to implement all fixes, or `/review fix P0` for critical only.
 
 ## Fix Mode (`/review fix [priorities]`)
 
-### F1. Load or Generate Fix Plan
+### 1. Load Fix Plan
 
 Check if `.otto/reviews/fix-plan.json` exists:
 - **If not found or stale** (code changed since plan created): Automatically run `/review` first, then continue
 - **If found and valid**: Load the plan
 
-### F2. Parse Priority Filter
+### 2. Filter Fixes
 
 | Argument | Fixes to include |
 |----------|------------------|
@@ -215,37 +217,36 @@ Check if `.otto/reviews/fix-plan.json` exists:
 | `P0` | Only P0 (critical) |
 | `P0-P1` | P0 and P1 (critical + high) |
 
-### F3. Filter and Validate
-
 1. Filter fixes by requested priorities
 2. Verify files still exist
 3. If no matching fixes: Report "No {priority} issues to fix"
 
-### F4. Implement Fixes (Launch Subagents)
+### 3. Implement Fixes
 
-**Always launch at minimum 1 fix subagent. Scale based on fix count:**
-- 1-2 fixes: 1 subagent
-- 3-5 fixes: 2-3 subagents grouped by file type/specialty
-- 6+ fixes: 3-5 subagents grouped by file type/specialty
+**Select unblocked fixes** — those where all `depends_on` fixes have status "done".
 
-**Batch A (independent fixes) launch in parallel:**
-Each subagent receives:
-- Finding details (priority, description, location)
-- Fix instructions (what, where, how)
+**Scale subagents based on unblocked fix count:**
+- 1-2 unblocked: 1 subagent
+- 3-5 unblocked: 2-3 subagents
+- 6+ unblocked: 3-5 subagents
+
+**Each subagent receives:**
+- Fix details (priority, description, location, suggested_fix)
 - Verification: "Ensure file compiles, run type check"
 - Stage: "Run `git add {file}` after fix"
+- Update: "Mark fix status as done in fix-plan.json"
 
-Wait for all Batch A subagents to complete.
+**After each wave completes:**
+1. Re-evaluate which fixes are now unblocked
+2. Launch next wave of subagents
+3. Repeat until all fixes are done
 
-**Batch B (dependent fixes) run sequentially** after Batch A.
-
-### F5. Verify Fixes
-
+**Verify all fixes:**
 1. Run type check: `npx tsc --noEmit` (if TypeScript)
 2. Run linter: detect and run appropriate linter
 3. Report any remaining errors
 
-### F6. Commit
+### 4. Commit and Cleanup
 
 1. Stage all modified files: `git add <files>`
 2. Create commit:
@@ -256,9 +257,9 @@ Wait for all Batch A subagents to complete.
    - [P{N}] Brief description of fix
    ...
    ```
+3. Remove fix plan: `rm .otto/reviews/fix-plan.json`
 
-### F7. Report and Cleanup
-
+**Report:**
 ```
 ## Fix Results
 
@@ -268,11 +269,6 @@ Wait for all Batch A subagents to complete.
 | [P1] Race condition | ✓ Fixed |
 
 Commit: {hash}
-```
-
-After successful commit, remove the fix plan file:
-```bash
-rm .otto/reviews/fix-plan.json
 ```
 
 ---
