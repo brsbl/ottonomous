@@ -1,0 +1,4431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design System Studio</title>
+  <style>
+    /* ========================================
+       CSS Custom Properties (Design Tokens)
+       ======================================== */
+    :root {
+      /* Colors */
+      --color-primary: #6b7280;
+      --color-secondary: #9ca3af;
+      --color-accent: #d1d5db;
+      --color-neutral-50: #f9fafb;
+      --color-neutral-100: #f3f4f6;
+      --color-neutral-200: #e5e7eb;
+      --color-neutral-300: #d1d5db;
+      --color-neutral-400: #9ca3af;
+      --color-neutral-500: #6b7280;
+      --color-neutral-600: #4b5563;
+      --color-neutral-700: #374151;
+      --color-neutral-800: #1f2937;
+      --color-neutral-900: #111827;
+      --color-neutral-950: #030712;
+
+      /* Typography */
+      --font-heading: system-ui, sans-serif;
+      --font-body: system-ui, sans-serif;
+      --font-mono: ui-monospace, monospace;
+      --weight-light: 300;
+      --weight-normal: 400;
+      --weight-medium: 500;
+      --weight-semibold: 600;
+      --weight-bold: 700;
+      --tracking-tight: -0.025em;
+      --tracking-normal: 0em;
+      --tracking-wide: 0.025em;
+
+      /* Spacing */
+      --space-0: 0px;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 24px;
+      --space-6: 32px;
+      --space-7: 48px;
+      --space-8: 64px;
+      --space-9: 96px;
+
+      /* Border Radius */
+      --radius-none: 0px;
+      --radius-sm: 2px;
+      --radius-md: 4px;
+      --radius-lg: 8px;
+      --radius-xl: 12px;
+      --radius-full: 9999px;
+      --radius-default: 4px;
+
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+      --shadow-default: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+
+      /* Semantic Colors */
+      --color-success: #22c55e;
+      --color-warning: #f59e0b;
+      --color-error: #ef4444;
+      --color-info: #3b82f6;
+
+      /* Theme Colors */
+      --bg-primary: var(--color-neutral-50);
+      --bg-secondary: #ffffff;
+      --bg-tertiary: var(--color-neutral-100);
+      --text-primary: var(--color-neutral-900);
+      --text-secondary: var(--color-neutral-600);
+      --text-tertiary: var(--color-neutral-500);
+      --border-color: var(--color-neutral-200);
+      --border-color-strong: var(--color-neutral-300);
+
+      /* Dark Mode Primary Color Variants (auto-generated) */
+      --color-primary-dark: var(--color-primary);
+      --color-secondary-dark: var(--color-secondary);
+      --color-accent-dark: var(--color-accent);
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: var(--color-neutral-900);
+      --bg-secondary: var(--color-neutral-800);
+      --bg-tertiary: var(--color-neutral-700);
+      --text-primary: var(--color-neutral-50);
+      --text-secondary: var(--color-neutral-300);
+      --text-tertiary: var(--color-neutral-400);
+      --border-color: var(--color-neutral-700);
+      --border-color-strong: var(--color-neutral-600);
+
+      /* Dark mode uses lighter primary colors for better visibility */
+      --color-primary: var(--color-primary-dark);
+      --color-secondary: var(--color-secondary-dark);
+      --color-accent: var(--color-accent-dark);
+    }
+
+    /* ========================================
+       Base Styles
+       ======================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-body);
+      font-weight: var(--weight-normal);
+      letter-spacing: var(--tracking-normal);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.5;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* ========================================
+       Layout Components
+       ======================================== */
+    .app {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3) var(--space-5);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header__title {
+      font-family: var(--font-heading);
+      font-size: 1.125rem;
+      font-weight: var(--weight-semibold);
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .header__title-icon {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+      border-radius: var(--radius-sm);
+    }
+
+    .header__actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .header__back-btn {
+      display: none;
+      align-items: center;
+      gap: var(--space-1);
+      padding: var(--space-2) var(--space-3);
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-default);
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .header__back-btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .app--studio .header__back-btn {
+      display: flex;
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+      display: flex;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-default);
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .theme-toggle__btn {
+      padding: var(--space-1) var(--space-3);
+      background: transparent;
+      border: none;
+      border-radius: calc(var(--radius-default) - 2px);
+      color: var(--text-tertiary);
+      font-size: 0.8125rem;
+      font-weight: var(--weight-medium);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .theme-toggle__btn--active {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .theme-toggle__btn:not(.theme-toggle__btn--active):hover {
+      color: var(--text-secondary);
+    }
+
+    /* Export Button */
+    .btn-export {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      padding: var(--space-2) var(--space-4);
+      background: var(--color-primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-default);
+      font-size: 0.875rem;
+      font-weight: var(--weight-medium);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-export:hover {
+      filter: brightness(1.1);
+    }
+
+    .btn-export svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ========================================
+       Philosophy Picker View
+       ======================================== */
+    .picker-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--space-7) var(--space-5);
+    }
+
+    .picker-view__heading {
+      font-family: var(--font-heading);
+      font-size: 2rem;
+      font-weight: var(--weight-bold);
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+      text-align: center;
+    }
+
+    .picker-view__subheading {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-7);
+      text-align: center;
+      max-width: 480px;
+    }
+
+    .picker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--space-5);
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    /* Philosophy Card */
+    .philosophy-card {
+      background: var(--bg-secondary);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .philosophy-card:hover {
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+
+    .philosophy-card:focus {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .philosophy-card__name {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: var(--weight-semibold);
+      color: var(--text-primary);
+      margin-bottom: var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .philosophy-card__badge {
+      font-size: 0.75rem;
+      font-weight: var(--weight-medium);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-full);
+      background: var(--bg-tertiary);
+      color: var(--text-tertiary);
+    }
+
+    /* Card Preview Components */
+    .card-preview {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .card-preview__btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      width: fit-content;
+    }
+
+    .card-preview__heading {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .card-preview__text {
+      font-size: 0.875rem;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .card-preview__input {
+      padding: 8px 12px;
+      font-size: 0.875rem;
+      border-width: 1px;
+      border-style: solid;
+      width: 100%;
+    }
+
+    .card-preview__input:focus {
+      outline: 2px solid currentColor;
+      outline-offset: 1px;
+    }
+
+    /* ========================================
+       Studio View
+       ======================================== */
+    .studio-view {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+    }
+
+    .app--studio .picker-view {
+      display: none;
+    }
+
+    .app--studio .studio-view {
+      display: flex;
+    }
+
+    .studio-main {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    @media (max-width: 900px) {
+      .studio-main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Controls Panel */
+    .controls-panel {
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      overflow-y: auto;
+      height: calc(100vh - 57px - 48px);
+    }
+
+    .controls-panel__header {
+      padding: var(--space-4) var(--space-4);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      background: var(--bg-secondary);
+      z-index: 10;
+    }
+
+    .controls-panel__title {
+      font-family: var(--font-heading);
+      font-size: 0.75rem;
+      font-weight: var(--weight-semibold);
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Collapsible Section */
+    .control-section {
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .control-section__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3) var(--space-4);
+      background: transparent;
+      border: none;
+      width: 100%;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+
+    .control-section__header:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .control-section__title {
+      font-family: var(--font-heading);
+      font-size: 0.875rem;
+      font-weight: var(--weight-medium);
+      color: var(--text-primary);
+    }
+
+    .control-section__icon {
+      width: 20px;
+      height: 20px;
+      color: var(--text-tertiary);
+      transition: transform 0.2s ease;
+    }
+
+    .control-section--open .control-section__icon {
+      transform: rotate(180deg);
+    }
+
+    .control-section__content {
+      display: none;
+      padding: var(--space-3) var(--space-4) var(--space-4);
+    }
+
+    .control-section--open .control-section__content {
+      display: block;
+    }
+
+    /* Control Items */
+    .control-group {
+      margin-bottom: var(--space-4);
+    }
+
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: var(--weight-medium);
+      color: var(--text-secondary);
+      margin-bottom: var(--space-2);
+    }
+
+    .control-input {
+      width: 100%;
+      padding: var(--space-2) var(--space-3);
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-default);
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      transition: border-color 0.15s ease;
+    }
+
+    .control-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+
+    .control-input--color {
+      padding: var(--space-1);
+      height: 36px;
+      cursor: pointer;
+    }
+
+    .control-row {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    .control-row > * {
+      flex: 1;
+    }
+
+    /* Color Swatches */
+    .color-swatches {
+      display: flex;
+      gap: var(--space-1);
+      flex-wrap: wrap;
+    }
+
+    .color-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    .color-swatch:hover {
+      transform: scale(1.1);
+    }
+
+    .color-swatch--active {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    /* Preview Panel */
+    .preview-panel {
+      background: var(--bg-primary);
+      padding: var(--space-5);
+      overflow-y: auto;
+      height: calc(100vh - 57px - 48px);
+    }
+
+    .preview-panel__container {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      min-height: 100%;
+    }
+
+    .preview-section {
+      margin-bottom: var(--space-6);
+    }
+
+    .preview-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .preview-section__title {
+      font-family: var(--font-heading);
+      font-size: 0.75rem;
+      font-weight: var(--weight-semibold);
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-4);
+      padding-bottom: var(--space-2);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    /* Preview Components */
+    .preview-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+
+    .preview-btn {
+      padding: var(--space-2) var(--space-4);
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      font-weight: var(--weight-medium);
+      border: none;
+      border-radius: var(--radius-default);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .preview-btn--primary {
+      background: var(--color-primary);
+      color: white;
+      box-shadow: var(--shadow-default);
+    }
+
+    .preview-btn--primary:hover {
+      filter: brightness(1.1);
+    }
+
+    .preview-btn--secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .preview-btn--secondary:hover {
+      background: var(--border-color);
+    }
+
+    .preview-btn--outline {
+      background: transparent;
+      color: var(--color-primary);
+      border: 1px solid var(--color-primary);
+    }
+
+    .preview-btn--outline:hover {
+      background: var(--color-primary);
+      color: white;
+    }
+
+    .preview-btn--ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: none;
+    }
+
+    .preview-btn--ghost:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .preview-btn--danger {
+      background: var(--color-error, #ef4444);
+      color: white;
+      box-shadow: var(--shadow-default);
+    }
+
+    .preview-btn--danger:hover {
+      filter: brightness(1.1);
+    }
+
+    /* Text States */
+    .preview-text-states {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .preview-text-state {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 0.875rem;
+    }
+
+    .preview-text-state__icon {
+      width: 16px;
+      height: 16px;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+
+    .preview-text-state--success {
+      color: var(--color-success, #22c55e);
+    }
+
+    .preview-text-state--success .preview-text-state__icon {
+      background: var(--color-success, #22c55e);
+    }
+
+    .preview-text-state--warning {
+      color: var(--color-warning, #f59e0b);
+    }
+
+    .preview-text-state--warning .preview-text-state__icon {
+      background: var(--color-warning, #f59e0b);
+    }
+
+    .preview-text-state--error {
+      color: var(--color-error, #ef4444);
+    }
+
+    .preview-text-state--error .preview-text-state__icon {
+      background: var(--color-error, #ef4444);
+    }
+
+    .preview-text-state--info {
+      color: var(--color-info, #3b82f6);
+    }
+
+    .preview-text-state--info .preview-text-state__icon {
+      background: var(--color-info, #3b82f6);
+    }
+
+    .preview-typography h1,
+    .preview-typography .preview-h1 {
+      font-family: var(--font-heading);
+      font-size: var(--type-3xl, 2rem);
+      font-weight: var(--weight-bold);
+      letter-spacing: var(--tracking-tight);
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+      line-height: 1.2;
+    }
+
+    .preview-typography h2,
+    .preview-typography .preview-h2 {
+      font-family: var(--font-heading);
+      font-size: var(--type-2xl, 1.5rem);
+      font-weight: var(--weight-semibold);
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+      line-height: 1.25;
+    }
+
+    .preview-typography h3,
+    .preview-typography .preview-h3 {
+      font-family: var(--font-heading);
+      font-size: var(--type-xl, 1.25rem);
+      font-weight: var(--weight-medium);
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+      line-height: 1.3;
+    }
+
+    .preview-typography p,
+    .preview-typography .preview-body {
+      font-family: var(--font-body);
+      font-size: var(--type-base, 1rem);
+      color: var(--text-secondary);
+      margin-bottom: var(--space-3);
+      max-width: 65ch;
+      line-height: 1.6;
+    }
+
+    .preview-typography .preview-small,
+    .preview-typography small {
+      font-family: var(--font-body);
+      font-size: var(--type-sm, 0.875rem);
+      color: var(--text-tertiary);
+      margin-bottom: var(--space-3);
+      line-height: 1.5;
+    }
+
+    .preview-typography code {
+      font-family: var(--font-mono);
+      font-size: var(--type-code, 0.875rem);
+      background: var(--bg-tertiary);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-sm);
+      color: var(--color-primary);
+    }
+
+    .preview-form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      max-width: 400px;
+    }
+
+    .preview-form__group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .preview-form__label {
+      font-size: 0.875rem;
+      font-weight: var(--weight-medium);
+      color: var(--text-primary);
+    }
+
+    .preview-form__input {
+      padding: var(--space-2) var(--space-3);
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-default);
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .preview-form__input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.1);
+    }
+
+    .preview-form__input::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .preview-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      box-shadow: var(--shadow-default);
+      max-width: 320px;
+    }
+
+    .preview-card__title {
+      font-family: var(--font-heading);
+      font-size: 1.125rem;
+      font-weight: var(--weight-semibold);
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+
+    .preview-card__text {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-4);
+    }
+
+    .preview-colors {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+    }
+
+    .preview-color-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-1);
+    }
+
+    .preview-color-block__swatch {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-default);
+      border: 1px solid var(--border-color);
+    }
+
+    .preview-color-block__label {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+    }
+
+    .preview-spacing {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .preview-spacing__item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .preview-spacing__bar {
+      height: 12px;
+      background: var(--color-primary);
+      border-radius: var(--radius-sm);
+      opacity: 0.6;
+    }
+
+    .preview-spacing__label {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-tertiary);
+      min-width: 50px;
+    }
+
+    /* Accessibility Bar */
+    .accessibility-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3) var(--space-5);
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border-color);
+    }
+
+    .accessibility-bar__status {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+
+    .accessibility-bar__item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+    }
+
+    .accessibility-bar__badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      font-weight: var(--weight-semibold);
+      border-radius: var(--radius-full);
+    }
+
+    .accessibility-bar__badge--pass {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .accessibility-bar__badge--fail {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    [data-theme="dark"] .accessibility-bar__badge--pass {
+      background: #166534;
+      color: #dcfce7;
+    }
+
+    [data-theme="dark"] .accessibility-bar__badge--fail {
+      background: #991b1b;
+      color: #fee2e2;
+    }
+
+    .accessibility-bar__ratio {
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: var(--weight-medium);
+    }
+
+    /* Hidden utility */
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Typography Preview in Controls */
+    .typography-preview {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      background: var(--bg-primary);
+      border-radius: var(--radius-default);
+      border: 1px solid var(--border-color);
+    }
+
+    .type-preview-item {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-3);
+    }
+
+    .type-preview-label {
+      font-size: 0.625rem;
+      font-weight: var(--weight-medium);
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      min-width: 36px;
+      font-family: var(--font-mono);
+    }
+
+    .type-preview-sample {
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .type-preview-sample--mono {
+      font-family: var(--font-mono);
+      background: var(--bg-tertiary);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+    }
+
+    /* Spacing Scale Preview in Controls */
+    .spacing-scale-preview {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      padding: var(--space-3);
+      background: var(--bg-primary);
+      border-radius: var(--radius-default);
+      border: 1px solid var(--border-color);
+    }
+
+    .spacing-scale-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .spacing-scale-label {
+      font-size: 0.625rem;
+      font-weight: var(--weight-medium);
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+      min-width: 24px;
+    }
+
+    .spacing-scale-value {
+      font-size: 0.625rem;
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+      min-width: 32px;
+    }
+
+    .spacing-scale-bar {
+      height: 8px;
+      background: var(--color-primary);
+      border-radius: 2px;
+      opacity: 0.5;
+      transition: width 0.2s ease;
+    }
+
+    /* Radii Preview in Controls */
+    .radii-preview {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-2);
+      padding: var(--space-3);
+      background: var(--bg-primary);
+      border-radius: var(--radius-default);
+      border: 1px solid var(--border-color);
+    }
+
+    .radii-preview-box {
+      aspect-ratio: 1;
+      background: var(--color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-radius 0.2s ease;
+      opacity: 0.6;
+    }
+
+    .radii-preview-label {
+      font-size: 0.625rem;
+      font-weight: var(--weight-semibold);
+      color: white;
+      text-transform: uppercase;
+    }
+
+    /* Shadows Preview in Controls */
+    .shadows-preview {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-3);
+      padding: var(--space-4);
+      background: var(--bg-primary);
+      border-radius: var(--radius-default);
+      border: 1px solid var(--border-color);
+    }
+
+    .shadow-preview-box {
+      aspect-ratio: 1;
+      background: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-default);
+      transition: box-shadow 0.2s ease;
+    }
+
+    .shadow-preview-label {
+      font-size: 0.625rem;
+      font-weight: var(--weight-semibold);
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+    }
+
+    /* Main Preview - Border Radii */
+    .preview-radii {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-4);
+    }
+
+    .preview-radius-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .preview-radius-box {
+      width: 64px;
+      height: 64px;
+      background: var(--color-primary);
+      opacity: 0.7;
+      transition: border-radius 0.2s ease;
+    }
+
+    .preview-radius-box--sm {
+      border-radius: var(--radius-sm);
+    }
+
+    .preview-radius-box--md {
+      border-radius: var(--radius-md);
+    }
+
+    .preview-radius-box--lg {
+      border-radius: var(--radius-lg);
+    }
+
+    .preview-radius-box--xl {
+      border-radius: var(--radius-xl);
+    }
+
+    .preview-radius-box--full {
+      border-radius: var(--radius-full);
+    }
+
+    .preview-radius-label {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-tertiary);
+    }
+
+    /* Main Preview - Shadows */
+    .preview-shadows {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-5);
+      padding: var(--space-4);
+    }
+
+    .preview-shadow-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .preview-shadow-box {
+      width: 80px;
+      height: 80px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-default);
+      transition: box-shadow 0.2s ease;
+    }
+
+    .preview-shadow-box--sm {
+      box-shadow: var(--shadow-sm);
+    }
+
+    .preview-shadow-box--md {
+      box-shadow: var(--shadow-md);
+    }
+
+    .preview-shadow-box--lg {
+      box-shadow: var(--shadow-lg);
+    }
+
+    .preview-shadow-box--xl {
+      box-shadow: var(--shadow-xl);
+    }
+
+    .preview-shadow-label {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-tertiary);
+    }
+
+    /* Color Picker Group */
+    .color-picker-group {
+      margin-bottom: var(--space-3);
+    }
+
+    .color-picker-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .color-picker-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .color-picker-row input[type="color"] {
+      width: 36px;
+      height: 28px;
+      padding: 2px;
+      cursor: pointer;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+    }
+
+    .color-hex-value {
+      font-family: var(--font-mono);
+      font-size: 0.625rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+
+    /* Shade Scale */
+    .shade-scale {
+      display: flex;
+      gap: 1px;
+      margin-top: var(--space-1);
+    }
+
+    .shade-scale__swatch {
+      flex: 1;
+      height: 16px;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .shade-scale__swatch:first-child {
+      border-radius: 2px 0 0 2px;
+    }
+
+    .shade-scale__swatch:last-child {
+      border-radius: 0 2px 2px 0;
+    }
+
+    .shade-scale__swatch:hover {
+      transform: scaleY(1.5);
+      z-index: 1;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Color Theory Suggestions */
+    .color-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      margin-top: var(--space-1);
+    }
+
+    .color-suggestions__label {
+      font-size: 0.5625rem;
+      color: var(--text-tertiary);
+      width: 100%;
+      margin-bottom: 1px;
+    }
+
+    .color-suggestion-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 5px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 2px;
+      font-size: 0.5rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .color-suggestion-btn:hover {
+      background: var(--bg-secondary);
+      border-color: var(--color-primary);
+      color: var(--text-primary);
+    }
+
+    .color-suggestion-btn__swatch {
+      width: 8px;
+      height: 8px;
+      border-radius: 1px;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+    }
+
+    /* WCAG Contrast Display */
+    .contrast-display {
+      margin-top: var(--space-1);
+      padding: var(--space-1) var(--space-2);
+      background: var(--bg-tertiary);
+      border-radius: 2px;
+      font-size: 0.5625rem;
+    }
+
+    .contrast-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1px 0;
+    }
+
+    .contrast-row__label {
+      color: var(--text-tertiary);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .contrast-row__sample {
+      width: 10px;
+      height: 10px;
+      border-radius: 1px;
+      border: 1px solid var(--border-color);
+    }
+
+    .contrast-row__badges {
+      display: flex;
+      gap: 2px;
+    }
+
+    .wcag-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0px 3px;
+      font-size: 0.5rem;
+      font-weight: var(--weight-semibold);
+      border-radius: 2px;
+    }
+
+    .wcag-badge--pass {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .wcag-badge--fail {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .wcag-badge--aaa {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    [data-theme="dark"] .wcag-badge--pass {
+      background: #166534;
+      color: #dcfce7;
+    }
+
+    [data-theme="dark"] .wcag-badge--fail {
+      background: #991b1b;
+      color: #fee2e2;
+    }
+
+    [data-theme="dark"] .wcag-badge--aaa {
+      background: #1e40af;
+      color: #dbeafe;
+    }
+
+    /* Color Category Divider */
+    .color-category {
+      margin-bottom: var(--space-3);
+      padding-bottom: var(--space-2);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .color-category:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .color-category__title {
+      font-size: 0.5625rem;
+      font-weight: var(--weight-semibold);
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-2);
+    }
+
+    /* Copy Toast Notification */
+    .copy-toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--color-neutral-800);
+      color: white;
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-default);
+      font-size: 0.75rem;
+      font-weight: var(--weight-medium);
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .copy-toast--visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    [data-theme="dark"] .copy-toast {
+      background: var(--color-neutral-100);
+      color: var(--color-neutral-900);
+    }
+
+    /* Seed/Modified Badges */
+    .seed-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.625rem;
+      font-weight: var(--weight-medium);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      margin-left: var(--space-2);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .seed-badge--existing {
+      background: var(--color-info);
+      color: white;
+    }
+
+    .seed-badge--modified {
+      background: var(--color-warning);
+      color: var(--color-neutral-900);
+    }
+
+    [data-theme="dark"] .seed-badge--existing {
+      background: #60a5fa;
+    }
+
+    [data-theme="dark"] .seed-badge--modified {
+      background: #fbbf24;
+    }
+
+    /* Context-Aware Preview Styles */
+    .preview-context-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-4);
+    }
+
+    .preview-task-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .preview-task-card__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .preview-task-card__title {
+      font-family: var(--font-heading);
+      font-size: 0.9375rem;
+      font-weight: var(--weight-medium);
+      color: var(--text-primary);
+    }
+
+    .preview-task-card__status {
+      font-size: 0.6875rem;
+      font-weight: var(--weight-medium);
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+    }
+
+    .preview-task-card__status--todo {
+      background: var(--bg-tertiary);
+      color: var(--text-tertiary);
+    }
+
+    .preview-task-card__status--progress {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .preview-task-card__status--done {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    [data-theme="dark"] .preview-task-card__status--progress {
+      background: #1e40af;
+      color: #dbeafe;
+    }
+
+    [data-theme="dark"] .preview-task-card__status--done {
+      background: #166534;
+      color: #dcfce7;
+    }
+
+    .preview-task-card__description {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .preview-task-card__meta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+    }
+
+    .preview-product-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-product-card__image {
+      width: 100%;
+      height: 120px;
+      background: var(--bg-tertiary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-tertiary);
+      font-size: 0.75rem;
+    }
+
+    .preview-product-card__content {
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .preview-product-card__title {
+      font-family: var(--font-heading);
+      font-size: 0.9375rem;
+      font-weight: var(--weight-medium);
+      color: var(--text-primary);
+    }
+
+    .preview-product-card__price {
+      font-size: 1rem;
+      font-weight: var(--weight-semibold);
+      color: var(--color-primary);
+    }
+
+    .preview-product-card__price-old {
+      font-size: 0.8125rem;
+      color: var(--text-tertiary);
+      text-decoration: line-through;
+      margin-left: var(--space-2);
+    }
+
+    .preview-product-card__rating {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .preview-product-card__stars {
+      color: #f59e0b;
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header__title">
+        <div class="header__title-icon" aria-hidden="true"></div>
+        <span id="headerTitle">Design System Studio</span>
+      </div>
+      <div class="header__actions">
+        <button class="header__back-btn" id="backBtn" type="button" aria-label="Back to philosophy picker">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 12L6 8l4-4"/>
+          </svg>
+          Back
+        </button>
+        <div class="theme-toggle" role="tablist" aria-label="Color theme">
+          <button class="theme-toggle__btn theme-toggle__btn--active" id="lightThemeBtn" role="tab" aria-selected="true" type="button">Light</button>
+          <button class="theme-toggle__btn" id="darkThemeBtn" role="tab" aria-selected="false" type="button">Dark</button>
+        </div>
+        <button class="btn-export" id="exportBtn" type="button">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 10v4H2v-4M8 2v9M5 5l3-3 3 3"/>
+          </svg>
+          Export
+        </button>
+      </div>
+    </header>
+
+    <!-- Philosophy Picker View -->
+    <main class="picker-view" id="pickerView">
+      <h1 class="picker-view__heading">Choose a Philosophy</h1>
+      <p class="picker-view__subheading">Select a design philosophy to start with. Each one has a unique visual style with pre-configured colors, typography, and spacing.</p>
+
+      <div class="picker-grid" id="pickerGrid" role="list">
+        <!-- Philosophy cards will be generated by JavaScript -->
+      </div>
+    </main>
+
+    <!-- Studio View -->
+    <div class="studio-view" id="studioView">
+      <div class="studio-main">
+        <!-- Controls Panel -->
+        <aside class="controls-panel" aria-label="Design controls">
+          <div class="controls-panel__header">
+            <span class="controls-panel__title">Controls</span>
+          </div>
+
+          <!-- Colors Section -->
+          <section class="control-section control-section--open" data-section="colors">
+            <button class="control-section__header" type="button" aria-expanded="true">
+              <span class="control-section__title">Colors</span>
+              <svg class="control-section__icon" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+            <div class="control-section__content" id="colorsContent">
+              <!-- Brand Colors Category -->
+              <div class="color-category">
+                <div class="color-category__title">Brand Colors</div>
+
+                <!-- Primary Color -->
+                <div class="color-picker-group" id="primaryColorGroup">
+                  <label class="control-label" for="primaryColor">Primary</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="primaryColor" value="#6b7280" aria-label="Primary color picker">
+                    <span class="color-hex-value" id="primaryHex">#6b7280</span>
+                  </div>
+                  <div class="shade-scale" id="primaryShadeScale" aria-label="Primary color shade scale"></div>
+                  <div class="contrast-display" id="primaryContrast">
+                    <div class="contrast-row">
+                      <span class="contrast-row__label">
+                        <span class="contrast-row__sample" style="background:#fff"></span>
+                        vs White
+                      </span>
+                      <span class="contrast-row__badges" id="primaryContrastWhite"></span>
+                    </div>
+                    <div class="contrast-row">
+                      <span class="contrast-row__label">
+                        <span class="contrast-row__sample" style="background:#111827"></span>
+                        vs Dark
+                      </span>
+                      <span class="contrast-row__badges" id="primaryContrastDark"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Secondary Color -->
+                <div class="color-picker-group" id="secondaryColorGroup">
+                  <label class="control-label" for="secondaryColor">Secondary</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="secondaryColor" value="#9ca3af" aria-label="Secondary color picker">
+                    <span class="color-hex-value" id="secondaryHex">#9ca3af</span>
+                  </div>
+                  <div class="shade-scale" id="secondaryShadeScale" aria-label="Secondary color shade scale"></div>
+                  <div class="color-suggestions" id="secondarySuggestions">
+                    <span class="color-suggestions__label">Suggestions from Primary:</span>
+                  </div>
+                  <div class="contrast-display" id="secondaryContrast">
+                    <div class="contrast-row">
+                      <span class="contrast-row__label">
+                        <span class="contrast-row__sample" style="background:#fff"></span>
+                        vs White
+                      </span>
+                      <span class="contrast-row__badges" id="secondaryContrastWhite"></span>
+                    </div>
+                    <div class="contrast-row">
+                      <span class="contrast-row__label">
+                        <span class="contrast-row__sample" style="background:#111827"></span>
+                        vs Dark
+                      </span>
+                      <span class="contrast-row__badges" id="secondaryContrastDark"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Accent Color -->
+                <div class="color-picker-group" id="accentColorGroup">
+                  <label class="control-label" for="accentColor">Accent</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="accentColor" value="#d1d5db" aria-label="Accent color picker">
+                    <span class="color-hex-value" id="accentHex">#d1d5db</span>
+                  </div>
+                  <div class="shade-scale" id="accentShadeScale" aria-label="Accent color shade scale"></div>
+                  <div class="color-suggestions" id="accentSuggestions">
+                    <span class="color-suggestions__label">Suggestions from Primary:</span>
+                  </div>
+                  <div class="contrast-display" id="accentContrast">
+                    <div class="contrast-row">
+                      <span class="contrast-row__label">
+                        <span class="contrast-row__sample" style="background:#fff"></span>
+                        vs White
+                      </span>
+                      <span class="contrast-row__badges" id="accentContrastWhite"></span>
+                    </div>
+                    <div class="contrast-row">
+                      <span class="contrast-row__label">
+                        <span class="contrast-row__sample" style="background:#111827"></span>
+                        vs Dark
+                      </span>
+                      <span class="contrast-row__badges" id="accentContrastDark"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Semantic Colors Category -->
+              <div class="color-category">
+                <div class="color-category__title">Semantic Colors</div>
+
+                <div class="color-picker-group">
+                  <label class="control-label" for="successColor">Success</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="successColor" value="#22c55e" aria-label="Success color picker">
+                    <span class="color-hex-value" id="successHex">#22c55e</span>
+                  </div>
+                  <div class="shade-scale" id="successShadeScale"></div>
+                </div>
+
+                <div class="color-picker-group">
+                  <label class="control-label" for="warningColor">Warning</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="warningColor" value="#f59e0b" aria-label="Warning color picker">
+                    <span class="color-hex-value" id="warningHex">#f59e0b</span>
+                  </div>
+                  <div class="shade-scale" id="warningShadeScale"></div>
+                </div>
+
+                <div class="color-picker-group">
+                  <label class="control-label" for="errorColor">Error</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="errorColor" value="#ef4444" aria-label="Error color picker">
+                    <span class="color-hex-value" id="errorHex">#ef4444</span>
+                  </div>
+                  <div class="shade-scale" id="errorShadeScale"></div>
+                </div>
+
+                <div class="color-picker-group">
+                  <label class="control-label" for="infoColor">Info</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="infoColor" value="#3b82f6" aria-label="Info color picker">
+                    <span class="color-hex-value" id="infoHex">#3b82f6</span>
+                  </div>
+                  <div class="shade-scale" id="infoShadeScale"></div>
+                </div>
+              </div>
+
+              <!-- Neutral Colors Category -->
+              <div class="color-category">
+                <div class="color-category__title">Neutral Colors</div>
+
+                <div class="color-picker-group">
+                  <label class="control-label" for="bgColor">Background</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="bgColor" value="#ffffff" aria-label="Background color picker">
+                    <span class="color-hex-value" id="bgHex">#ffffff</span>
+                  </div>
+                </div>
+
+                <div class="color-picker-group">
+                  <label class="control-label" for="surfaceColor">Surface</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="surfaceColor" value="#f9fafb" aria-label="Surface color picker">
+                    <span class="color-hex-value" id="surfaceHex">#f9fafb</span>
+                  </div>
+                </div>
+
+                <div class="color-picker-group">
+                  <label class="control-label" for="borderColor">Border</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="borderColor" value="#e5e7eb" aria-label="Border color picker">
+                    <span class="color-hex-value" id="borderHex">#e5e7eb</span>
+                  </div>
+                </div>
+
+                <div class="color-picker-group">
+                  <label class="control-label" for="textPrimaryColor">Text Primary</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="textPrimaryColor" value="#111827" aria-label="Text primary color picker">
+                    <span class="color-hex-value" id="textPrimaryHex">#111827</span>
+                  </div>
+                </div>
+
+                <div class="color-picker-group">
+                  <label class="control-label" for="textSecondaryColor">Text Secondary</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="textSecondaryColor" value="#6b7280" aria-label="Text secondary color picker">
+                    <span class="color-hex-value" id="textSecondaryHex">#6b7280</span>
+                  </div>
+                </div>
+
+                <div class="color-picker-group">
+                  <label class="control-label" for="textMutedColor">Text Muted</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="textMutedColor" value="#9ca3af" aria-label="Text muted color picker">
+                    <span class="color-hex-value" id="textMutedHex">#9ca3af</span>
+                  </div>
+                </div>
+
+                <div class="control-group">
+                  <label class="control-label">Neutral Scale</label>
+                  <div class="color-swatches" id="neutralSwatches">
+                    <!-- Generated by JS -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Copy Toast -->
+          <div class="copy-toast" id="copyToast">Copied!</div>
+
+          <!-- Typography Section -->
+          <section class="control-section control-section--open" data-section="typography">
+            <button class="control-section__header" type="button" aria-expanded="true">
+              <span class="control-section__title">Typography</span>
+              <svg class="control-section__icon" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+            <div class="control-section__content">
+              <div class="control-group">
+                <label class="control-label" for="sansSerifFont">Sans-Serif Font</label>
+                <select id="sansSerifFont" class="control-input">
+                  <option value="Inter, system-ui, sans-serif">Inter</option>
+                  <option value="system-ui, -apple-system, sans-serif">System UI</option>
+                  <option value="Roboto, system-ui, sans-serif">Roboto</option>
+                  <option value="Open Sans, system-ui, sans-serif">Open Sans</option>
+                  <option value="Nunito, system-ui, sans-serif">Nunito</option>
+                  <option value="Poppins, system-ui, sans-serif">Poppins</option>
+                  <option value="Lato, system-ui, sans-serif">Lato</option>
+                  <option value="Source Sans Pro, system-ui, sans-serif">Source Sans Pro</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="monoFont">Monospace Font</label>
+                <select id="monoFont" class="control-input">
+                  <option value="ui-monospace, SFMono-Regular, monospace">UI Monospace</option>
+                  <option value="Fira Code, monospace">Fira Code</option>
+                  <option value="JetBrains Mono, monospace">JetBrains Mono</option>
+                  <option value="Source Code Pro, monospace">Source Code Pro</option>
+                  <option value="Consolas, Monaco, monospace">Consolas</option>
+                  <option value="Menlo, Monaco, monospace">Menlo</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="baseFontSize">Base Font Size</label>
+                <select id="baseFontSize" class="control-input">
+                  <option value="14">14px</option>
+                  <option value="15">15px</option>
+                  <option value="16" selected>16px</option>
+                  <option value="17">17px</option>
+                  <option value="18">18px</option>
+                  <option value="20">20px</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="typeScaleRatio">Type Scale Ratio</label>
+                <select id="typeScaleRatio" class="control-input">
+                  <option value="1.125">1.125 - Minor Second</option>
+                  <option value="1.2">1.2 - Minor Third</option>
+                  <option value="1.25" selected>1.25 - Major Third</option>
+                  <option value="1.333">1.333 - Perfect Fourth</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label">Typography Preview</label>
+                <div class="typography-preview" id="typographyPreview">
+                  <div class="type-preview-item" data-level="h1">
+                    <span class="type-preview-label">H1</span>
+                    <span class="type-preview-sample" id="typePreviewH1">Heading 1</span>
+                  </div>
+                  <div class="type-preview-item" data-level="h2">
+                    <span class="type-preview-label">H2</span>
+                    <span class="type-preview-sample" id="typePreviewH2">Heading 2</span>
+                  </div>
+                  <div class="type-preview-item" data-level="h3">
+                    <span class="type-preview-label">H3</span>
+                    <span class="type-preview-sample" id="typePreviewH3">Heading 3</span>
+                  </div>
+                  <div class="type-preview-item" data-level="body">
+                    <span class="type-preview-label">Body</span>
+                    <span class="type-preview-sample" id="typePreviewBody">Body text</span>
+                  </div>
+                  <div class="type-preview-item" data-level="small">
+                    <span class="type-preview-label">Small</span>
+                    <span class="type-preview-sample" id="typePreviewSmall">Small text</span>
+                  </div>
+                  <div class="type-preview-item" data-level="code">
+                    <span class="type-preview-label">Code</span>
+                    <span class="type-preview-sample type-preview-sample--mono" id="typePreviewCode">const code = true;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Spacing Section -->
+          <section class="control-section" data-section="spacing">
+            <button class="control-section__header" type="button" aria-expanded="false">
+              <span class="control-section__title">Spacing</span>
+              <svg class="control-section__icon" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+            <div class="control-section__content">
+              <div class="control-group">
+                <label class="control-label" for="spacingBaseUnit">Base Unit</label>
+                <select id="spacingBaseUnit" class="control-input">
+                  <option value="4">4px</option>
+                  <option value="8">8px</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label">Spacing Scale Preview</label>
+                <div class="spacing-scale-preview" id="spacingScalePreview">
+                  <!-- Generated by JS -->
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Radii Section -->
+          <section class="control-section" data-section="radii">
+            <button class="control-section__header" type="button" aria-expanded="false">
+              <span class="control-section__title">Border Radii</span>
+              <svg class="control-section__icon" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+            <div class="control-section__content">
+              <div class="control-group">
+                <label class="control-label" for="radiusSm">Small (sm)</label>
+                <select id="radiusSm" class="control-input">
+                  <option value="0">0px</option>
+                  <option value="2" selected>2px</option>
+                  <option value="4">4px</option>
+                  <option value="6">6px</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="radiusMd">Medium (md)</label>
+                <select id="radiusMd" class="control-input">
+                  <option value="0">0px</option>
+                  <option value="2">2px</option>
+                  <option value="4" selected>4px</option>
+                  <option value="6">6px</option>
+                  <option value="8">8px</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="radiusLg">Large (lg)</label>
+                <select id="radiusLg" class="control-input">
+                  <option value="4">4px</option>
+                  <option value="6">6px</option>
+                  <option value="8" selected>8px</option>
+                  <option value="12">12px</option>
+                  <option value="16">16px</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="radiusXl">Extra Large (xl)</label>
+                <select id="radiusXl" class="control-input">
+                  <option value="8">8px</option>
+                  <option value="12" selected>12px</option>
+                  <option value="16">16px</option>
+                  <option value="20">20px</option>
+                  <option value="24">24px</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label">Radii Preview</label>
+                <div class="radii-preview" id="radiiPreview">
+                  <div class="radii-preview-box" data-radius="sm">
+                    <span class="radii-preview-label">sm</span>
+                  </div>
+                  <div class="radii-preview-box" data-radius="md">
+                    <span class="radii-preview-label">md</span>
+                  </div>
+                  <div class="radii-preview-box" data-radius="lg">
+                    <span class="radii-preview-label">lg</span>
+                  </div>
+                  <div class="radii-preview-box" data-radius="xl">
+                    <span class="radii-preview-label">xl</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Shadows Section -->
+          <section class="control-section" data-section="shadows">
+            <button class="control-section__header" type="button" aria-expanded="false">
+              <span class="control-section__title">Shadows</span>
+              <svg class="control-section__icon" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+            <div class="control-section__content">
+              <div class="control-group">
+                <label class="control-label" for="shadowPreset">Shadow Preset</label>
+                <select id="shadowPreset" class="control-input">
+                  <option value="subtle">Subtle</option>
+                  <option value="standard" selected>Standard</option>
+                  <option value="dramatic">Dramatic</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label">Shadow Scale Preview</label>
+                <div class="shadows-preview" id="shadowsPreview">
+                  <div class="shadow-preview-box" data-shadow="sm">
+                    <span class="shadow-preview-label">sm</span>
+                  </div>
+                  <div class="shadow-preview-box" data-shadow="md">
+                    <span class="shadow-preview-label">md</span>
+                  </div>
+                  <div class="shadow-preview-box" data-shadow="lg">
+                    <span class="shadow-preview-label">lg</span>
+                  </div>
+                  <div class="shadow-preview-box" data-shadow="xl">
+                    <span class="shadow-preview-label">xl</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </aside>
+
+        <!-- Preview Panel -->
+        <main class="preview-panel" aria-label="Live preview">
+          <div class="preview-panel__container">
+            <!-- Buttons Preview -->
+            <section class="preview-section" id="previewButtonsSection">
+              <h2 class="preview-section__title">Buttons</h2>
+              <div class="preview-buttons" id="previewButtons">
+                <button class="preview-btn preview-btn--primary" type="button">Primary</button>
+                <button class="preview-btn preview-btn--secondary" type="button">Secondary</button>
+                <button class="preview-btn preview-btn--ghost" type="button">Ghost</button>
+                <button class="preview-btn preview-btn--danger" type="button">Danger</button>
+              </div>
+            </section>
+
+            <!-- Typography Preview -->
+            <section class="preview-section">
+              <h2 class="preview-section__title">Typography</h2>
+              <div class="preview-typography" id="mainTypographyPreview">
+                <h1 class="preview-h1">Heading One</h1>
+                <h2 class="preview-h2">Heading Two</h2>
+                <h3 class="preview-h3">Heading Three</h3>
+                <p class="preview-body">This is body text that demonstrates the typography settings. Good typography creates hierarchy, improves readability, and establishes the personality of your design system.</p>
+                <p class="preview-small"><small>This is small text for captions, labels, and secondary information.</small></p>
+                <p class="preview-code-block">Here is some <code>inline code</code> for technical content.</p>
+              </div>
+            </section>
+
+            <!-- Form Preview -->
+            <section class="preview-section">
+              <h2 class="preview-section__title">Form Elements</h2>
+              <form class="preview-form" onsubmit="return false;">
+                <div class="preview-form__group">
+                  <label class="preview-form__label" for="previewEmail">Email Address</label>
+                  <input type="email" id="previewEmail" class="preview-form__input" placeholder="you@example.com">
+                </div>
+                <div class="preview-form__group">
+                  <label class="preview-form__label" for="previewPassword">Password</label>
+                  <input type="password" id="previewPassword" class="preview-form__input" placeholder="Enter password">
+                </div>
+                <button class="preview-btn preview-btn--primary" type="submit">Sign In</button>
+              </form>
+            </section>
+
+            <!-- Card Preview -->
+            <section class="preview-section" id="previewCardSection">
+              <h2 class="preview-section__title">Card Component</h2>
+              <div class="preview-card" id="previewCard">
+                <h3 class="preview-card__title" id="previewCardTitle">Card Title</h3>
+                <p class="preview-card__text" id="previewCardText">This is a sample card component showing how shadows, borders, and spacing work together.</p>
+                <button class="preview-btn preview-btn--primary" type="button" id="previewCardAction">Learn More</button>
+              </div>
+            </section>
+
+            <!-- Text States Preview -->
+            <section class="preview-section">
+              <h2 class="preview-section__title">Text States</h2>
+              <div class="preview-text-states" id="previewTextStates">
+                <div class="preview-text-state preview-text-state--success">
+                  <span class="preview-text-state__icon" aria-hidden="true"></span>
+                  <span>Success: Your changes have been saved</span>
+                </div>
+                <div class="preview-text-state preview-text-state--warning">
+                  <span class="preview-text-state__icon" aria-hidden="true"></span>
+                  <span>Warning: This action cannot be undone</span>
+                </div>
+                <div class="preview-text-state preview-text-state--error">
+                  <span class="preview-text-state__icon" aria-hidden="true"></span>
+                  <span>Error: Please check your input</span>
+                </div>
+                <div class="preview-text-state preview-text-state--info">
+                  <span class="preview-text-state__icon" aria-hidden="true"></span>
+                  <span>Info: Updates are available</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Colors Preview -->
+            <section class="preview-section">
+              <h2 class="preview-section__title">Color Palette</h2>
+              <div class="preview-colors" id="previewColors">
+                <!-- Generated by JS -->
+              </div>
+            </section>
+
+            <!-- Spacing Preview -->
+            <section class="preview-section">
+              <h2 class="preview-section__title">Spacing Scale</h2>
+              <div class="preview-spacing" id="previewSpacing">
+                <!-- Generated by JS -->
+              </div>
+            </section>
+
+            <!-- Border Radii Preview -->
+            <section class="preview-section">
+              <h2 class="preview-section__title">Border Radii</h2>
+              <div class="preview-radii" id="previewRadii">
+                <div class="preview-radius-item">
+                  <div class="preview-radius-box preview-radius-box--sm"></div>
+                  <span class="preview-radius-label">sm</span>
+                </div>
+                <div class="preview-radius-item">
+                  <div class="preview-radius-box preview-radius-box--md"></div>
+                  <span class="preview-radius-label">md</span>
+                </div>
+                <div class="preview-radius-item">
+                  <div class="preview-radius-box preview-radius-box--lg"></div>
+                  <span class="preview-radius-label">lg</span>
+                </div>
+                <div class="preview-radius-item">
+                  <div class="preview-radius-box preview-radius-box--xl"></div>
+                  <span class="preview-radius-label">xl</span>
+                </div>
+                <div class="preview-radius-item">
+                  <div class="preview-radius-box preview-radius-box--full"></div>
+                  <span class="preview-radius-label">full</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Shadows Preview -->
+            <section class="preview-section">
+              <h2 class="preview-section__title">Shadow Scale</h2>
+              <div class="preview-shadows" id="previewShadows">
+                <div class="preview-shadow-item">
+                  <div class="preview-shadow-box preview-shadow-box--sm"></div>
+                  <span class="preview-shadow-label">sm</span>
+                </div>
+                <div class="preview-shadow-item">
+                  <div class="preview-shadow-box preview-shadow-box--md"></div>
+                  <span class="preview-shadow-label">md</span>
+                </div>
+                <div class="preview-shadow-item">
+                  <div class="preview-shadow-box preview-shadow-box--lg"></div>
+                  <span class="preview-shadow-label">lg</span>
+                </div>
+                <div class="preview-shadow-item">
+                  <div class="preview-shadow-box preview-shadow-box--xl"></div>
+                  <span class="preview-shadow-label">xl</span>
+                </div>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
+
+      <!-- Accessibility Bar -->
+      <footer class="accessibility-bar">
+        <div class="accessibility-bar__status">
+          <div class="accessibility-bar__item">
+            <span>Primary on White:</span>
+            <span class="accessibility-bar__badge" id="contrastBadge">--</span>
+            <span class="accessibility-bar__ratio" id="contrastRatio">--:1</span>
+          </div>
+          <div class="accessibility-bar__item">
+            <span>WCAG AA:</span>
+            <span class="accessibility-bar__badge" id="wcagAA">--</span>
+          </div>
+          <div class="accessibility-bar__item">
+            <span>WCAG AAA:</span>
+            <span class="accessibility-bar__badge" id="wcagAAA">--</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // ========================================
+    // Color Theory Utilities (embedded)
+    // ========================================
+    function hexToHSL(hex) {
+      hex = hex.replace(/^#/, '');
+      const r = parseInt(hex.substring(0, 2), 16) / 255;
+      const g = parseInt(hex.substring(2, 4), 16) / 255;
+      const b = parseInt(hex.substring(4, 6), 16) / 255;
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const l = (max + min) / 2;
+      let h = 0;
+      let s = 0;
+      if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+          case g: h = ((b - r) / d + 2) / 6; break;
+          case b: h = ((r - g) / d + 4) / 6; break;
+        }
+      }
+      return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+    }
+
+    function hslToHex(h, s, l) {
+      h = ((h % 360) + 360) % 360;
+      s = Math.max(0, Math.min(100, s)) / 100;
+      l = Math.max(0, Math.min(100, l)) / 100;
+      const c = (1 - Math.abs(2 * l - 1)) * s;
+      const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+      const m = l - c / 2;
+      let r = 0, g = 0, b = 0;
+      if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
+      else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
+      else if (h >= 120 && h < 180) { r = 0; g = c; b = x; }
+      else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
+      else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
+      else { r = c; g = 0; b = x; }
+      const toHex = (n) => {
+        const hex = Math.round((n + m) * 255).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+      };
+      return '#' + toHex(r) + toHex(g) + toHex(b);
+    }
+
+    function generateShadeScale(baseHex) {
+      const hsl = hexToHSL(baseHex);
+      const lightnessMap = { 50: 97, 100: 94, 200: 86, 300: 76, 400: 62, 500: 50, 600: 42, 700: 34, 800: 26, 900: 18, 950: 10 };
+      const getSaturation = (targetL) => {
+        if (targetL > 80) return Math.max(10, hsl.s - (targetL - 80) * 0.5);
+        if (targetL < 30) return Math.min(100, hsl.s + (30 - targetL) * 0.3);
+        return hsl.s;
+      };
+      const scale = {};
+      for (const [shade, lightness] of Object.entries(lightnessMap)) {
+        scale[shade] = hslToHex(hsl.h, getSaturation(lightness), lightness);
+      }
+      return scale;
+    }
+
+    function getRelativeLuminance(hex) {
+      hex = hex.replace(/^#/, '');
+      const r = parseInt(hex.substring(0, 2), 16) / 255;
+      const g = parseInt(hex.substring(2, 4), 16) / 255;
+      const b = parseInt(hex.substring(4, 6), 16) / 255;
+      const toLinear = (c) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+    }
+
+    function getContrastRatio(hex1, hex2) {
+      const l1 = getRelativeLuminance(hex1);
+      const l2 = getRelativeLuminance(hex2);
+      const lighter = Math.max(l1, l2);
+      const darker = Math.min(l1, l2);
+      return (lighter + 0.05) / (darker + 0.05);
+    }
+
+    function meetsWCAG(foreground, background) {
+      const ratio = getContrastRatio(foreground, background);
+      return {
+        ratio: Math.round(ratio * 100) / 100,
+        aa: ratio >= 4.5,
+        aaLarge: ratio >= 3,
+        aaa: ratio >= 7,
+        aaaLarge: ratio >= 4.5
+      };
+    }
+
+    // Color Harmony Functions
+    function getComplementary(hex) {
+      const hsl = hexToHSL(hex);
+      return hslToHex((hsl.h + 180) % 360, hsl.s, hsl.l);
+    }
+
+    function getAnalogous(hex) {
+      const hsl = hexToHSL(hex);
+      return [
+        hslToHex((hsl.h + 30) % 360, hsl.s, hsl.l),
+        hslToHex((hsl.h + 330) % 360, hsl.s, hsl.l)
+      ];
+    }
+
+    function getTriadic(hex) {
+      const hsl = hexToHSL(hex);
+      return [
+        hslToHex((hsl.h + 120) % 360, hsl.s, hsl.l),
+        hslToHex((hsl.h + 240) % 360, hsl.s, hsl.l)
+      ];
+    }
+
+    function getSplitComplementary(hex) {
+      const hsl = hexToHSL(hex);
+      return [
+        hslToHex((hsl.h + 150) % 360, hsl.s, hsl.l),
+        hslToHex((hsl.h + 210) % 360, hsl.s, hsl.l)
+      ];
+    }
+
+    // ColorTheory namespace for easier access
+    const ColorTheory = {
+      hexToHSL: hexToHSL,
+      hslToHex: hslToHex,
+      generateShadeScale: generateShadeScale,
+      getContrastRatio: getContrastRatio,
+      meetsWCAG: meetsWCAG,
+      getComplementary: getComplementary,
+      getAnalogous: getAnalogous,
+      getTriadic: getTriadic,
+      getSplitComplementary: getSplitComplementary
+    };
+
+    // ========================================
+    // Philosophies Data (embedded)
+    // ========================================
+    const PHILOSOPHIES = {
+      "Minimal": {
+        "colors": {
+          "primary": "#64748b",
+          "secondary": "#6366f1",
+          "accent": "#818cf8",
+          "neutrals": { "50": "#f8fafc", "100": "#f1f5f9", "200": "#e2e8f0", "300": "#cbd5e1", "400": "#94a3b8", "500": "#64748b", "600": "#475569", "700": "#334155", "800": "#1e293b", "900": "#0f172a", "950": "#020617" }
+        },
+        "radii": { "none": "0px", "sm": "2px", "md": "4px", "lg": "6px", "xl": "8px", "full": "9999px", "default": "2px" },
+        "shadows": { "sm": "0 1px 2px 0 rgb(0 0 0 / 0.03)", "md": "0 2px 4px -1px rgb(0 0 0 / 0.04)", "lg": "0 4px 6px -2px rgb(0 0 0 / 0.05)", "xl": "0 8px 10px -3px rgb(0 0 0 / 0.06)", "default": "0 1px 2px 0 rgb(0 0 0 / 0.03)" },
+        "spacing": { "unit": 4, "scale": [0, 4, 8, 16, 24, 32, 48, 64, 96, 128], "density": "generous" },
+        "typography": {
+          "fonts": { "heading": "Inter, system-ui, sans-serif", "body": "Inter, system-ui, sans-serif", "mono": "JetBrains Mono, monospace" },
+          "weights": { "light": 300, "normal": 400, "medium": 450, "semibold": 500, "bold": 600 },
+          "tracking": { "tight": "-0.025em", "normal": "-0.01em", "wide": "0em" }
+        }
+      },
+      "Playful": {
+        "colors": {
+          "primary": "#f97316",
+          "secondary": "#ec4899",
+          "accent": "#06b6d4",
+          "neutrals": { "50": "#fefce8", "100": "#fef9c3", "200": "#fef08a", "300": "#fde047", "400": "#facc15", "500": "#eab308", "600": "#ca8a04", "700": "#a16207", "800": "#854d0e", "900": "#713f12", "950": "#422006" }
+        },
+        "radii": { "none": "0px", "sm": "6px", "md": "10px", "lg": "14px", "xl": "20px", "full": "9999px", "default": "12px" },
+        "shadows": { "sm": "0 2px 8px -2px rgb(249 115 22 / 0.2)", "md": "0 4px 12px -2px rgb(236 72 153 / 0.2)", "lg": "0 8px 20px -4px rgb(6 182 212 / 0.2)", "xl": "0 12px 28px -6px rgb(249 115 22 / 0.25)", "default": "0 4px 12px -2px rgb(236 72 153 / 0.2)" },
+        "spacing": { "unit": 4, "scale": [0, 4, 8, 12, 16, 20, 28, 36, 48, 64], "density": "compact" },
+        "typography": {
+          "fonts": { "heading": "Nunito, Quicksand, sans-serif", "body": "Nunito, system-ui, sans-serif", "mono": "Fira Code, monospace" },
+          "weights": { "light": 400, "normal": 500, "medium": 600, "semibold": 700, "bold": 800 },
+          "tracking": { "tight": "0em", "normal": "0.025em", "wide": "0.05em" }
+        }
+      },
+      "Corporate": {
+        "colors": {
+          "primary": "#2563eb",
+          "secondary": "#3b82f6",
+          "accent": "#0ea5e9",
+          "neutrals": { "50": "#f9fafb", "100": "#f3f4f6", "200": "#e5e7eb", "300": "#d1d5db", "400": "#9ca3af", "500": "#6b7280", "600": "#4b5563", "700": "#374151", "800": "#1f2937", "900": "#111827", "950": "#030712" }
+        },
+        "radii": { "none": "0px", "sm": "2px", "md": "4px", "lg": "6px", "xl": "8px", "full": "9999px", "default": "4px" },
+        "shadows": { "sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)", "md": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)", "lg": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)", "xl": "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)", "default": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)" },
+        "spacing": { "unit": 4, "scale": [0, 4, 8, 12, 16, 24, 32, 48, 64, 80], "density": "balanced" },
+        "typography": {
+          "fonts": { "heading": "system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif", "body": "system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif", "mono": "ui-monospace, SFMono-Regular, monospace" },
+          "weights": { "light": 300, "normal": 400, "medium": 500, "semibold": 600, "bold": 700 },
+          "tracking": { "tight": "-0.01em", "normal": "0em", "wide": "0.025em" }
+        }
+      },
+      "Bold": {
+        "colors": {
+          "primary": "#dc2626",
+          "secondary": "#000000",
+          "accent": "#facc15",
+          "neutrals": { "50": "#fafafa", "100": "#f5f5f5", "200": "#e5e5e5", "300": "#d4d4d4", "400": "#a3a3a3", "500": "#737373", "600": "#525252", "700": "#404040", "800": "#262626", "900": "#171717", "950": "#0a0a0a" }
+        },
+        "radii": { "none": "0px", "sm": "0px", "md": "0px", "lg": "0px", "xl": "0px", "full": "9999px", "default": "0px" },
+        "shadows": { "sm": "4px 4px 0 0 #000000", "md": "6px 6px 0 0 #000000", "lg": "8px 8px 0 0 #000000", "xl": "12px 12px 0 0 #000000", "default": "6px 6px 0 0 #000000" },
+        "spacing": { "unit": 8, "scale": [0, 8, 16, 24, 40, 56, 80, 112, 144, 192], "density": "dramatic" },
+        "typography": {
+          "fonts": { "heading": "Impact, Haettenschweiler, sans-serif", "body": "Arial Black, Gadget, sans-serif", "mono": "Courier New, monospace" },
+          "weights": { "light": 600, "normal": 700, "medium": 800, "semibold": 900, "bold": 900 },
+          "tracking": { "tight": "-0.05em", "normal": "-0.025em", "wide": "0.1em" }
+        }
+      },
+      "Organic": {
+        "colors": {
+          "primary": "#15803d",
+          "secondary": "#78350f",
+          "accent": "#fef3c7",
+          "neutrals": { "50": "#fefdfb", "100": "#fdf8f3", "200": "#f5ebe0", "300": "#e8dcc8", "400": "#c9b99a", "500": "#a89874", "600": "#8b7355", "700": "#6b5340", "800": "#4a3728", "900": "#2d2118", "950": "#1a120c" }
+        },
+        "radii": { "none": "0px", "sm": "4px", "md": "8px", "lg": "12px", "xl": "16px", "full": "9999px", "default": "8px" },
+        "shadows": { "sm": "0 2px 4px -1px rgb(120 53 15 / 0.1)", "md": "0 4px 8px -2px rgb(120 53 15 / 0.12)", "lg": "0 8px 16px -4px rgb(120 53 15 / 0.14)", "xl": "0 16px 32px -8px rgb(120 53 15 / 0.16)", "default": "0 4px 8px -2px rgb(120 53 15 / 0.12)" },
+        "spacing": { "unit": 4, "scale": [0, 4, 8, 14, 20, 28, 40, 56, 80, 112], "density": "natural" },
+        "typography": {
+          "fonts": { "heading": "Playfair Display, Georgia, serif", "body": "Lora, Georgia, serif", "mono": "Courier Prime, monospace" },
+          "weights": { "light": 300, "normal": 400, "medium": 500, "semibold": 600, "bold": 700 },
+          "tracking": { "tight": "0em", "normal": "0.015em", "wide": "0.04em" }
+        }
+      },
+      "Custom": {
+        "colors": {
+          "primary": "#6b7280",
+          "secondary": "#9ca3af",
+          "accent": "#d1d5db",
+          "neutrals": { "50": "#f9fafb", "100": "#f3f4f6", "200": "#e5e7eb", "300": "#d1d5db", "400": "#9ca3af", "500": "#6b7280", "600": "#4b5563", "700": "#374151", "800": "#1f2937", "900": "#111827", "950": "#030712" }
+        },
+        "radii": { "none": "0px", "sm": "2px", "md": "4px", "lg": "8px", "xl": "12px", "full": "9999px", "default": "4px" },
+        "shadows": { "sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)", "md": "0 4px 6px -1px rgb(0 0 0 / 0.1)", "lg": "0 10px 15px -3px rgb(0 0 0 / 0.1)", "xl": "0 20px 25px -5px rgb(0 0 0 / 0.1)", "default": "0 4px 6px -1px rgb(0 0 0 / 0.1)" },
+        "spacing": { "unit": 4, "scale": [0, 4, 8, 12, 16, 24, 32, 48, 64, 96], "density": "balanced" },
+        "typography": {
+          "fonts": { "heading": "system-ui, sans-serif", "body": "system-ui, sans-serif", "mono": "ui-monospace, monospace" },
+          "weights": { "light": 300, "normal": 400, "medium": 500, "semibold": 600, "bold": 700 },
+          "tracking": { "tight": "-0.025em", "normal": "0em", "wide": "0.025em" }
+        }
+      }
+    };
+
+    // Philosophy descriptions for display
+    const PHILOSOPHY_INFO = {
+      "Minimal": { badge: "Clean", description: "Subtle shadows, tight spacing, understated elegance" },
+      "Playful": { badge: "Fun", description: "Vibrant colors, rounded corners, energetic feel" },
+      "Corporate": { badge: "Professional", description: "Reliable blues, balanced spacing, trustworthy look" },
+      "Bold": { badge: "Striking", description: "High contrast, sharp edges, dramatic presence" },
+      "Organic": { badge: "Natural", description: "Earthy tones, soft shadows, warm and inviting" },
+      "Custom": { badge: "Flexible", description: "Start with defaults and customize everything" }
+    };
+
+    // ========================================
+    // Application State
+    // ========================================
+    let currentTheme = 'light';
+    let currentPhilosophy = null;
+    let currentTokens = null;
+    let lightTokens = null;  // Store light mode tokens
+    let darkTokens = null;   // Store auto-generated dark mode tokens
+    let appContext = null;   // Context for preview content (from URL param or embedded)
+
+    // ========================================
+    // DOM Elements
+    // ========================================
+    const app = document.getElementById('app');
+    const headerTitle = document.getElementById('headerTitle');
+    const pickerView = document.getElementById('pickerView');
+    const studioView = document.getElementById('studioView');
+    const pickerGrid = document.getElementById('pickerGrid');
+    const backBtn = document.getElementById('backBtn');
+    const lightThemeBtn = document.getElementById('lightThemeBtn');
+    const darkThemeBtn = document.getElementById('darkThemeBtn');
+    const exportBtn = document.getElementById('exportBtn');
+
+    // Control inputs
+    const primaryColorInput = document.getElementById('primaryColor');
+    const secondaryColorInput = document.getElementById('secondaryColor');
+    const accentColorInput = document.getElementById('accentColor');
+
+    // Typography controls
+    const sansSerifFontSelect = document.getElementById('sansSerifFont');
+    const monoFontSelect = document.getElementById('monoFont');
+    const baseFontSizeSelect = document.getElementById('baseFontSize');
+    const typeScaleRatioSelect = document.getElementById('typeScaleRatio');
+
+    // Spacing controls
+    const spacingBaseUnitSelect = document.getElementById('spacingBaseUnit');
+
+    // Radii controls
+    const radiusSmSelect = document.getElementById('radiusSm');
+    const radiusMdSelect = document.getElementById('radiusMd');
+    const radiusLgSelect = document.getElementById('radiusLg');
+    const radiusXlSelect = document.getElementById('radiusXl');
+
+    // Shadow controls
+    const shadowPresetSelect = document.getElementById('shadowPreset');
+
+    // ========================================
+    // Initialize Philosophy Cards
+    // ========================================
+    function initPhilosophyCards() {
+      // Clear existing cards
+      while (pickerGrid.firstChild) {
+        pickerGrid.removeChild(pickerGrid.firstChild);
+      }
+
+      Object.entries(PHILOSOPHIES).forEach(function(entry) {
+        const name = entry[0];
+        const tokens = entry[1];
+        const info = PHILOSOPHY_INFO[name];
+        const card = document.createElement('div');
+        card.className = 'philosophy-card';
+        card.setAttribute('role', 'listitem');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-label', name + ' philosophy: ' + info.description);
+
+        // Create card name container
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'philosophy-card__name';
+
+        const nameText = document.createTextNode(name);
+        nameDiv.appendChild(nameText);
+
+        const badge = document.createElement('span');
+        badge.className = 'philosophy-card__badge';
+        badge.textContent = info.badge;
+        nameDiv.appendChild(badge);
+
+        card.appendChild(nameDiv);
+
+        // Create preview container
+        const previewDiv = document.createElement('div');
+        previewDiv.className = 'card-preview';
+
+        // Button preview
+        const previewBtn = document.createElement('button');
+        previewBtn.className = 'card-preview__btn';
+        previewBtn.type = 'button';
+        previewBtn.tabIndex = -1;
+        previewBtn.textContent = 'Button';
+        previewBtn.style.background = tokens.colors.primary;
+        previewBtn.style.color = 'white';
+        previewBtn.style.borderRadius = tokens.radii.default;
+        previewBtn.style.boxShadow = tokens.shadows.sm;
+        previewBtn.style.fontFamily = tokens.typography.fonts.body;
+        previewBtn.style.fontWeight = tokens.typography.weights.medium;
+        previewDiv.appendChild(previewBtn);
+
+        // Heading preview
+        const heading = document.createElement('h3');
+        heading.className = 'card-preview__heading';
+        heading.textContent = 'Aa Heading';
+        heading.style.fontFamily = tokens.typography.fonts.heading;
+        heading.style.fontWeight = tokens.typography.weights.semibold;
+        heading.style.letterSpacing = tokens.typography.tracking.tight;
+        heading.style.color = tokens.colors.neutrals['900'];
+        previewDiv.appendChild(heading);
+
+        // Text preview
+        const text = document.createElement('p');
+        text.className = 'card-preview__text';
+        text.textContent = 'Body text sample showing the typography style.';
+        text.style.fontFamily = tokens.typography.fonts.body;
+        text.style.fontWeight = tokens.typography.weights.normal;
+        text.style.letterSpacing = tokens.typography.tracking.normal;
+        text.style.color = tokens.colors.neutrals['600'];
+        previewDiv.appendChild(text);
+
+        // Input preview
+        const input = document.createElement('input');
+        input.className = 'card-preview__input';
+        input.type = 'text';
+        input.placeholder = 'Input field';
+        input.tabIndex = -1;
+        input.style.background = tokens.colors.neutrals['50'];
+        input.style.borderColor = tokens.colors.neutrals['300'];
+        input.style.borderRadius = tokens.radii.default;
+        input.style.fontFamily = tokens.typography.fonts.body;
+        input.style.color = tokens.colors.neutrals['800'];
+        previewDiv.appendChild(input);
+
+        card.appendChild(previewDiv);
+
+        card.addEventListener('click', function() { selectPhilosophy(name); });
+        card.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            selectPhilosophy(name);
+          }
+        });
+
+        pickerGrid.appendChild(card);
+      });
+    }
+
+    // ========================================
+    // View Switching
+    // ========================================
+    function selectPhilosophy(name) {
+      currentPhilosophy = name;
+      currentTokens = JSON.parse(JSON.stringify(PHILOSOPHIES[name]));
+      lightTokens = JSON.parse(JSON.stringify(currentTokens));  // Store original light tokens
+      darkTokens = generateDarkTokens(currentTokens);  // Pre-generate dark tokens
+
+      // Update header
+      headerTitle.textContent = name + ' Design System';
+
+      // Switch to studio view
+      app.classList.add('app--studio');
+
+      // Apply tokens to controls and preview
+      applyTokensToControls();
+      applyTokensToCSS();
+      applyThemeColorVariants(currentTheme);
+      updatePreview();
+      updateAccessibilityBar();
+      initializeColorSystem();
+      updateContextPreview();  // Update context-aware preview
+    }
+
+    function backToPicker() {
+      app.classList.remove('app--studio');
+      headerTitle.textContent = 'Design System Studio';
+      currentPhilosophy = null;
+      currentTokens = null;
+    }
+
+    // ========================================
+    // Token Application
+    // ========================================
+    function applyTokensToControls() {
+      if (!currentTokens) return;
+
+      var colors = currentTokens.colors;
+      var typography = currentTokens.typography;
+      var spacing = currentTokens.spacing;
+      var radii = currentTokens.radii;
+      var shadows = currentTokens.shadows;
+
+      // Colors
+      primaryColorInput.value = colors.primary;
+      secondaryColorInput.value = colors.secondary;
+      accentColorInput.value = colors.accent;
+
+      // Typography - set font families
+      setSelectValue(sansSerifFontSelect, typography.fonts.heading);
+      setSelectValue(monoFontSelect, typography.fonts.mono);
+
+      // Initialize typography scale properties if not present
+      if (!currentTokens.typography.baseSize) {
+        currentTokens.typography.baseSize = 16;
+      }
+      if (!currentTokens.typography.scaleRatio) {
+        currentTokens.typography.scaleRatio = 1.25;
+      }
+      setSelectValue(baseFontSizeSelect, currentTokens.typography.baseSize.toString());
+      setSelectValue(typeScaleRatioSelect, currentTokens.typography.scaleRatio.toString());
+
+      // Spacing
+      setSelectValue(spacingBaseUnitSelect, spacing.unit.toString());
+
+      // Radii - extract numeric values
+      var smRadius = parseInt(radii.sm) || 2;
+      var mdRadius = parseInt(radii.md) || 4;
+      var lgRadius = parseInt(radii.lg) || 8;
+      var xlRadius = parseInt(radii.xl) || 12;
+      setSelectValue(radiusSmSelect, smRadius.toString());
+      setSelectValue(radiusMdSelect, mdRadius.toString());
+      setSelectValue(radiusLgSelect, lgRadius.toString());
+      setSelectValue(radiusXlSelect, xlRadius.toString());
+
+      // Shadows - detect preset type
+      var shadowPreset = detectShadowPreset(shadows);
+      setSelectValue(shadowPresetSelect, shadowPreset);
+
+      // Update neutral swatches
+      updateNeutralSwatches();
+
+      // Update live previews
+      updateTypographyPreview();
+      updateSpacingScalePreview();
+      updateRadiiPreview();
+      updateShadowsPreview();
+    }
+
+    function detectShadowPreset(shadows) {
+      // Check if shadows are subtle, standard, or dramatic
+      var shadowStr = shadows.md || shadows.default || '';
+      if (shadowStr === 'none' || shadowStr.indexOf('0.03') !== -1 || shadowStr.indexOf('0.04') !== -1) {
+        return 'subtle';
+      } else if (shadowStr.indexOf('0.15') !== -1 || shadowStr.indexOf('0.2') !== -1) {
+        return 'dramatic';
+      }
+      return 'standard';
+    }
+
+    function setSelectValue(select, value) {
+      var options = select.options;
+      for (var i = 0; i < options.length; i++) {
+        if (options[i].value === value) {
+          select.value = value;
+          return;
+        }
+      }
+    }
+
+    function applyTokensToCSS() {
+      if (!currentTokens) return;
+
+      var colors = currentTokens.colors;
+      var typography = currentTokens.typography;
+      var spacing = currentTokens.spacing;
+      var radii = currentTokens.radii;
+      var shadows = currentTokens.shadows;
+      var root = document.documentElement;
+
+      // Colors
+      root.style.setProperty('--color-primary', colors.primary);
+      root.style.setProperty('--color-secondary', colors.secondary);
+      root.style.setProperty('--color-accent', colors.accent);
+
+      Object.keys(colors.neutrals).forEach(function(shade) {
+        root.style.setProperty('--color-neutral-' + shade, colors.neutrals[shade]);
+      });
+
+      // Typography - fonts
+      root.style.setProperty('--font-heading', typography.fonts.heading);
+      root.style.setProperty('--font-body', typography.fonts.body);
+      root.style.setProperty('--font-mono', typography.fonts.mono);
+
+      // Typography - weights
+      root.style.setProperty('--weight-light', typography.weights.light);
+      root.style.setProperty('--weight-normal', typography.weights.normal);
+      root.style.setProperty('--weight-medium', typography.weights.medium);
+      root.style.setProperty('--weight-semibold', typography.weights.semibold);
+      root.style.setProperty('--weight-bold', typography.weights.bold);
+
+      // Typography - tracking
+      root.style.setProperty('--tracking-tight', typography.tracking.tight);
+      root.style.setProperty('--tracking-normal', typography.tracking.normal);
+      root.style.setProperty('--tracking-wide', typography.tracking.wide);
+
+      // Typography - scale (computed from base size and ratio)
+      var base = typography.baseSize || 16;
+      var ratio = typography.scaleRatio || 1.25;
+
+      root.style.setProperty('--type-xs', (base / ratio / ratio) + 'px');
+      root.style.setProperty('--type-sm', (base / ratio) + 'px');
+      root.style.setProperty('--type-base', base + 'px');
+      root.style.setProperty('--type-lg', (base * ratio) + 'px');
+      root.style.setProperty('--type-xl', (base * ratio * ratio) + 'px');
+      root.style.setProperty('--type-2xl', (base * ratio * ratio * ratio) + 'px');
+      root.style.setProperty('--type-3xl', (base * ratio * ratio * ratio * ratio) + 'px');
+      root.style.setProperty('--type-code', (base * 0.875) + 'px');
+
+      // Update html font size for rem calculations
+      root.style.fontSize = base + 'px';
+
+      // Spacing
+      spacing.scale.forEach(function(value, index) {
+        root.style.setProperty('--space-' + index, value + 'px');
+      });
+
+      // Radii
+      Object.keys(radii).forEach(function(key) {
+        root.style.setProperty('--radius-' + key, radii[key]);
+      });
+
+      // Shadows
+      Object.keys(shadows).forEach(function(key) {
+        root.style.setProperty('--shadow-' + key, shadows[key]);
+      });
+    }
+
+    // ========================================
+    // Control Event Handlers
+    // ========================================
+    function setupControlListeners() {
+      // Color inputs - Primary
+      primaryColorInput.addEventListener('input', function(e) {
+        currentTokens.colors.primary = e.target.value;
+        document.getElementById('primaryHex').textContent = e.target.value;
+        darkTokens = generateDarkTokens(currentTokens);  // Regenerate dark tokens
+        applyTokensToCSS();
+        applyThemeColorVariants(currentTheme);
+        updateShadeScale('primary', e.target.value);
+        updateColorContrast('primary', e.target.value);
+        updateColorSuggestions();
+        updateAccessibilityBar();
+        markFieldModified('primary');
+      });
+
+      // Color inputs - Secondary
+      secondaryColorInput.addEventListener('input', function(e) {
+        currentTokens.colors.secondary = e.target.value;
+        document.getElementById('secondaryHex').textContent = e.target.value;
+        darkTokens = generateDarkTokens(currentTokens);  // Regenerate dark tokens
+        applyTokensToCSS();
+        applyThemeColorVariants(currentTheme);
+        updateShadeScale('secondary', e.target.value);
+        updateColorContrast('secondary', e.target.value);
+        markFieldModified('secondary');
+      });
+
+      // Color inputs - Accent
+      accentColorInput.addEventListener('input', function(e) {
+        currentTokens.colors.accent = e.target.value;
+        document.getElementById('accentHex').textContent = e.target.value;
+        darkTokens = generateDarkTokens(currentTokens);  // Regenerate dark tokens
+        applyTokensToCSS();
+        applyThemeColorVariants(currentTheme);
+        updateShadeScale('accent', e.target.value);
+        updateColorContrast('accent', e.target.value);
+        markFieldModified('accent');
+      });
+
+      // Semantic color inputs
+      setupSemanticColorInput('success', '#22c55e');
+      setupSemanticColorInput('warning', '#f59e0b');
+      setupSemanticColorInput('error', '#ef4444');
+      setupSemanticColorInput('info', '#3b82f6');
+
+      // Neutral color inputs
+      setupNeutralColorInput('bg', 'Background');
+      setupNeutralColorInput('surface', 'Surface');
+      setupNeutralColorInput('border', 'Border');
+      setupNeutralColorInput('textPrimary', 'TextPrimary');
+      setupNeutralColorInput('textSecondary', 'TextSecondary');
+      setupNeutralColorInput('textMuted', 'TextMuted');
+
+      // Typography - Sans-serif font
+      sansSerifFontSelect.addEventListener('change', function(e) {
+        currentTokens.typography.fonts.heading = e.target.value;
+        currentTokens.typography.fonts.body = e.target.value;
+        applyTokensToCSS();
+        updateTypographyPreview();
+      });
+
+      // Typography - Monospace font
+      monoFontSelect.addEventListener('change', function(e) {
+        currentTokens.typography.fonts.mono = e.target.value;
+        applyTokensToCSS();
+        updateTypographyPreview();
+      });
+
+      // Typography - Base font size
+      baseFontSizeSelect.addEventListener('change', function(e) {
+        var size = parseInt(e.target.value) || 16;
+        currentTokens.typography.baseSize = size;
+        applyTypographyScale();
+        applyTokensToCSS();
+        updateTypographyPreview();
+      });
+
+      // Typography - Scale ratio
+      typeScaleRatioSelect.addEventListener('change', function(e) {
+        var ratio = parseFloat(e.target.value) || 1.25;
+        currentTokens.typography.scaleRatio = ratio;
+        applyTypographyScale();
+        applyTokensToCSS();
+        updateTypographyPreview();
+      });
+
+      // Spacing - Base unit
+      spacingBaseUnitSelect.addEventListener('change', function(e) {
+        var unit = parseInt(e.target.value) || 4;
+        currentTokens.spacing.unit = unit;
+        applySpacingScale(unit);
+        applyTokensToCSS();
+        updateSpacingScalePreview();
+        updatePreview();
+      });
+
+      // Radii - individual controls
+      radiusSmSelect.addEventListener('change', function(e) {
+        currentTokens.radii.sm = e.target.value + 'px';
+        applyTokensToCSS();
+        updateRadiiPreview();
+      });
+
+      radiusMdSelect.addEventListener('change', function(e) {
+        currentTokens.radii.md = e.target.value + 'px';
+        currentTokens.radii.default = e.target.value + 'px';
+        applyTokensToCSS();
+        updateRadiiPreview();
+      });
+
+      radiusLgSelect.addEventListener('change', function(e) {
+        currentTokens.radii.lg = e.target.value + 'px';
+        applyTokensToCSS();
+        updateRadiiPreview();
+      });
+
+      radiusXlSelect.addEventListener('change', function(e) {
+        currentTokens.radii.xl = e.target.value + 'px';
+        applyTokensToCSS();
+        updateRadiiPreview();
+      });
+
+      // Shadows - preset selector
+      shadowPresetSelect.addEventListener('change', function(e) {
+        applyShadowPreset(e.target.value);
+        applyTokensToCSS();
+        updateShadowsPreview();
+      });
+
+      // Collapsible sections
+      var sectionHeaders = document.querySelectorAll('.control-section__header');
+      for (var i = 0; i < sectionHeaders.length; i++) {
+        sectionHeaders[i].addEventListener('click', function(e) {
+          var section = e.currentTarget.closest('.control-section');
+          var isOpen = section.classList.toggle('control-section--open');
+          e.currentTarget.setAttribute('aria-expanded', isOpen);
+        });
+      }
+
+      // Back button
+      backBtn.addEventListener('click', backToPicker);
+
+      // Theme toggle
+      lightThemeBtn.addEventListener('click', function() { setTheme('light'); });
+      darkThemeBtn.addEventListener('click', function() { setTheme('dark'); });
+
+      // Export button
+      exportBtn.addEventListener('click', exportTokens);
+    }
+
+    // Apply typography scale based on base size and ratio
+    function applyTypographyScale() {
+      if (!currentTokens) return;
+      var base = currentTokens.typography.baseSize || 16;
+      var ratio = currentTokens.typography.scaleRatio || 1.25;
+
+      // Calculate font sizes based on scale
+      currentTokens.typography.sizes = {
+        xs: Math.round(base / ratio / ratio * 100) / 100,
+        sm: Math.round(base / ratio * 100) / 100,
+        base: base,
+        lg: Math.round(base * ratio * 100) / 100,
+        xl: Math.round(base * ratio * ratio * 100) / 100,
+        '2xl': Math.round(base * ratio * ratio * ratio * 100) / 100,
+        '3xl': Math.round(base * ratio * ratio * ratio * ratio * 100) / 100
+      };
+    }
+
+    // Apply spacing scale based on base unit
+    function applySpacingScale(unit) {
+      var multipliers = [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16];
+      currentTokens.spacing.scale = multipliers.map(function(m) {
+        return m * unit;
+      });
+    }
+
+    // Apply shadow preset
+    function applyShadowPreset(preset) {
+      if (!currentTokens) return;
+
+      if (preset === 'subtle') {
+        currentTokens.shadows = {
+          sm: '0 1px 2px 0 rgb(0 0 0 / 0.03)',
+          md: '0 2px 4px -1px rgb(0 0 0 / 0.04)',
+          lg: '0 4px 6px -2px rgb(0 0 0 / 0.05)',
+          xl: '0 8px 10px -3px rgb(0 0 0 / 0.06)',
+          default: '0 2px 4px -1px rgb(0 0 0 / 0.04)'
+        };
+      } else if (preset === 'dramatic') {
+        currentTokens.shadows = {
+          sm: '0 2px 4px 0 rgb(0 0 0 / 0.15)',
+          md: '0 6px 12px -2px rgb(0 0 0 / 0.2)',
+          lg: '0 12px 24px -4px rgb(0 0 0 / 0.2)',
+          xl: '0 24px 48px -8px rgb(0 0 0 / 0.25)',
+          default: '0 6px 12px -2px rgb(0 0 0 / 0.2)'
+        };
+      } else {
+        // Standard
+        currentTokens.shadows = {
+          sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+          md: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+          lg: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+          xl: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
+          default: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+        };
+      }
+    }
+
+    // ========================================
+    // Theme Switching
+    // ========================================
+    function setTheme(theme) {
+      currentTheme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+
+      if (theme === 'light') {
+        lightThemeBtn.classList.add('theme-toggle__btn--active');
+        lightThemeBtn.setAttribute('aria-selected', 'true');
+        darkThemeBtn.classList.remove('theme-toggle__btn--active');
+        darkThemeBtn.setAttribute('aria-selected', 'false');
+      } else {
+        darkThemeBtn.classList.add('theme-toggle__btn--active');
+        darkThemeBtn.setAttribute('aria-selected', 'true');
+        lightThemeBtn.classList.remove('theme-toggle__btn--active');
+        lightThemeBtn.setAttribute('aria-selected', 'false');
+      }
+
+      // Apply theme-specific tokens
+      if (currentTokens) {
+        applyThemeColorVariants(theme);
+      }
+    }
+
+    // Generate dark mode color variant from a light color
+    function generateDarkVariant(hex) {
+      var hsl = ColorTheory.hexToHSL(hex);
+      // For dark mode: increase lightness if color is dark, decrease if very light
+      // Also slightly increase saturation for vibrancy on dark backgrounds
+      var newL = hsl.l;
+      var newS = hsl.s;
+
+      if (hsl.l < 50) {
+        // Dark colors become lighter in dark mode
+        newL = Math.min(70, hsl.l + 20);
+        newS = Math.min(100, hsl.s + 10);
+      } else if (hsl.l > 80) {
+        // Very light colors become slightly darker
+        newL = Math.max(60, hsl.l - 15);
+      } else {
+        // Mid-range colors get a slight boost
+        newL = Math.min(75, hsl.l + 10);
+      }
+
+      return ColorTheory.hslToHex(hsl.h, newS, newL);
+    }
+
+    // Generate complete dark mode token set
+    function generateDarkTokens(lightTokens) {
+      var dark = JSON.parse(JSON.stringify(lightTokens));
+
+      // Generate dark variants for brand colors
+      dark.colors.primaryDark = generateDarkVariant(lightTokens.colors.primary);
+      dark.colors.secondaryDark = generateDarkVariant(lightTokens.colors.secondary);
+      dark.colors.accentDark = generateDarkVariant(lightTokens.colors.accent);
+
+      // Generate dark neutral scale (inverted from light)
+      var lightNeutrals = lightTokens.colors.neutrals;
+      dark.colors.neutralsDark = {
+        '50': lightNeutrals['950'] || '#030712',
+        '100': lightNeutrals['900'] || '#111827',
+        '200': lightNeutrals['800'] || '#1f2937',
+        '300': lightNeutrals['700'] || '#374151',
+        '400': lightNeutrals['600'] || '#4b5563',
+        '500': lightNeutrals['500'] || '#6b7280',
+        '600': lightNeutrals['400'] || '#9ca3af',
+        '700': lightNeutrals['300'] || '#d1d5db',
+        '800': lightNeutrals['200'] || '#e5e7eb',
+        '900': lightNeutrals['100'] || '#f3f4f6',
+        '950': lightNeutrals['50'] || '#f9fafb'
+      };
+
+      return dark;
+    }
+
+    // Apply theme-specific color variants to CSS
+    function applyThemeColorVariants(theme) {
+      if (!currentTokens) return;
+
+      var root = document.documentElement;
+
+      if (theme === 'dark') {
+        // Generate and apply dark variants
+        if (!darkTokens) {
+          darkTokens = generateDarkTokens(currentTokens);
+        }
+
+        root.style.setProperty('--color-primary-dark', darkTokens.colors.primaryDark);
+        root.style.setProperty('--color-secondary-dark', darkTokens.colors.secondaryDark);
+        root.style.setProperty('--color-accent-dark', darkTokens.colors.accentDark);
+      } else {
+        // Reset to light mode colors
+        root.style.setProperty('--color-primary-dark', currentTokens.colors.primary);
+        root.style.setProperty('--color-secondary-dark', currentTokens.colors.secondary);
+        root.style.setProperty('--color-accent-dark', currentTokens.colors.accent);
+      }
+    }
+
+    // ========================================
+    // Preview Updates
+    // ========================================
+    function updateNeutralSwatches() {
+      var container = document.getElementById('neutralSwatches');
+      if (!container || !currentTokens) return;
+
+      // Clear existing swatches
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+
+      var shades = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+
+      shades.forEach(function(shade) {
+        var swatch = document.createElement('div');
+        swatch.className = 'color-swatch';
+        swatch.style.background = currentTokens.colors.neutrals[shade];
+        swatch.title = 'Neutral ' + shade;
+        swatch.setAttribute('role', 'button');
+        swatch.setAttribute('aria-label', 'Neutral ' + shade + ': ' + currentTokens.colors.neutrals[shade]);
+        container.appendChild(swatch);
+      });
+    }
+
+    function updatePreview() {
+      if (!currentTokens) return;
+
+      // Update color palette preview
+      var colorContainer = document.getElementById('previewColors');
+      if (colorContainer) {
+        // Clear existing
+        while (colorContainer.firstChild) {
+          colorContainer.removeChild(colorContainer.firstChild);
+        }
+
+        var colorData = [
+          { color: currentTokens.colors.primary, label: 'Primary' },
+          { color: currentTokens.colors.secondary, label: 'Secondary' },
+          { color: currentTokens.colors.accent, label: 'Accent' },
+          { color: currentTokens.colors.neutrals['500'], label: 'Neutral' }
+        ];
+
+        colorData.forEach(function(item) {
+          var block = document.createElement('div');
+          block.className = 'preview-color-block';
+
+          var swatch = document.createElement('div');
+          swatch.className = 'preview-color-block__swatch';
+          swatch.style.background = item.color;
+          block.appendChild(swatch);
+
+          var label = document.createElement('span');
+          label.className = 'preview-color-block__label';
+          label.textContent = item.label;
+          block.appendChild(label);
+
+          colorContainer.appendChild(block);
+        });
+      }
+
+      // Update spacing preview
+      var spacingContainer = document.getElementById('previewSpacing');
+      if (spacingContainer && currentTokens.spacing.scale) {
+        // Clear existing
+        while (spacingContainer.firstChild) {
+          spacingContainer.removeChild(spacingContainer.firstChild);
+        }
+
+        var spacingScale = currentTokens.spacing.scale.slice(1, 7);
+        spacingScale.forEach(function(value) {
+          var item = document.createElement('div');
+          item.className = 'preview-spacing__item';
+
+          var label = document.createElement('span');
+          label.className = 'preview-spacing__label';
+          label.textContent = value + 'px';
+          item.appendChild(label);
+
+          var bar = document.createElement('div');
+          bar.className = 'preview-spacing__bar';
+          bar.style.width = value + 'px';
+          item.appendChild(bar);
+
+          spacingContainer.appendChild(item);
+        });
+      }
+    }
+
+    function updateAccessibilityBar() {
+      if (!currentTokens) return;
+
+      var primary = currentTokens.colors.primary;
+      var white = '#ffffff';
+      var result = meetsWCAG(primary, white);
+
+      var contrastBadge = document.getElementById('contrastBadge');
+      var contrastRatio = document.getElementById('contrastRatio');
+      var wcagAA = document.getElementById('wcagAA');
+      var wcagAAA = document.getElementById('wcagAAA');
+
+      contrastRatio.textContent = result.ratio + ':1';
+
+      if (result.aa) {
+        contrastBadge.textContent = 'Pass';
+        contrastBadge.className = 'accessibility-bar__badge accessibility-bar__badge--pass';
+      } else if (result.aaLarge) {
+        contrastBadge.textContent = 'Large Only';
+        contrastBadge.className = 'accessibility-bar__badge accessibility-bar__badge--fail';
+      } else {
+        contrastBadge.textContent = 'Fail';
+        contrastBadge.className = 'accessibility-bar__badge accessibility-bar__badge--fail';
+      }
+
+      wcagAA.textContent = result.aa ? 'Pass' : 'Fail';
+      wcagAA.className = 'accessibility-bar__badge accessibility-bar__badge--' + (result.aa ? 'pass' : 'fail');
+
+      wcagAAA.textContent = result.aaa ? 'Pass' : 'Fail';
+      wcagAAA.className = 'accessibility-bar__badge accessibility-bar__badge--' + (result.aaa ? 'pass' : 'fail');
+    }
+
+    // ========================================
+    // Live Preview Update Functions
+    // ========================================
+    function updateTypographyPreview() {
+      if (!currentTokens) return;
+
+      var base = currentTokens.typography.baseSize || 16;
+      var ratio = currentTokens.typography.scaleRatio || 1.25;
+      var font = currentTokens.typography.fonts.heading;
+      var mono = currentTokens.typography.fonts.mono;
+
+      // Calculate sizes
+      var h1Size = base * ratio * ratio * ratio;
+      var h2Size = base * ratio * ratio;
+      var h3Size = base * ratio;
+      var bodySize = base;
+      var smallSize = base / ratio;
+      var codeSize = base * 0.875;
+
+      var h1El = document.getElementById('typePreviewH1');
+      var h2El = document.getElementById('typePreviewH2');
+      var h3El = document.getElementById('typePreviewH3');
+      var bodyEl = document.getElementById('typePreviewBody');
+      var smallEl = document.getElementById('typePreviewSmall');
+      var codeEl = document.getElementById('typePreviewCode');
+
+      if (h1El) {
+        h1El.style.fontFamily = font;
+        h1El.style.fontSize = h1Size + 'px';
+        h1El.style.fontWeight = currentTokens.typography.weights.bold || 700;
+      }
+      if (h2El) {
+        h2El.style.fontFamily = font;
+        h2El.style.fontSize = h2Size + 'px';
+        h2El.style.fontWeight = currentTokens.typography.weights.semibold || 600;
+      }
+      if (h3El) {
+        h3El.style.fontFamily = font;
+        h3El.style.fontSize = h3Size + 'px';
+        h3El.style.fontWeight = currentTokens.typography.weights.medium || 500;
+      }
+      if (bodyEl) {
+        bodyEl.style.fontFamily = font;
+        bodyEl.style.fontSize = bodySize + 'px';
+        bodyEl.style.fontWeight = currentTokens.typography.weights.normal || 400;
+      }
+      if (smallEl) {
+        smallEl.style.fontFamily = font;
+        smallEl.style.fontSize = smallSize + 'px';
+        smallEl.style.fontWeight = currentTokens.typography.weights.normal || 400;
+      }
+      if (codeEl) {
+        codeEl.style.fontFamily = mono;
+        codeEl.style.fontSize = codeSize + 'px';
+      }
+    }
+
+    function updateSpacingScalePreview() {
+      if (!currentTokens) return;
+
+      var container = document.getElementById('spacingScalePreview');
+      if (!container) return;
+
+      // Clear existing
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+
+      var unit = currentTokens.spacing.unit || 4;
+      var multipliers = [1, 2, 3, 4, 5, 6, 8, 10, 12, 16];
+
+      multipliers.forEach(function(m) {
+        var value = m * unit;
+        var item = document.createElement('div');
+        item.className = 'spacing-scale-item';
+
+        var label = document.createElement('span');
+        label.className = 'spacing-scale-label';
+        label.textContent = m;
+        item.appendChild(label);
+
+        var valueSpan = document.createElement('span');
+        valueSpan.className = 'spacing-scale-value';
+        valueSpan.textContent = value + 'px';
+        item.appendChild(valueSpan);
+
+        var bar = document.createElement('div');
+        bar.className = 'spacing-scale-bar';
+        bar.style.width = Math.min(value, 120) + 'px';
+        item.appendChild(bar);
+
+        container.appendChild(item);
+      });
+    }
+
+    function updateRadiiPreview() {
+      if (!currentTokens) return;
+
+      var radii = currentTokens.radii;
+      var boxes = document.querySelectorAll('.radii-preview-box');
+
+      boxes.forEach(function(box) {
+        var size = box.getAttribute('data-radius');
+        if (size && radii[size]) {
+          box.style.borderRadius = radii[size];
+        }
+      });
+    }
+
+    function updateShadowsPreview() {
+      if (!currentTokens) return;
+
+      var shadows = currentTokens.shadows;
+      var boxes = document.querySelectorAll('.shadow-preview-box');
+
+      boxes.forEach(function(box) {
+        var size = box.getAttribute('data-shadow');
+        if (size && shadows[size]) {
+          box.style.boxShadow = shadows[size];
+        }
+      });
+    }
+
+    // ========================================
+    // Export Functionality
+    // ========================================
+
+    /**
+     * Generate design-tokens.ts content
+     * Exports colors (light + dark), typography, spacing, radii, shadows as const
+     */
+    function generateDesignTokensTS() {
+      if (!currentTokens) return '';
+
+      // Ensure dark tokens are generated
+      if (!darkTokens) {
+        darkTokens = generateDarkTokens(currentTokens);
+      }
+
+      var timestamp = new Date().toISOString();
+      var philosophyName = currentPhilosophy || 'Custom';
+
+      var lines = [];
+
+      // Header comment
+      lines.push('/**');
+      lines.push(' * Design Tokens - Generated by Design Studio');
+      lines.push(' * Philosophy: ' + philosophyName);
+      lines.push(' * Generated: ' + timestamp);
+      lines.push(' */');
+      lines.push('');
+
+      // Colors export (light + dark)
+      lines.push('export const colors = {');
+      lines.push('  light: {');
+      lines.push('    primary: \'' + currentTokens.colors.primary + '\',');
+      lines.push('    secondary: \'' + currentTokens.colors.secondary + '\',');
+      lines.push('    accent: \'' + currentTokens.colors.accent + '\',');
+      lines.push('    neutrals: {');
+      var neutralShades = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+      neutralShades.forEach(function(shade, idx) {
+        var comma = idx < neutralShades.length - 1 ? ',' : '';
+        lines.push('      \'' + shade + '\': \'' + currentTokens.colors.neutrals[shade] + '\'' + comma);
+      });
+      lines.push('    },');
+      lines.push('    semantic: {');
+      lines.push('      success: \'#22c55e\',');
+      lines.push('      warning: \'#f59e0b\',');
+      lines.push('      error: \'#ef4444\',');
+      lines.push('      info: \'#3b82f6\'');
+      lines.push('    }');
+      lines.push('  },');
+      lines.push('  dark: {');
+      lines.push('    primary: \'' + darkTokens.colors.primaryDark + '\',');
+      lines.push('    secondary: \'' + darkTokens.colors.secondaryDark + '\',');
+      lines.push('    accent: \'' + darkTokens.colors.accentDark + '\',');
+      lines.push('    neutrals: {');
+      neutralShades.forEach(function(shade, idx) {
+        var comma = idx < neutralShades.length - 1 ? ',' : '';
+        lines.push('      \'' + shade + '\': \'' + darkTokens.colors.neutralsDark[shade] + '\'' + comma);
+      });
+      lines.push('    },');
+      lines.push('    semantic: {');
+      lines.push('      success: \'#4ade80\',');
+      lines.push('      warning: \'#fbbf24\',');
+      lines.push('      error: \'#f87171\',');
+      lines.push('      info: \'#60a5fa\'');
+      lines.push('    }');
+      lines.push('  }');
+      lines.push('} as const;');
+      lines.push('');
+
+      // Typography export
+      lines.push('export const typography = {');
+      lines.push('  fonts: {');
+      lines.push('    heading: \'' + currentTokens.typography.fonts.heading + '\',');
+      lines.push('    body: \'' + currentTokens.typography.fonts.body + '\',');
+      lines.push('    mono: \'' + currentTokens.typography.fonts.mono + '\'');
+      lines.push('  },');
+      lines.push('  weights: {');
+      lines.push('    light: ' + currentTokens.typography.weights.light + ',');
+      lines.push('    normal: ' + currentTokens.typography.weights.normal + ',');
+      lines.push('    medium: ' + currentTokens.typography.weights.medium + ',');
+      lines.push('    semibold: ' + currentTokens.typography.weights.semibold + ',');
+      lines.push('    bold: ' + currentTokens.typography.weights.bold);
+      lines.push('  },');
+      lines.push('  tracking: {');
+      lines.push('    tight: \'' + currentTokens.typography.tracking.tight + '\',');
+      lines.push('    normal: \'' + currentTokens.typography.tracking.normal + '\',');
+      lines.push('    wide: \'' + currentTokens.typography.tracking.wide + '\'');
+      lines.push('  }');
+      lines.push('} as const;');
+      lines.push('');
+
+      // Spacing export
+      lines.push('export const spacing = {');
+      lines.push('  unit: ' + currentTokens.spacing.unit + ',');
+      lines.push('  scale: [' + currentTokens.spacing.scale.join(', ') + '],');
+      lines.push('  density: \'' + currentTokens.spacing.density + '\'');
+      lines.push('} as const;');
+      lines.push('');
+
+      // Radii export
+      lines.push('export const radii = {');
+      lines.push('  none: \'' + currentTokens.radii.none + '\',');
+      lines.push('  sm: \'' + currentTokens.radii.sm + '\',');
+      lines.push('  md: \'' + currentTokens.radii.md + '\',');
+      lines.push('  lg: \'' + currentTokens.radii.lg + '\',');
+      lines.push('  xl: \'' + currentTokens.radii.xl + '\',');
+      lines.push('  full: \'' + currentTokens.radii.full + '\',');
+      lines.push('  default: \'' + currentTokens.radii.default + '\'');
+      lines.push('} as const;');
+      lines.push('');
+
+      // Shadows export
+      lines.push('export const shadows = {');
+      lines.push('  sm: \'' + currentTokens.shadows.sm + '\',');
+      lines.push('  md: \'' + currentTokens.shadows.md + '\',');
+      lines.push('  lg: \'' + currentTokens.shadows.lg + '\',');
+      lines.push('  xl: \'' + currentTokens.shadows.xl + '\',');
+      lines.push('  default: \'' + currentTokens.shadows.default + '\'');
+      lines.push('} as const;');
+      lines.push('');
+
+      // Export type helpers
+      lines.push('// Type exports for TypeScript consumers');
+      lines.push('export type Colors = typeof colors;');
+      lines.push('export type Typography = typeof typography;');
+      lines.push('export type Spacing = typeof spacing;');
+      lines.push('export type Radii = typeof radii;');
+      lines.push('export type Shadows = typeof shadows;');
+
+      return lines.join('\n');
+    }
+
+    /**
+     * Generate tailwind.config.ts content
+     * Imports from design-tokens.ts and extends theme with all token values
+     */
+    function generateTailwindConfigTS() {
+      if (!currentTokens) return '';
+
+      var lines = [];
+
+      lines.push('import type { Config } from \'tailwindcss\';');
+      lines.push('import { colors, typography, spacing, radii, shadows } from \'./design-tokens\';');
+      lines.push('');
+      lines.push('export default {');
+      lines.push('  content: [\'./src/**/*.{js,ts,jsx,tsx}\'],');
+      lines.push('  darkMode: \'class\',');
+      lines.push('  theme: {');
+      lines.push('    extend: {');
+
+      // Colors
+      lines.push('      colors: {');
+      lines.push('        primary: {');
+      lines.push('          DEFAULT: colors.light.primary,');
+      lines.push('          dark: colors.dark.primary');
+      lines.push('        },');
+      lines.push('        secondary: {');
+      lines.push('          DEFAULT: colors.light.secondary,');
+      lines.push('          dark: colors.dark.secondary');
+      lines.push('        },');
+      lines.push('        accent: {');
+      lines.push('          DEFAULT: colors.light.accent,');
+      lines.push('          dark: colors.dark.accent');
+      lines.push('        },');
+      lines.push('        neutral: {');
+      var neutralShades = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+      neutralShades.forEach(function(shade, idx) {
+        var comma = idx < neutralShades.length - 1 ? ',' : '';
+        lines.push('          ' + shade + ': colors.light.neutrals[\'' + shade + '\']' + comma);
+      });
+      lines.push('        },');
+      lines.push('        success: colors.light.semantic.success,');
+      lines.push('        warning: colors.light.semantic.warning,');
+      lines.push('        error: colors.light.semantic.error,');
+      lines.push('        info: colors.light.semantic.info');
+      lines.push('      },');
+
+      // Font family
+      lines.push('      fontFamily: {');
+      lines.push('        heading: typography.fonts.heading.split(\', \'),');
+      lines.push('        body: typography.fonts.body.split(\', \'),');
+      lines.push('        mono: typography.fonts.mono.split(\', \')');
+      lines.push('      },');
+
+      // Font weight
+      lines.push('      fontWeight: {');
+      lines.push('        light: String(typography.weights.light),');
+      lines.push('        normal: String(typography.weights.normal),');
+      lines.push('        medium: String(typography.weights.medium),');
+      lines.push('        semibold: String(typography.weights.semibold),');
+      lines.push('        bold: String(typography.weights.bold)');
+      lines.push('      },');
+
+      // Letter spacing
+      lines.push('      letterSpacing: {');
+      lines.push('        tight: typography.tracking.tight,');
+      lines.push('        normal: typography.tracking.normal,');
+      lines.push('        wide: typography.tracking.wide');
+      lines.push('      },');
+
+      // Spacing
+      lines.push('      spacing: {');
+      lines.push('        ...Object.fromEntries(');
+      lines.push('          spacing.scale.map((value, index) => [index, `${value}px`])');
+      lines.push('        ),');
+      lines.push('        unit: `${spacing.unit}px`');
+      lines.push('      },');
+
+      // Border radius
+      lines.push('      borderRadius: {');
+      lines.push('        none: radii.none,');
+      lines.push('        sm: radii.sm,');
+      lines.push('        DEFAULT: radii.default,');
+      lines.push('        md: radii.md,');
+      lines.push('        lg: radii.lg,');
+      lines.push('        xl: radii.xl,');
+      lines.push('        full: radii.full');
+      lines.push('      },');
+
+      // Box shadow
+      lines.push('      boxShadow: {');
+      lines.push('        sm: shadows.sm,');
+      lines.push('        DEFAULT: shadows.default,');
+      lines.push('        md: shadows.md,');
+      lines.push('        lg: shadows.lg,');
+      lines.push('        xl: shadows.xl');
+      lines.push('      }');
+
+      lines.push('    }');
+      lines.push('  },');
+      lines.push('  plugins: []');
+      lines.push('} satisfies Config;');
+
+      return lines.join('\n');
+    }
+
+    /**
+     * Download a file using the browser's download mechanism
+     */
+    function downloadFile(content, filename, mimeType) {
+      var blob = new Blob([content], { type: mimeType });
+      var url = URL.createObjectURL(blob);
+
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    /**
+     * Save a file using File System Access API
+     * Returns true if successful, false if not supported or denied
+     */
+    async function saveFileWithFSA(content, suggestedName, fileType) {
+      // Check if File System Access API is supported
+      if (!('showSaveFilePicker' in window)) {
+        return { success: false, reason: 'not-supported' };
+      }
+
+      try {
+        var options = {
+          suggestedName: suggestedName,
+          types: [{
+            description: fileType.description,
+            accept: fileType.accept
+          }]
+        };
+
+        var fileHandle = await window.showSaveFilePicker(options);
+        var writable = await fileHandle.createWritable();
+        await writable.write(content);
+        await writable.close();
+
+        return { success: true, path: fileHandle.name };
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          return { success: false, reason: 'cancelled' };
+        }
+        return { success: false, reason: 'error', error: err.message };
+      }
+    }
+
+    /**
+     * Show export success message
+     */
+    function showExportToast(message, isSuccess) {
+      var toast = document.getElementById('copyToast');
+      if (toast) {
+        toast.textContent = message;
+        toast.style.background = isSuccess ? 'var(--color-primary)' : '#ef4444';
+        toast.classList.add('copy-toast--visible');
+        setTimeout(function() {
+          toast.classList.remove('copy-toast--visible');
+          toast.style.background = '';
+        }, 3000);
+      }
+    }
+
+    /**
+     * Export tokens as TypeScript files
+     * Tries File System Access API first, falls back to download
+     */
+    async function exportTokens() {
+      if (!currentTokens) return;
+
+      // Ensure dark tokens are generated
+      if (!darkTokens) {
+        darkTokens = generateDarkTokens(currentTokens);
+      }
+
+      var designTokensContent = generateDesignTokensTS();
+      var tailwindConfigContent = generateTailwindConfigTS();
+
+      var tsFileType = {
+        description: 'TypeScript Files',
+        accept: { 'text/typescript': ['.ts'] }
+      };
+
+      // Check if File System Access API is supported
+      var useFSA = 'showSaveFilePicker' in window;
+      var exportedFiles = [];
+      var usedFallback = false;
+
+      if (useFSA) {
+        // Try to save design-tokens.ts first
+        var tokensResult = await saveFileWithFSA(
+          designTokensContent,
+          'design-tokens.ts',
+          tsFileType
+        );
+
+        if (tokensResult.success) {
+          exportedFiles.push('design-tokens.ts');
+
+          // Now try to save tailwind.config.ts
+          var configResult = await saveFileWithFSA(
+            tailwindConfigContent,
+            'tailwind.config.ts',
+            tsFileType
+          );
+
+          if (configResult.success) {
+            exportedFiles.push('tailwind.config.ts');
+          } else if (configResult.reason === 'cancelled') {
+            // User cancelled second file, still show partial success
+            showExportToast('Exported: design-tokens.ts (tailwind config skipped)', true);
+            return;
+          } else {
+            // Fallback to download for second file
+            downloadFile(tailwindConfigContent, 'tailwind.config.ts', 'text/typescript');
+            exportedFiles.push('tailwind.config.ts');
+            usedFallback = true;
+          }
+        } else if (tokensResult.reason === 'cancelled') {
+          // User cancelled, do nothing
+          return;
+        } else {
+          // FSA failed, fall back to downloads for both files
+          usedFallback = true;
+        }
+      }
+
+      // Fallback: use download for both files
+      if (!useFSA || usedFallback && exportedFiles.length === 0) {
+        downloadFile(designTokensContent, 'design-tokens.ts', 'text/typescript');
+        downloadFile(tailwindConfigContent, 'tailwind.config.ts', 'text/typescript');
+        exportedFiles = ['design-tokens.ts', 'tailwind.config.ts'];
+        usedFallback = true;
+      }
+
+      // Show success message
+      var method = usedFallback ? 'Downloaded' : 'Saved';
+      showExportToast(method + ': ' + exportedFiles.join(', '), true);
+    }
+
+    // ========================================
+    // Color System Functions
+    // ========================================
+
+    // Show copy toast notification
+    function showCopyToast(text) {
+      var toast = document.getElementById('copyToast');
+      if (toast) {
+        toast.textContent = 'Copied: ' + text;
+        toast.classList.add('copy-toast--visible');
+        setTimeout(function() {
+          toast.classList.remove('copy-toast--visible');
+        }, 1500);
+      }
+    }
+
+    // Copy text to clipboard
+    function copyToClipboard(text) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+          showCopyToast(text);
+        });
+      } else {
+        var textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showCopyToast(text);
+      }
+    }
+
+    // Update shade scale for a color
+    function updateShadeScale(colorName, hex) {
+      var container = document.getElementById(colorName + 'ShadeScale');
+      if (!container) return;
+
+      // Clear existing
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+
+      var scale = ColorTheory.generateShadeScale(hex);
+      var shades = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+
+      shades.forEach(function(shade) {
+        var swatch = document.createElement('div');
+        swatch.className = 'shade-scale__swatch';
+        swatch.style.background = scale[shade];
+        swatch.title = shade + ': ' + scale[shade];
+        swatch.setAttribute('role', 'button');
+        swatch.setAttribute('tabindex', '0');
+        swatch.setAttribute('aria-label', colorName + ' shade ' + shade + ': ' + scale[shade]);
+        swatch.addEventListener('click', function() {
+          copyToClipboard(scale[shade]);
+        });
+        swatch.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            copyToClipboard(scale[shade]);
+          }
+        });
+        container.appendChild(swatch);
+      });
+    }
+
+    // Update contrast display for a color
+    function updateColorContrast(colorName, hex) {
+      var whiteContainer = document.getElementById(colorName + 'ContrastWhite');
+      var darkContainer = document.getElementById(colorName + 'ContrastDark');
+
+      if (whiteContainer) {
+        var whiteResult = ColorTheory.meetsWCAG(hex, '#ffffff');
+        whiteContainer.innerHTML = createContrastBadges(whiteResult);
+      }
+
+      if (darkContainer) {
+        var darkResult = ColorTheory.meetsWCAG(hex, '#111827');
+        darkContainer.innerHTML = createContrastBadges(darkResult);
+      }
+    }
+
+    // Create WCAG contrast badges HTML
+    function createContrastBadges(result) {
+      var html = '';
+      if (result.aaa) {
+        html += '<span class="wcag-badge wcag-badge--aaa">AAA</span>';
+      } else if (result.aa) {
+        html += '<span class="wcag-badge wcag-badge--pass">AA</span>';
+      } else if (result.aaLarge) {
+        html += '<span class="wcag-badge wcag-badge--fail">AA Large</span>';
+      } else {
+        html += '<span class="wcag-badge wcag-badge--fail">Fail</span>';
+      }
+      html += '<span class="wcag-badge" style="background:var(--bg-tertiary);color:var(--text-tertiary)">' + result.ratio + ':1</span>';
+      return html;
+    }
+
+    // Update color theory suggestions
+    function updateColorSuggestions() {
+      if (!currentTokens) return;
+
+      var primary = currentTokens.colors.primary;
+
+      // Secondary suggestions
+      var secondaryContainer = document.getElementById('secondarySuggestions');
+      if (secondaryContainer) {
+        var secondaryHtml = '<span class="color-suggestions__label">Suggestions from Primary:</span>';
+
+        // Complementary
+        var comp = ColorTheory.getComplementary(primary);
+        secondaryHtml += createSuggestionButton('Complementary', comp, 'secondary');
+
+        // Analogous
+        var analogous = ColorTheory.getAnalogous(primary);
+        secondaryHtml += createSuggestionButton('Analogous 1', analogous[0], 'secondary');
+        secondaryHtml += createSuggestionButton('Analogous 2', analogous[1], 'secondary');
+
+        // Triadic
+        var triadic = ColorTheory.getTriadic(primary);
+        secondaryHtml += createSuggestionButton('Triadic 1', triadic[0], 'secondary');
+
+        secondaryContainer.innerHTML = secondaryHtml;
+        attachSuggestionListeners(secondaryContainer);
+      }
+
+      // Accent suggestions
+      var accentContainer = document.getElementById('accentSuggestions');
+      if (accentContainer) {
+        var accentHtml = '<span class="color-suggestions__label">Suggestions from Primary:</span>';
+
+        // Split-complementary
+        var splitComp = ColorTheory.getSplitComplementary(primary);
+        accentHtml += createSuggestionButton('Split-comp 1', splitComp[0], 'accent');
+        accentHtml += createSuggestionButton('Split-comp 2', splitComp[1], 'accent');
+
+        // Triadic
+        var triadic2 = ColorTheory.getTriadic(primary);
+        accentHtml += createSuggestionButton('Triadic 2', triadic2[1], 'accent');
+
+        // Analogous
+        var analogous2 = ColorTheory.getAnalogous(primary);
+        accentHtml += createSuggestionButton('Analogous', analogous2[0], 'accent');
+
+        accentContainer.innerHTML = accentHtml;
+        attachSuggestionListeners(accentContainer);
+      }
+    }
+
+    // Create suggestion button HTML
+    function createSuggestionButton(label, color, target) {
+      return '<button type="button" class="color-suggestion-btn" data-color="' + color + '" data-target="' + target + '">' +
+        '<span class="color-suggestion-btn__swatch" style="background:' + color + '"></span>' +
+        label +
+        '</button>';
+    }
+
+    // Attach click listeners to suggestion buttons
+    function attachSuggestionListeners(container) {
+      var buttons = container.querySelectorAll('.color-suggestion-btn');
+      buttons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var color = btn.getAttribute('data-color');
+          var target = btn.getAttribute('data-target');
+          applyColorSuggestion(target, color);
+        });
+      });
+    }
+
+    // Apply a color suggestion
+    function applyColorSuggestion(target, color) {
+      if (target === 'secondary') {
+        secondaryColorInput.value = color;
+        currentTokens.colors.secondary = color;
+        document.getElementById('secondaryHex').textContent = color;
+        updateShadeScale('secondary', color);
+        updateColorContrast('secondary', color);
+      } else if (target === 'accent') {
+        accentColorInput.value = color;
+        currentTokens.colors.accent = color;
+        document.getElementById('accentHex').textContent = color;
+        updateShadeScale('accent', color);
+        updateColorContrast('accent', color);
+      }
+      darkTokens = generateDarkTokens(currentTokens);  // Regenerate dark tokens
+      applyTokensToCSS();
+      applyThemeColorVariants(currentTheme);
+    }
+
+    // Setup semantic color input
+    function setupSemanticColorInput(name, defaultColor) {
+      var input = document.getElementById(name + 'Color');
+      var hexSpan = document.getElementById(name + 'Hex');
+      if (input && hexSpan) {
+        input.addEventListener('input', function(e) {
+          hexSpan.textContent = e.target.value;
+          if (currentTokens.colors.semantic) {
+            currentTokens.colors.semantic[name] = e.target.value;
+          }
+          updateShadeScale(name, e.target.value);
+        });
+      }
+    }
+
+    // Setup neutral color input
+    function setupNeutralColorInput(name, label) {
+      var input = document.getElementById(name + 'Color');
+      var hexSpan = document.getElementById(name + 'Hex');
+      if (input && hexSpan) {
+        input.addEventListener('input', function(e) {
+          hexSpan.textContent = e.target.value;
+          if (currentTokens.colors.neutral) {
+            currentTokens.colors.neutral[name] = e.target.value;
+          }
+        });
+      }
+    }
+
+    // Initialize all color displays
+    function initializeColorSystem() {
+      if (!currentTokens) return;
+
+      // Update hex displays
+      document.getElementById('primaryHex').textContent = currentTokens.colors.primary;
+      document.getElementById('secondaryHex').textContent = currentTokens.colors.secondary;
+      document.getElementById('accentHex').textContent = currentTokens.colors.accent;
+
+      // Update shade scales
+      updateShadeScale('primary', currentTokens.colors.primary);
+      updateShadeScale('secondary', currentTokens.colors.secondary);
+      updateShadeScale('accent', currentTokens.colors.accent);
+
+      // Update contrast displays
+      updateColorContrast('primary', currentTokens.colors.primary);
+      updateColorContrast('secondary', currentTokens.colors.secondary);
+      updateColorContrast('accent', currentTokens.colors.accent);
+
+      // Update suggestions
+      updateColorSuggestions();
+
+      // Initialize semantic colors
+      var semanticColors = {
+        success: '#22c55e',
+        warning: '#f59e0b',
+        error: '#ef4444',
+        info: '#3b82f6'
+      };
+      Object.keys(semanticColors).forEach(function(name) {
+        updateShadeScale(name, semanticColors[name]);
+      });
+    }
+
+    // ========================================
+    // Context-Aware Preview Content
+    // ========================================
+
+    // Parse app context from URL or embedded data
+    function parseAppContext() {
+      // Check URL params first
+      var urlParams = new URLSearchParams(window.location.search);
+      var contextParam = urlParams.get('context') || urlParams.get('appContext');
+
+      if (contextParam) {
+        try {
+          return JSON.parse(decodeURIComponent(contextParam));
+        } catch (e) {
+          // If not JSON, treat as context type string
+          return { type: contextParam };
+        }
+      }
+
+      // Check for embedded context data attribute
+      var appEl = document.getElementById('app');
+      if (appEl && appEl.dataset.context) {
+        try {
+          return JSON.parse(appEl.dataset.context);
+        } catch (e) {
+          return { type: appEl.dataset.context };
+        }
+      }
+
+      return null;
+    }
+
+    // Get context-specific content based on app type
+    function getContextContent(context) {
+      if (!context || !context.type) {
+        return null; // Use default generic content
+      }
+
+      var contextType = context.type.toLowerCase();
+      var appName = context.name || 'App';
+
+      // Task/Project Management context
+      if (contextType === 'task' || contextType === 'project' || contextType === 'todo') {
+        return {
+          type: 'task',
+          card: {
+            title: context.taskTitle || 'Design Homepage',
+            text: context.taskDescription || 'Create wireframes and mockups for the new landing page redesign.',
+            action: context.taskAction || 'View Details'
+          },
+          buttons: {
+            primary: 'Create Task',
+            secondary: 'View Board',
+            ghost: 'Filter',
+            danger: 'Archive'
+          },
+          form: {
+            label1: 'Task Name',
+            placeholder1: 'Enter task name...',
+            label2: 'Description',
+            placeholder2: 'Add description...',
+            submit: 'Add Task'
+          },
+          items: [
+            { title: 'Design Homepage', status: 'progress', description: 'Create wireframes and mockups', meta: 'Due tomorrow' },
+            { title: 'Review Pull Request', status: 'todo', description: 'Code review for auth module', meta: 'Assigned to you' },
+            { title: 'Update Documentation', status: 'done', description: 'API docs for v2 endpoints', meta: 'Completed today' }
+          ]
+        };
+      }
+
+      // E-commerce context
+      if (contextType === 'ecommerce' || contextType === 'shop' || contextType === 'store' || contextType === 'product') {
+        return {
+          type: 'product',
+          card: {
+            title: context.productName || 'Premium Wireless Headphones',
+            text: context.productDescription || 'High-fidelity audio with active noise cancellation and 30-hour battery life.',
+            action: context.productAction || 'Add to Cart'
+          },
+          buttons: {
+            primary: 'Add to Cart',
+            secondary: 'Save for Later',
+            ghost: 'Compare',
+            danger: 'Remove'
+          },
+          form: {
+            label1: 'Search Products',
+            placeholder1: 'What are you looking for?',
+            label2: 'Promo Code',
+            placeholder2: 'Enter code...',
+            submit: 'Apply'
+          },
+          items: [
+            { title: 'Wireless Headphones', price: '$199', oldPrice: '$249', rating: '4.8', reviews: '2,341' },
+            { title: 'Smart Watch Pro', price: '$299', oldPrice: null, rating: '4.6', reviews: '892' },
+            { title: 'Portable Speaker', price: '$79', oldPrice: '$99', rating: '4.4', reviews: '1,205' }
+          ]
+        };
+      }
+
+      // Dashboard/Analytics context
+      if (contextType === 'dashboard' || contextType === 'analytics' || contextType === 'admin') {
+        return {
+          type: 'generic',
+          card: {
+            title: context.cardTitle || 'Monthly Overview',
+            text: context.cardDescription || 'Track your key metrics and performance indicators in one place.',
+            action: context.cardAction || 'View Report'
+          },
+          buttons: {
+            primary: 'Generate Report',
+            secondary: 'Export Data',
+            ghost: 'Configure',
+            danger: 'Reset'
+          },
+          form: {
+            label1: 'Date Range',
+            placeholder1: 'Select period...',
+            label2: 'Filter By',
+            placeholder2: 'All categories',
+            submit: 'Apply Filters'
+          }
+        };
+      }
+
+      // Blog/Content context
+      if (contextType === 'blog' || contextType === 'content' || contextType === 'cms') {
+        return {
+          type: 'generic',
+          card: {
+            title: context.cardTitle || 'Getting Started Guide',
+            text: context.cardDescription || 'Learn how to set up your new workspace and start creating amazing content.',
+            action: context.cardAction || 'Read More'
+          },
+          buttons: {
+            primary: 'Publish',
+            secondary: 'Save Draft',
+            ghost: 'Preview',
+            danger: 'Delete'
+          },
+          form: {
+            label1: 'Title',
+            placeholder1: 'Enter post title...',
+            label2: 'Category',
+            placeholder2: 'Select category',
+            submit: 'Create Post'
+          }
+        };
+      }
+
+      // Social/Community context
+      if (contextType === 'social' || contextType === 'community' || contextType === 'forum') {
+        return {
+          type: 'generic',
+          card: {
+            title: context.cardTitle || 'Community Update',
+            text: context.cardDescription || 'Join the discussion and connect with other members in your area.',
+            action: context.cardAction || 'Join Now'
+          },
+          buttons: {
+            primary: 'Post',
+            secondary: 'Share',
+            ghost: 'Follow',
+            danger: 'Report'
+          },
+          form: {
+            label1: 'Username',
+            placeholder1: 'Choose a username',
+            label2: 'Bio',
+            placeholder2: 'Tell us about yourself...',
+            submit: 'Update Profile'
+          }
+        };
+      }
+
+      return null; // Use default generic content
+    }
+
+    // Update preview panel with context-specific content
+    function updateContextPreview() {
+      var content = getContextContent(appContext);
+
+      if (!content) return; // Keep default generic content
+
+      // Update card content
+      var cardTitle = document.getElementById('previewCardTitle');
+      var cardText = document.getElementById('previewCardText');
+      var cardAction = document.getElementById('previewCardAction');
+
+      if (cardTitle && content.card) cardTitle.textContent = content.card.title;
+      if (cardText && content.card) cardText.textContent = content.card.text;
+      if (cardAction && content.card) cardAction.textContent = content.card.action;
+
+      // Update button labels
+      var buttonsContainer = document.getElementById('previewButtons');
+      if (buttonsContainer && content.buttons) {
+        var buttons = buttonsContainer.querySelectorAll('.preview-btn');
+        if (buttons[0]) buttons[0].textContent = content.buttons.primary;
+        if (buttons[1]) buttons[1].textContent = content.buttons.secondary;
+        if (buttons[2]) buttons[2].textContent = content.buttons.ghost;
+        if (buttons[3]) buttons[3].textContent = content.buttons.danger;
+      }
+
+      // Update form content
+      var formSection = document.querySelector('.preview-form');
+      if (formSection && content.form) {
+        var labels = formSection.querySelectorAll('.preview-form__label');
+        var inputs = formSection.querySelectorAll('.preview-form__input');
+        var submitBtn = formSection.querySelector('.preview-btn--primary');
+
+        if (labels[0]) labels[0].textContent = content.form.label1;
+        if (labels[1]) labels[1].textContent = content.form.label2;
+        if (inputs[0]) inputs[0].placeholder = content.form.placeholder1;
+        if (inputs[1]) inputs[1].placeholder = content.form.placeholder2;
+        if (submitBtn) submitBtn.textContent = content.form.submit;
+      }
+
+      // Add context-specific cards if available
+      if (content.items && content.items.length > 0) {
+        renderContextCards(content);
+      }
+    }
+
+    // Render context-specific card components
+    function renderContextCards(content) {
+      // Find or create context cards section
+      var cardSection = document.getElementById('previewCardSection');
+      if (!cardSection) return;
+
+      // Check if context cards already exist
+      var existingContextCards = document.getElementById('previewContextCards');
+      if (existingContextCards) {
+        existingContextCards.parentNode.removeChild(existingContextCards);
+      }
+
+      // Create context cards section
+      var section = document.createElement('section');
+      section.className = 'preview-section';
+      section.id = 'previewContextCards';
+
+      var title = document.createElement('h2');
+      title.className = 'preview-section__title';
+      title.textContent = content.type === 'task' ? 'Task Cards' : content.type === 'product' ? 'Product Cards' : 'Items';
+      section.appendChild(title);
+
+      var cardsContainer = document.createElement('div');
+      cardsContainer.className = 'preview-context-cards';
+
+      content.items.forEach(function(item) {
+        if (content.type === 'task') {
+          cardsContainer.appendChild(createTaskCard(item));
+        } else if (content.type === 'product') {
+          cardsContainer.appendChild(createProductCard(item));
+        }
+      });
+
+      section.appendChild(cardsContainer);
+
+      // Insert after the main card section
+      cardSection.parentNode.insertBefore(section, cardSection.nextSibling);
+    }
+
+    // Create a task card element
+    function createTaskCard(item) {
+      var card = document.createElement('div');
+      card.className = 'preview-task-card';
+
+      var header = document.createElement('div');
+      header.className = 'preview-task-card__header';
+
+      var title = document.createElement('h4');
+      title.className = 'preview-task-card__title';
+      title.textContent = item.title;
+      header.appendChild(title);
+
+      var status = document.createElement('span');
+      status.className = 'preview-task-card__status preview-task-card__status--' + item.status;
+      status.textContent = item.status === 'progress' ? 'In Progress' : item.status === 'done' ? 'Done' : 'To Do';
+      header.appendChild(status);
+
+      card.appendChild(header);
+
+      var description = document.createElement('p');
+      description.className = 'preview-task-card__description';
+      description.textContent = item.description;
+      card.appendChild(description);
+
+      var meta = document.createElement('div');
+      meta.className = 'preview-task-card__meta';
+      meta.textContent = item.meta;
+      card.appendChild(meta);
+
+      return card;
+    }
+
+    // Create a product card element
+    function createProductCard(item) {
+      var card = document.createElement('div');
+      card.className = 'preview-product-card';
+
+      var image = document.createElement('div');
+      image.className = 'preview-product-card__image';
+      image.textContent = 'Product Image';
+      card.appendChild(image);
+
+      var content = document.createElement('div');
+      content.className = 'preview-product-card__content';
+
+      var title = document.createElement('h4');
+      title.className = 'preview-product-card__title';
+      title.textContent = item.title;
+      content.appendChild(title);
+
+      var priceRow = document.createElement('div');
+      priceRow.className = 'preview-product-card__price';
+      priceRow.textContent = item.price;
+      if (item.oldPrice) {
+        var oldPrice = document.createElement('span');
+        oldPrice.className = 'preview-product-card__price-old';
+        oldPrice.textContent = item.oldPrice;
+        priceRow.appendChild(oldPrice);
+      }
+      content.appendChild(priceRow);
+
+      var rating = document.createElement('div');
+      rating.className = 'preview-product-card__rating';
+      rating.innerHTML = '<span class="preview-product-card__stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> ' + item.rating + ' (' + item.reviews + ' reviews)';
+      content.appendChild(rating);
+
+      card.appendChild(content);
+
+      return card;
+    }
+
+    // ========================================
+    // Seed Values & Modified Tracking
+    // ========================================
+    var seedValues = window.__studioSeedValues || null;
+    var modifiedFields = {};  // Track which seeded fields have been modified
+
+    function applySeedValues() {
+      if (!seedValues || !currentTokens) return;
+
+      // Apply seeded colors
+      if (seedValues.colors) {
+        if (seedValues.colors.primary) {
+          currentTokens.colors.primary = seedValues.colors.primary;
+          primaryColorInput.value = seedValues.colors.primary;
+          addSeedBadge('primaryColorGroup', 'primary');
+        }
+        if (seedValues.colors.secondary) {
+          currentTokens.colors.secondary = seedValues.colors.secondary;
+          secondaryColorInput.value = seedValues.colors.secondary;
+          addSeedBadge('secondaryColorGroup', 'secondary');
+        }
+        if (seedValues.colors.accent) {
+          currentTokens.colors.accent = seedValues.colors.accent;
+          accentColorInput.value = seedValues.colors.accent;
+          addSeedBadge('accentColorGroup', 'accent');
+        }
+      }
+
+      // Apply seeded typography
+      if (seedValues.typography && seedValues.typography.fonts) {
+        if (seedValues.typography.fonts.heading) {
+          currentTokens.typography.fonts.heading = seedValues.typography.fonts.heading;
+          // Find matching option in dropdown
+          for (var i = 0; i < sansSerifFontSelect.options.length; i++) {
+            if (sansSerifFontSelect.options[i].value === seedValues.typography.fonts.heading) {
+              sansSerifFontSelect.selectedIndex = i;
+              addSeedBadge('sansSerifFontGroup', 'sansSerifFont');
+              break;
+            }
+          }
+        }
+      }
+
+      // Apply seeded spacing
+      if (seedValues.spacing && seedValues.spacing.unit) {
+        currentTokens.spacing.unit = seedValues.spacing.unit;
+        spacingBaseUnitSelect.value = seedValues.spacing.unit;
+        addSeedBadge('spacingBaseUnitGroup', 'spacingBaseUnit');
+      }
+
+      applyTokensToCSS();
+      initializeColorSystem();
+    }
+
+    function addSeedBadge(groupId, fieldName) {
+      var group = document.getElementById(groupId);
+      if (!group) {
+        // Try finding by class within the group
+        var label = document.querySelector('[for="' + fieldName.replace('Group', '') + '"]');
+        if (label) group = label.parentElement;
+      }
+      if (!group) return;
+
+      // Remove existing badge if any
+      var existingBadge = group.querySelector('.seed-badge');
+      if (existingBadge) existingBadge.remove();
+
+      var badge = document.createElement('span');
+      badge.className = 'seed-badge seed-badge--existing';
+      badge.setAttribute('data-field', fieldName);
+      badge.textContent = 'Existing';
+
+      // Find the label to append to
+      var label = group.querySelector('.control-label');
+      if (label) {
+        label.appendChild(badge);
+      }
+    }
+
+    function markFieldModified(fieldName) {
+      if (!seedValues) return;  // Only track if we have seed values
+
+      modifiedFields[fieldName] = true;
+
+      // Find and update badge
+      var badge = document.querySelector('.seed-badge[data-field="' + fieldName + '"]');
+      if (badge) {
+        badge.className = 'seed-badge seed-badge--modified';
+        badge.textContent = 'Modified';
+      }
+    }
+
+    // ========================================
+    // Initialize Application
+    // ========================================
+    function init() {
+      // Parse context from URL or embedded data
+      appContext = parseAppContext();
+
+      initPhilosophyCards();
+      setupControlListeners();
+
+      // Apply seed values if present (after a philosophy is selected)
+      if (seedValues) {
+        // Auto-select Custom philosophy for seeded values
+        var customCard = document.querySelector('.philosophy-card[data-philosophy="Custom"]');
+        if (customCard) {
+          customCard.click();
+          // Apply seeds after philosophy is loaded
+          setTimeout(applySeedValues, 100);
+        }
+      }
+    }
+
+    // Run on DOM ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>

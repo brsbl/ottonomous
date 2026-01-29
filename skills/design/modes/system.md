@@ -1,418 +1,248 @@
 # Design System Mode
 
-Define the design system through an interview wizard, generating tokens, config, and documentation.
+Launch the interactive Design Studio in the browser. Design tokens are defined visually with live preview, then exported to TypeScript files.
+
+**Command:** `/design system [spec-id | "product idea"]`
 
 ---
 
-## 1. Check Prerequisites
+## Overview
 
-Before starting, verify project setup:
-
-| Check | Action if missing |
-|-------|-------------------|
-| `package.json` exists | Create with `npm init -y` |
-| `tailwind.config.ts` exists | Will be created by this wizard |
-| `src/lib/` directory exists | Create with `mkdir -p src/lib` |
-
-## 2. Interview Wizard
-
-Walk the user through each topic. Ask questions, provide examples, and capture their preferences.
-
-### 2.1 Project Context
-
-Ask about:
-- **Project name**: What is the project called?
-- **Design philosophy**: What feeling should the design convey?
-
-Offer philosophy examples:
-| Philosophy | Characteristics |
-|------------|-----------------|
-| Minimal | Clean lines, ample whitespace, muted colors |
-| Playful | Rounded corners, vibrant colors, friendly typography |
-| Corporate | Professional, structured, brand-focused |
-| Bold | High contrast, strong typography, dramatic spacing |
-| Organic | Natural colors, soft shapes, warm tones |
-
-### 2.2 Color Palette
-
-Ask about each color category:
-
-| Category | Purpose | Example |
-|----------|---------|---------|
-| **Primary** | Brand color, main CTAs | `#3B82F6` (blue) |
-| **Secondary** | Supporting actions, accents | `#6366F1` (indigo) |
-| **Accent** | Highlights, special elements | `#F59E0B` (amber) |
-| **Success** | Positive states, confirmations | `#10B981` (emerald) |
-| **Warning** | Cautions, alerts | `#F59E0B` (amber) |
-| **Error** | Errors, destructive actions | `#EF4444` (red) |
-| **Info** | Informational states | `#3B82F6` (blue) |
-| **Neutrals** | Backgrounds, borders, text | Gray scale |
-
-For neutrals, ask about:
-- Background color (light mode)
-- Surface color (cards, panels)
-- Border color
-- Text primary color
-- Text secondary color
-- Text muted color
-
-Offer to generate a cohesive palette from their primary color if they want suggestions.
-
-### 2.3 Typography
-
-Ask about font preferences:
-
-| Property | Options | Default |
-|----------|---------|---------|
-| **Sans-serif stack** | System fonts, Inter, custom | `Inter, system-ui, sans-serif` |
-| **Monospace stack** | System mono, Fira Code, custom | `ui-monospace, SFMono-Regular, monospace` |
-| **Base size** | 14px, 16px, 18px | 16px |
-| **Scale ratio** | 1.125, 1.2, 1.25, 1.333 | 1.25 (major third) |
-
-Generate font size scale based on base and ratio:
-
-| Token | Scale | Example (16px base, 1.25 ratio) |
-|-------|-------|--------------------------------|
-| `micro` | base / ratio^2 | 10.24px |
-| `xs` | base / ratio | 12.8px |
-| `sm` | base * 0.875 | 14px |
-| `base` | base | 16px |
-| `lg` | base * ratio | 20px |
-| `xl` | base * ratio^2 | 25px |
-| `2xl` | base * ratio^3 | 31.25px |
-| `3xl` | base * ratio^4 | 39px |
-| `4xl` | base * ratio^5 | 48.8px |
-
-Ask about line heights:
-| Usage | Recommended |
-|-------|-------------|
-| Headings | 1.1 - 1.2 |
-| Body | 1.5 - 1.6 |
-| Tight (labels) | 1.25 |
-
-### 2.4 Spacing
-
-Ask about spacing preferences:
-
-| Property | Options | Default |
-|----------|---------|---------|
-| **Base unit** | 4px, 8px | 4px |
-| **Scale** | Linear, geometric | Linear (multipliers) |
-
-Generate spacing scale:
-
-| Token | Multiplier | Example (4px base) |
-|-------|------------|-------------------|
-| `px` | 1px | 1px |
-| `0.5` | 0.5x | 2px |
-| `1` | 1x | 4px |
-| `2` | 2x | 8px |
-| `3` | 3x | 12px |
-| `4` | 4x | 16px |
-| `5` | 5x | 20px |
-| `6` | 6x | 24px |
-| `8` | 8x | 32px |
-| `10` | 10x | 40px |
-| `12` | 12x | 48px |
-| `16` | 16x | 64px |
-| `20` | 20x | 80px |
-| `24` | 24x | 96px |
-
-### 2.5 Other Tokens
-
-Ask about additional design tokens:
-
-**Border Radii:**
-| Token | Value | Usage |
-|-------|-------|-------|
-| `none` | 0 | Sharp corners |
-| `sm` | 2px | Subtle rounding |
-| `md` | 4px | Default buttons/inputs |
-| `lg` | 8px | Cards, modals |
-| `xl` | 12px | Large containers |
-| `2xl` | 16px | Prominent elements |
-| `full` | 9999px | Pills, avatars |
-
-**Shadows:**
-| Token | Value | Usage |
-|-------|-------|-------|
-| `sm` | `0 1px 2px rgba(0,0,0,0.05)` | Subtle elevation |
-| `md` | `0 4px 6px rgba(0,0,0,0.1)` | Cards, dropdowns |
-| `lg` | `0 10px 15px rgba(0,0,0,0.1)` | Modals, popovers |
-| `xl` | `0 20px 25px rgba(0,0,0,0.15)` | Floating elements |
-
-**Transitions:**
-| Token | Duration | Usage |
-|-------|----------|-------|
-| `fast` | 100ms | Micro-interactions |
-| `normal` | 200ms | Standard transitions |
-| `slow` | 300ms | Complex animations |
-
-### 2.6 Accessibility Requirements
-
-Ask about accessibility preferences:
-
-| Setting | Options | Default |
-|---------|---------|---------|
-| **Contrast ratio** | WCAG AA (4.5:1), WCAG AAA (7:1) | AA (4.5:1) |
-| **Focus ring style** | Ring, outline, combined | Ring |
-| **Focus ring color** | Match primary, custom | Primary color |
-| **Focus ring width** | 2px, 3px | 2px |
-| **Focus ring offset** | 0, 2px | 2px |
+The Design Studio is an HTML-first experience. All design decisions happen in the browser with:
+- Philosophy picker showing rendered component previews
+- Color pickers with shade scales, harmony suggestions, WCAG contrast badges
+- Typography, spacing, radii, shadows controls with live preview
+- Dark mode toggle with auto-generated variants
+- One-click export to `design-tokens.ts` and `tailwind.config.ts`
 
 ---
 
-## 3. Generate Design Tokens
+## 1. Parse Arguments
 
-Create `src/lib/design-tokens.ts` with all collected values:
+Check for context argument (optional):
 
-```typescript
-// Design Tokens - Generated by /design system
-// Project: {projectName}
-// Philosophy: {philosophy}
+| Argument Type | Detection | Action |
+|---------------|-----------|--------|
+| Spec ID | Matches `.otto/specs/{id}.md` | Load spec, extract app context |
+| Product idea | Quoted string or unquoted text | Use as preview context |
+| None | No argument | Generic preview content |
 
-export const colors = {
-  primary: {
-    50: '{primary-50}',
-    100: '{primary-100}',
-    // ... full scale
-    500: '{primary}',
-    // ... full scale
-    900: '{primary-900}',
-  },
-  secondary: { /* ... */ },
-  accent: { /* ... */ },
-  success: { /* ... */ },
-  warning: { /* ... */ },
-  error: { /* ... */ },
-  info: { /* ... */ },
-  neutral: {
-    50: '{neutral-50}',
-    // ... full scale
-    950: '{neutral-950}',
-  },
-} as const
-
-export const typography = {
-  fonts: {
-    sans: '{sans-stack}',
-    mono: '{mono-stack}',
-  },
-  sizes: {
-    micro: '{micro}',
-    xs: '{xs}',
-    sm: '{sm}',
-    base: '{base}',
-    lg: '{lg}',
-    xl: '{xl}',
-    '2xl': '{2xl}',
-    '3xl': '{3xl}',
-    '4xl': '{4xl}',
-  },
-  lineHeights: {
-    tight: '{tight}',
-    normal: '{normal}',
-    relaxed: '{relaxed}',
-  },
-} as const
-
-export const spacing = {
-  px: '1px',
-  0.5: '{0.5}',
-  1: '{1}',
-  // ... full scale
-} as const
-
-export const radii = {
-  none: '0',
-  sm: '{sm}',
-  md: '{md}',
-  lg: '{lg}',
-  xl: '{xl}',
-  '2xl': '{2xl}',
-  full: '9999px',
-} as const
-
-export const shadows = {
-  sm: '{sm}',
-  md: '{md}',
-  lg: '{lg}',
-  xl: '{xl}',
-} as const
-
-export const transitions = {
-  fast: '{fast}',
-  normal: '{normal}',
-  slow: '{slow}',
-} as const
-
-export const accessibility = {
-  focusRing: {
-    width: '{width}',
-    color: '{color}',
-    offset: '{offset}',
-    style: '{style}',
-  },
-  contrastRatio: '{ratio}',
-} as const
-
-export type Colors = typeof colors
-export type Typography = typeof typography
-export type Spacing = typeof spacing
-export type Radii = typeof radii
-export type Shadows = typeof shadows
-export type Transitions = typeof transitions
+If spec-id provided:
+```bash
+if [ -f ".otto/specs/${arg}.md" ]; then
+  # Extract context from spec frontmatter/content
+  context_type="spec"
+fi
 ```
-
-## 4. Generate Tailwind Config
-
-Create or update `tailwind.config.ts`:
-
-```typescript
-import type { Config } from 'tailwindcss'
-import { colors, typography, spacing, radii, shadows, transitions } from './src/lib/design-tokens'
-
-export default {
-  content: ['./src/**/*.{js,ts,jsx,tsx}'],
-  theme: {
-    extend: {
-      colors: {
-        primary: colors.primary,
-        secondary: colors.secondary,
-        accent: colors.accent,
-        success: colors.success,
-        warning: colors.warning,
-        error: colors.error,
-        info: colors.info,
-        neutral: colors.neutral,
-      },
-      fontFamily: {
-        sans: [typography.fonts.sans],
-        mono: [typography.fonts.mono],
-      },
-      fontSize: typography.sizes,
-      lineHeight: typography.lineHeights,
-      spacing: spacing,
-      borderRadius: radii,
-      boxShadow: shadows,
-      transitionDuration: {
-        fast: transitions.fast,
-        normal: transitions.normal,
-        slow: transitions.slow,
-      },
-    },
-  },
-  plugins: [],
-} satisfies Config
-```
-
-## 5. Generate Style Guide
-
-Create two files in `.otto/design/`:
-
-### 5.1 Style Guide Source (style-guide.md)
-
-```markdown
-# {Project} Style Guide
-
-## Design Principles
-
-{3-5 guiding principles based on philosophy}
-
-## Color System
-
-| Token | Hex | Usage |
-|-------|-----|-------|
-| primary-500 | {hex} | Main brand color, primary buttons |
-| secondary-500 | {hex} | Secondary actions |
-| ... | ... | ... |
-
-## Typography
-
-### Font Stacks
-- **Sans**: {sans-stack}
-- **Mono**: {mono-stack}
-
-### Size Scale
-| Token | Size | Usage |
-|-------|------|-------|
-| micro | {size} | Fine print, labels |
-| xs | {size} | Captions |
-| ... | ... | ... |
-
-## Spacing System
-
-Base unit: {base}px
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| 1 | {value} | Tight spacing |
-| 2 | {value} | Default gap |
-| ... | ... | ... |
-
-## Components
-
-{Reserved section - populated by Components phase}
-
-## Accessibility
-
-- **Contrast Ratio**: {ratio}
-- **Focus Ring**: {width}px {color} with {offset}px offset
-- **Keyboard Navigation**: All interactive elements focusable
-```
-
-### 5.2 Style Guide HTML (style-guide.html)
-
-Generate an interactive HTML file with:
-- Color swatches rendered as visual blocks
-- Typography samples at each scale
-- Spacing visualization
-- Copy-to-clipboard for token values
-- Dark/light mode toggle (if applicable)
-
-The HTML should be self-contained with inline styles and include:
-- Project name and philosophy header
-- Color palette grid with swatches
-- Typography specimen section
-- Spacing scale visualization
-- Border radius examples
-- Shadow examples
-- Focus ring preview
 
 ---
 
-## 6. Create Output Directories
+## 2. Scan for Existing Design Tokens
 
-Ensure directories exist:
+Before generating studio, scan project for existing design values:
+
+| File | What to Extract |
+|------|-----------------|
+| `tailwind.config.ts` | Colors, fonts, spacing from theme.extend |
+| `tailwind.config.js` | Same as above (JS format) |
+| `src/lib/design-tokens.ts` | Full token definitions |
+| `src/app/globals.css` | CSS variables (--color-*, --font-*) |
+
+### Scan Algorithm
+
+```javascript
+// Check files in order of priority
+const files = [
+  'src/lib/design-tokens.ts',
+  'tailwind.config.ts',
+  'tailwind.config.js',
+  'src/app/globals.css',
+  'src/styles/globals.css'
+];
+
+let seedValues = {};
+
+// Extract colors
+// Look for: colors: { primary: '#xxx' } or --color-primary: #xxx
+// Extract typography
+// Look for: fontFamily: { sans: 'Inter' } or --font-sans: Inter
+// Extract spacing
+// Look for: spacing: { unit: 4 } or --spacing-unit: 4px
+```
+
+Report scan results:
+```
+Scanned project for existing tokens:
+  - tailwind.config.ts: Found colors (primary, secondary), fonts (Inter)
+  - globals.css: Found CSS variables (--radius-md, --shadow-sm)
+
+These values will seed the Design Studio.
+```
+
+---
+
+## 3. Generate Studio HTML
+
+Copy the studio template and inject context/seed values:
 
 ```bash
-mkdir -p src/lib
+# Create output directory
 mkdir -p .otto/design
+
+# Copy template
+cp skills/design/lib/studio/template.html .otto/design/studio.html
 ```
 
-## 7. Write Files
+If seed values or context exist, inject them into the HTML:
 
-Write all generated files:
+```html
+<script>
+  // Seeded from existing project
+  window.__studioSeedValues = {
+    colors: {
+      primary: '#3B82F6',
+      secondary: '#6366F1'
+    },
+    typography: {
+      fonts: { heading: 'Inter, system-ui, sans-serif' }
+    }
+  };
 
-| File | Path |
-|------|------|
-| Design tokens | `src/lib/design-tokens.ts` |
-| Tailwind config | `tailwind.config.ts` |
-| Style guide (MD) | `.otto/design/style-guide.md` |
-| Style guide (HTML) | `.otto/design/style-guide.html` |
+  // Context from spec or product idea
+  window.__studioContext = {
+    type: 'task',  // or 'ecommerce', 'dashboard', etc.
+    name: 'Task Management App'
+  };
+</script>
+```
 
-## 8. Verify & Report
+### Context Type Detection
 
-After generating files:
+| Spec/Idea Keywords | Context Type | Preview Content |
+|--------------------|--------------|-----------------|
+| task, todo, project, kanban | `task` | Task cards with status badges |
+| shop, store, ecommerce, product | `ecommerce` | Product cards with prices |
+| dashboard, analytics, admin | `dashboard` | Metrics and charts labels |
+| blog, content, cms, article | `blog` | Article previews |
+| social, community, forum | `social` | User posts and profiles |
 
-1. **Type check**: Run `npx tsc --noEmit` to verify tokens file
-2. **Open style guide**: Offer to open `.otto/design/style-guide.html` in browser
+---
 
-Report summary:
-- Files created with paths
-- Design philosophy summary
-- Primary color and accent colors
-- Font families
-- Base spacing unit
-- Accessibility settings
-- Next steps (suggest running `/design components`)
+## 4. Open in Browser
+
+Launch the studio in the default browser:
+
+```bash
+# macOS
+open .otto/design/studio.html
+
+# Linux
+xdg-open .otto/design/studio.html
+
+# Windows
+start .otto/design/studio.html
+```
+
+Display instructions:
+```
+Design Studio opened in browser.
+
+Instructions:
+1. Choose a design philosophy or start from Custom
+2. Adjust colors, typography, spacing, and other tokens
+3. Toggle Light/Dark mode to preview both themes
+4. Click "Export" when ready
+
+Press Enter when export is complete to continue...
+```
+
+---
+
+## 5. Wait for User Completion
+
+Block and wait for user to confirm export is complete:
+
+```bash
+read -p "Press Enter when export is complete..."
+```
+
+After user confirms, check for exported files:
+
+```bash
+# Check if files were exported
+if [ -f "design-tokens.ts" ]; then
+  mkdir -p src/lib
+  mv design-tokens.ts src/lib/
+fi
+
+if [ -f "tailwind.config.ts" ]; then
+  # Backup existing if present
+  [ -f "tailwind.config.ts" ] && mv tailwind.config.ts tailwind.config.ts.bak
+  mv tailwind.config.ts ./
+fi
+```
+
+---
+
+## 6. Post-Export Actions
+
+After files are in place:
+
+### Move exported files to correct locations
+```bash
+# Ensure directories exist
+mkdir -p src/lib
+
+# If files were downloaded to ~/Downloads or current directory
+# Move them to proper locations
+```
+
+### Type check (optional)
+```bash
+npx tsc --noEmit src/lib/design-tokens.ts
+```
+
+### Report success
+```
+Design System exported successfully!
+
+Files created:
+  src/lib/design-tokens.ts - Design tokens with light/dark themes
+  tailwind.config.ts - Tailwind configuration
+
+Next steps:
+  - Run `/design components` to generate UI components
+  - Import tokens in your components: import { colors } from '@/lib/design-tokens'
+```
+
+---
+
+## File Structure
+
+After running `/design system`:
+
+```
+project/
+├── src/
+│   └── lib/
+│       └── design-tokens.ts    # Exported tokens
+├── tailwind.config.ts          # Tailwind config
+└── .otto/
+    └── design/
+        └── studio.html         # Interactive studio (can be re-opened)
+```
+
+---
+
+## Reusing the Studio
+
+The studio remains at `.otto/design/studio.html` and can be reopened anytime:
+
+```bash
+open .otto/design/studio.html
+```
+
+To re-run with fresh context:
+```bash
+/design system "new product idea"
+```

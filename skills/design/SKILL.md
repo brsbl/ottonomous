@@ -1,6 +1,6 @@
 ---
 name: design
-description: Spec-driven design and UI implementation. Define tokens, generate components, preview layouts with terminal mockups, implement pages, iterate with browser annotations.
+description: Spec-driven design and UI implementation. Interactive HTML studio for design tokens with philosophy picker, color theory, dark mode, and one-click export. Generate components, preview layouts, implement pages, iterate with browser annotations.
 argument-hint: [spec-id] | <system | components | mock | implement | feedback> [args]
 model: opus
 model-invokable: false
@@ -12,11 +12,23 @@ model-invokable: false
 |---------|----------|
 | `/design` | Full flow with most recent spec |
 | `/design <spec-id>` | Full flow with specified spec |
-| `system` | Design system interview wizard |
+| `system [context]` | Interactive HTML studio for design tokens |
 | `components` | Generate base component set |
 | `mock <spec-id>` | Terminal wireframes for spec |
 | `implement <spec-id>` | Generate code from approved mocks |
 | `feedback [url]` | Live browser annotation loop |
+
+### Design System Studio Features
+
+The `system` mode launches an interactive HTML studio in the browser:
+
+- **Philosophy Picker** - Choose from Minimal, Playful, Corporate, Bold, Organic, or Custom with live component previews
+- **Color System** - Color pickers with auto-generated shade scales (50-950), harmony suggestions (complementary, analogous, triadic), WCAG contrast badges
+- **Typography** - Font selection, base size, type scale ratio with live preview
+- **Spacing & Effects** - Spacing scale, border radii, shadow presets with visual previews
+- **Dark Mode** - Toggle between light/dark with auto-generated dark variants
+- **Context-Aware Preview** - Pass a spec-id or product idea for relevant preview content
+- **One-Click Export** - Export design-tokens.ts and tailwind.config.ts directly
 
 ---
 
