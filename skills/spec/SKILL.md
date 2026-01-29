@@ -1,15 +1,41 @@
 ---
 name: spec
 description: Writes product specifications through collaborative interview with web research. Activates when user mentions planning, requirements, design, new features, architecture, proposals, or needs a spec/PRD/blueprint.
-argument-hint: [product idea]
+argument-hint: list | [product idea]
 model: opus
 ---
+
+**Argument:** $ARGUMENTS
+
+| Command | Behavior |
+|---------|----------|
+| `/spec list` | List all specs with id, name, status, created date |
+| `/spec {idea}` | Create new spec through collaborative interview |
+
+---
+
+### List Mode
+
+If `$ARGUMENTS` is `list`:
+
+1. List `.otto/specs/*.md`
+2. For each spec, read frontmatter (id, name, status, created)
+3. Display as table:
+   ```
+   | ID | Name | Status | Created |
+   |----|------|--------|---------|
+   | design-skill-a1b2 | Design Skill | approved | 2026-01-28 |
+   ```
+4. If no specs found: "No specs found. Run `/spec {idea}` to create one."
+5. Stop here — do not continue to interview workflow.
+
+---
+
+### Create Mode
 
 **Product Idea:** $ARGUMENTS
 
 If no argument provided, ask: "What would you like to build?"
-
----
 
 ### 1. Gather Context
 

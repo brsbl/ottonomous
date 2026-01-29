@@ -1,12 +1,45 @@
 ---
 name: task
 description: Generates parallelizable task lists from specs. Breaks specs into atomic, prioritized tasks with dependencies. Activates when user has a spec and mentions tasks, implementation, breakdown, work plan, or what to do next.
+argument-hint: list | <spec-id>
 model: opus
 ---
 
 # Task Generation
 
 Generate implementation tasks from an approved spec.
+
+**Argument:** $ARGUMENTS
+
+| Command | Behavior |
+|---------|----------|
+| `/task list` | List all task files with spec, sessions, tasks, progress |
+| `/task {spec-id}` | Generate tasks from approved spec |
+
+---
+
+## List Mode
+
+If `$ARGUMENTS` is `list`:
+
+1. List `.otto/tasks/*.json`
+2. For each file, read and calculate:
+   - spec_id
+   - session count
+   - task count
+   - progress (done tasks / total tasks)
+3. Display as table:
+   ```
+   | Spec ID | Sessions | Tasks | Progress |
+   |---------|----------|-------|----------|
+   | design-skill-a1b2 | 3 | 12 | 4/12 (33%) |
+   ```
+4. If no task files found: "No task files found. Run `/task {spec-id}` to generate."
+5. Stop here — do not continue to task generation workflow.
+
+---
+
+## Generate Mode
 
 **Usage:** `/task <spec-id>`
 
