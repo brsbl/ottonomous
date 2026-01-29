@@ -1,21 +1,30 @@
 ---
 name: test
 description: Runs lint, type check, tests, and visual verification. Auto-detects tools (ESLint/Biome, TypeScript/mypy, vitest/jest/pytest/cargo) and sets up missing ones.
-argument-hint: <run | write> [staged | uncommitted | branch]
+argument-hint: <run | write | browser | all> [staged | uncommitted | branch]
+model: opus
 ---
 
 **Arguments:** $ARGUMENTS
 
 | Command | Behavior |
 |---------|----------|
-| `run` | Lint + type check + run tests + visually verify UI (branch) |
-| `run staged` | Lint + type check + run tests + visually verify UI (staged) |
-| `run uncommitted` | Lint + type check + run tests + visually verify UI (uncommitted) |
-| `run branch` | Lint + type check + run tests + visually verify UI (branch) |
+| `run` | Lint + type check + run tests (branch) |
+| `run staged` | Lint + type check + run tests (staged) |
+| `run uncommitted` | Lint + type check + run tests (uncommitted) |
+| `run branch` | Lint + type check + run tests (branch) |
 | `write` | Generate tests, then run full pipeline (branch) |
 | `write staged` | Generate tests, then run full pipeline (staged) |
 | `write uncommitted` | Generate tests, then run full pipeline (uncommitted) |
 | `write branch` | Generate tests, then run full pipeline (branch) |
+| `browser` | Visual verification + element interaction (branch) |
+| `browser staged` | Visual verification + element interaction (staged) |
+| `browser uncommitted` | Visual verification + element interaction (uncommitted) |
+| `browser branch` | Visual verification + element interaction (branch) |
+| `all` | run + browser combined (branch) |
+| `all staged` | run + browser combined (staged) |
+| `all uncommitted` | run + browser combined (uncommitted) |
+| `all branch` | run + browser combined (branch) |
 
 **Scope determines which files to analyze:**
 
@@ -223,27 +232,129 @@ Run the detected test command and save output to `.otto/test-results/output.log`
 
 **If tests fail:** Read the error output, fix the code, and re-run until all tests pass.
 
-## 11. Visual Verification
-
-Verify UI changes based on scope (use matching git diff command from table above):
-1. Identify which pages/routes were affected by code changes
-2. Navigate to those pages using browser automation (`skills/otto/lib/browser/client.js`)
-3. Capture screenshots to `./test-screenshots/`
-4. Read each screenshot and check for:
-   - Layout issues (overlapping elements, broken alignment)
-   - Missing or incorrect content
-   - Styling problems (wrong colors, fonts, spacing)
-   - Error states or blank screens
-
-**If issues found:** Fix the code causing the visual problem, retake screenshots, and verify the fix.
-
-**Repeat until both unit tests and visual verification pass.**
-
-## 12. Report
+## 11. Report (run/write modes)
 
 Summarize results:
 - Lint: pass/fail (errors fixed if any)
 - Type check: pass/fail (errors fixed if any)
 - Unit test pass/fail counts
-- Pages/components visually verified
-- Location of screenshots and logs
+- Location of test logs
+
+---
+
+# Browser Mode
+
+Use `browser` mode for visual verification and element interaction testing.
+
+**Important:** Create ONE browser client at the start and reuse it for all testing. Do not create multiple browser instances.
+
+### 1. Initialize Browser
+
+Create a single browser client at the start of browser testing:
+```javascript
+import { connect, waitForPageLoad } from '../otto/lib/browser/client.js'
+const client = await connect() // headless by default, reuse throughout session
+```
+
+Keep this `client` instance and reuse it for all subsequent steps. Only call `client.disconnect()` at the very end when all testing is complete.
+
+### 2. Get Changed Files
+
+Use the scope to determine which files changed (see git commands in table above).
+
+### 3. Identify Affected Pages
+
+Map code changes to UI locations:
+- Component files → pages that render them
+- API routes → pages that call them
+- Style files → pages that use them
+
+### 4. Navigate to Page
+
+Reuse the existing client to get or create named pages:
+```javascript
+// Get or create a named page (reuses existing page if already open)
+const page = await client.page('test')
+await page.goto('http://localhost:3000/affected-route')
+await waitForPageLoad(page)
+```
+
+**Page reuse:** `client.page('test')` returns the same page instance if called again with the same name. Use this to navigate to different URLs without opening new windows.
+
+### 5. Visual Inspection
+
+1. Capture screenshot to `.otto/test-screenshots/`
+2. Read the screenshot and check for:
+   - Layout issues (overlapping elements, broken alignment)
+   - Missing or incorrect content
+   - Styling problems (wrong colors, fonts, spacing)
+   - Error states or blank screens
+
+### 6. Get ARIA Snapshot
+
+Use `getAISnapshot()` to get the accessibility tree with refs:
+```javascript
+const snapshot = await client.getAISnapshot('test')
+```
+
+**Snapshot format:**
+```yaml
+- banner:
+  - link "Home" [ref=e1]
+- main:
+  - heading "Welcome" [ref=e2]:
+    - /level: 1
+  - button "Submit" [disabled] [ref=e3]
+```
+
+### 7. Interact with Elements
+
+Use `selectSnapshotRef()` to get element handles:
+```javascript
+const button = await client.selectSnapshotRef('test', 'e3')
+await button.click()
+```
+
+**Interaction types:**
+- Click buttons, links, interactive elements
+- Fill form inputs with test data
+- Check state changes ([checked], [disabled], [expanded])
+- Verify expected behavior after interactions
+
+### 8. Multi-Step Flows
+
+Test user journeys by chaining interactions:
+1. Fill form inputs
+2. Submit form
+3. Verify success state or navigation
+4. Check for expected content changes
+
+### 9. Fix Issues
+
+If problems found:
+1. Fix the code causing the issue
+2. Re-navigate to the page
+3. Re-verify the fix
+
+### 10. Cleanup & Report
+
+**Close the browser** when all testing is complete:
+```javascript
+await client.disconnect()
+```
+
+Summarize results:
+- Pages tested
+- Interactions performed
+- Issues found and fixed
+- Location of screenshots
+
+---
+
+# All Mode
+
+Use `all` mode to run both `run` and `browser` modes sequentially.
+
+1. Execute Run Mode (steps 1-11)
+2. Execute Browser Mode (steps 1-10)
+3. Combined report with all results

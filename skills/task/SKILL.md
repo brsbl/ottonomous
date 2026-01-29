@@ -1,11 +1,45 @@
 ---
 name: task
 description: Generates parallelizable task lists from specs. Breaks specs into atomic, prioritized tasks with dependencies. Activates when user has a spec and mentions tasks, implementation, breakdown, work plan, or what to do next.
+argument-hint: list | <spec-id>
+model: opus
 ---
 
 # Task Generation
 
 Generate implementation tasks from an approved spec.
+
+**Argument:** $ARGUMENTS
+
+| Command | Behavior |
+|---------|----------|
+| `/task list` | List all task files with spec, sessions, tasks, progress |
+| `/task {spec-id}` | Generate tasks from approved spec |
+
+---
+
+## List Mode
+
+If `$ARGUMENTS` is `list`:
+
+1. List `.otto/tasks/*.json`
+2. For each file, read and calculate:
+   - spec_id
+   - session count
+   - task count
+   - progress (done tasks / total tasks)
+3. Display as table:
+   ```
+   | Spec ID | Sessions | Tasks | Progress |
+   |---------|----------|-------|----------|
+   | design-skill-a1b2 | 3 | 12 | 4/12 (33%) |
+   ```
+4. If no task files found: "No task files found. Run `/task {spec-id}` to generate."
+5. Stop here — do not continue to task generation workflow.
+
+---
+
+## Generate Mode
 
 **Usage:** `/task <spec-id>`
 
@@ -43,22 +77,51 @@ Break spec into discrete, implementable tasks following the design principles ab
 - 3 = Low (can defer)
 - 4 = Nice to have
 
+**Assign task type:**
+- `frontend` - UI components, styling, client-side state, React/Vue/etc., browser APIs
+- `backend` - APIs, database, server logic, authentication, infrastructure
+
+### 2b. Group into Sessions
+
+Group related tasks into **sessions** — units of work that can be completed in one agent session.
+
+**Grouping criteria:**
+- **Component cohesion**: Tasks affecting the same module/directory
+- **File overlap**: Tasks modifying shared files
+- **Sequential dependencies**: Dependent tasks that naturally chain
+
+**Session sizing:**
+- Target: 2-5 tasks per session
+- Maximum: 7 tasks
+- Minimum: 1 task
+
+**Session dependencies:**
+- Session A depends on Session B if any task in A depends on any task in B
+- Session priority = minimum priority of its tasks
+
 ### 3. Present for Confirmation
 
-Show task list as a table:
+Show sessions with nested task tables:
 
 ```
-Proposed tasks for {spec-name}:
+Proposed sessions for {spec-name}:
 
-| ID | Title | Priority | Depends On | Description |
-|----|-------|----------|------------|-------------|
-| 1 | Setup project | P0 | - | Initialize project structure |
-| 2 | Core feature | P1 | 1 | Implement main functionality |
+## Session S1: {session-title} (P{priority})
+| ID | Title | Type | Priority | Depends On |
+|----|-------|------|----------|------------|
+| 1 | Setup project | backend | P0 | - |
+| 2 | Core types | backend | P0 | 1 |
+
+## Session S2: {session-title} (P{priority}, depends on S1)
+| ID | Title | Type | Priority | Depends On |
+|----|-------|------|----------|------------|
+| 3 | Core feature | frontend | P1 | 2 |
+| 4 | Feature tests | frontend | P1 | 3 |
 ```
 
 Note parallelism:
-- "**Parallel:** Tasks {ids} can run concurrently"
-- "**Sequential:** {chain}" (e.g., "1 → 2 → 3")
+- "**Parallel sessions:** S{ids} can run concurrently"
+- "**Sequential sessions:** S1 → S2 → S3"
 
 Use `AskUserQuestion` to confirm or get changes.
 
@@ -69,6 +132,16 @@ Write to `.otto/tasks/{spec-id}.json`:
 {
   "spec_id": "{spec-id}",
   "spec_path": ".otto/specs/{spec-id}.md",
+  "sessions": [
+    {
+      "id": "S1",
+      "title": "Session title",
+      "status": "pending",
+      "priority": 0,
+      "depends_on": [],
+      "task_ids": ["1", "2"]
+    }
+  ],
   "tasks": [
     {
       "id": "1",
@@ -76,7 +149,9 @@ Write to `.otto/tasks/{spec-id}.json`:
       "description": "Success: [done condition]. Files: [paths]. Scope: [estimate]",
       "status": "pending",
       "priority": 1,
-      "depends_on": []
+      "type": "frontend | backend",
+      "depends_on": [],
+      "session_id": "S1"
     }
   ]
 }
@@ -84,9 +159,9 @@ Write to `.otto/tasks/{spec-id}.json`:
 
 Stage: `git add .otto/tasks/{spec-id}.json`
 
-Confirm: "Created {n} tasks for {spec-name}"
+Confirm: "Created {n} tasks in {m} sessions for {spec-name}"
 
 ### 5. Next Steps
 
 Offer to start:
-> "Run `/next` to begin working on the first task."
+> "Run `/next session` to see the first session, or `/next batch` to run all unblocked sessions in parallel."

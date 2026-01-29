@@ -2,6 +2,7 @@
 name: doc
 description: Documents code changes. Creates structured entries capturing what changed, why, and notable details. Use after implementing features.
 argument-hint: [staged | uncommitted | branch]
+model: opus
 ---
 
 **Scope:** $ARGUMENTS
@@ -43,8 +44,10 @@ Filename: `.otto/docs/{branch}-{short-description}.md` (replace `/` with `-`, e.
 {Technical decisions, behavioral changes, data flow, key patterns}
 ```
 
-### 3. Stage
+### 3. Stage and Report
 
 ```bash
 git add .otto/docs/
 ```
+
+Report: "Documented changes to `.otto/docs/{filename}.md`"

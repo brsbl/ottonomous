@@ -1,6 +1,7 @@
 ---
 name: summary
 description: Consolidates doc entries into a styled HTML summary. Reads from .otto/docs/, creates unified view of changes, opens in browser. Use after /doc to create PR descriptions or release notes.
+model: opus
 ---
 
 Consolidate documentation entries into a styled HTML webpage.
@@ -53,11 +54,10 @@ Synthesize doc entries into a cohesive summary (don't just copy them).
 
 Save to `.otto/summaries/{branch}-{date}.html` using `skills/summary/scripts/md-to-html.js`.
 
-Open in browser.
-
 ### 5. Report
 
 ```
 Summary: .otto/summaries/{branch}-{date}.html
-Opened in browser.
 ```
+
+Open in browser.

@@ -6,13 +6,15 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
   
 <img width="3072" height="1428" alt="image 1 (1)" src="https://github.com/user-attachments/assets/2e8b420b-8b85-43af-9db7-764f6d4dc269" />
 
-## Workflow 
+## Workflow
 
 ```
                  ┌─────────────────────────────────┐
 /spec → /task →  │ /next → /test → /review → /doc  │ → /summary
-                 └──────── repeat per task ────────┘
+                 └─────── repeat per session ──────┘
 ```
+
+Sessions group related tasks that share context and can be implemented together by a single agent.
 
 ## Installation
 
@@ -36,13 +38,14 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 | Skill | Description |
 |-------|-------------|
 | `/spec [product idea]` | Researches best practices then interviews you to define product requirements and technical design. |
-| `/task <spec-id>` | Creates atomic, parallelizable tasks from a spec each with status, priority (P0-P4), and dependencies. |
-| `/next [task-id]` | Without arg: returns next unblocked task. With arg: implements that task. |
+| `/task <spec-id>` | Creates atomic tasks grouped into sessions. Each session is a unit of work with shared context. |
+| `/next [task\|session\|id\|batch]` | `task`/`session`: returns next id. `{id}`: launches subagent to implement. `batch`: parallel sessions. Uses `frontend-developer` or `backend-architect` based on task type. |
 | `/test <run\|write> [scope]` | `run` lint, type check, run tests, verify UI. `write` set up tests, linting and typechecking (if needed). |
-| `/review [scope]` | Multi-agent code review split by directory or component for large changes. Bugs prioritized (P0-P3) and critical issues auto-fixed. |
+| `/review [scope]` | Multi-agent code review split by directory or component. Uses `architect-reviewer` and `senior-code-reviewer` based on change type. Creates a fix plan for issues found. |
+| `/review fix [P0\|P0-P1\|all]` | Multi-agent fix implementation. Runs fixes from the plan in parallel batches. |
 | `/doc [scope]` | Documents code changes with what/why/notable details. One entry per logical change. |
 | `/summary` | Combines `/doc` entries into styled HTML summary that opens in your browser. |
-| `/otto <product idea>` | Autonomous spec → tasks → [next/test/review/doc] loop → summary. Decisions based on best practices. |
+| `/otto <product idea>` | Autonomous spec → tasks → [next/test/review/doc] per session → summary. |
 | `/reset` | Resets project to fresh state. Removes `.otto/` and generated code, preserves plugin files. |
 
 **Scopes:** `staged`, `uncommitted`, `branch` (default)
@@ -52,13 +55,22 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 ```
 .otto/                       # Workflow artifacts (git-ignored)
 ├── specs/                   # Specification documents (.md)
-├── tasks/                   # Task definitions (.json)
+├── tasks/                   # Sessions and tasks (.json)
+├── reviews/                 # Review fix plans (.json)
 ├── docs/                    # Change documentation entries
 ├── summaries/               # Generated HTML summaries
 └── otto/
-    └── sessions/            # Session state (state.json)
+    └── sessions/            # Otto session state (state.json)
 
 skills/                      # Skill implementations (SKILL.md + support files)
+├── next/
+│   └── agents/              # Implementation agents
+│       ├── frontend-developer.md
+│       └── backend-architect.md
+├── review/
+│   └── agents/              # Review agents
+│       ├── architect-reviewer.md
+│       └── senior-code-reviewer.md
 ├── otto/
 │   └── lib/browser/         # Playwright-based browser automation
 ├── summary/

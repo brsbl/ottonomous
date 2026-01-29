@@ -15,9 +15,15 @@
 
 import { chromium } from "playwright";
 import {
+  clearSubmittedFeedback,
+  getDesignFeedbackScript,
+  waitForSubmission,
+} from "./design-feedback/index.js";
+import {
   normalizePageName,
   validateScreenshotOptions,
 } from "./server.utils.js";
+import { getSnapshotScript } from "./snapshot/index.js";
 
 const DEFAULT_TIMEOUT = 30000;
 
@@ -37,18 +43,103 @@ export async function connect(options = {}) {
   return new BrowserClient(browser);
 }
 
+// Domains to ignore when checking for pending requests (ads, tracking, etc.)
+const IGNORED_DOMAINS = [
+  "google-analytics.com",
+  "googletagmanager.com",
+  "doubleclick.net",
+  "facebook.com",
+  "facebook.net",
+  "twitter.com",
+  "linkedin.com",
+  "hotjar.com",
+  "mixpanel.com",
+  "segment.com",
+  "amplitude.com",
+  "sentry.io",
+  "newrelic.com",
+  "datadoghq.com",
+  "adsense",
+  "adservice",
+  "analytics",
+  "tracking",
+  "beacon",
+];
+
 /**
- * Wait for a page to finish loading.
+ * Wait for a page to finish loading using Performance API monitoring.
+ * Monitors document.readyState and pending network requests, filtering out
+ * ads and tracking requests that may never complete.
  * @param {import('playwright').Page} page - Playwright page
  * @param {object} options - Wait options
  * @param {number} options.timeout - Timeout in ms (default: 30000)
+ * @param {number} options.idleTime - Time with no activity to consider loaded (default: 500)
  */
 export async function waitForPageLoad(page, options = {}) {
-  const { timeout = DEFAULT_TIMEOUT } = options;
-  await page.waitForLoadState("networkidle", { timeout }).catch(() => {
-    // Fall back to domcontentloaded if networkidle times out
-    return page.waitForLoadState("domcontentloaded", { timeout });
-  });
+  const { timeout = DEFAULT_TIMEOUT, idleTime = 500 } = options;
+
+  // First, wait for domcontentloaded
+  await page.waitForLoadState("domcontentloaded", { timeout });
+
+  const startTime = Date.now();
+
+  // Then monitor for network idle using Performance API
+  const isPageLoaded = async () => {
+    return page.evaluate((ignoredDomains) => {
+      // Check document ready state
+      if (document.readyState !== "complete") {
+        return { ready: false, reason: "document not complete" };
+      }
+
+      // Use Performance API to check for pending requests
+      if (
+        typeof PerformanceObserver !== "undefined" &&
+        performance.getEntriesByType
+      ) {
+        const resources = performance.getEntriesByType("resource");
+        const pendingResources = resources.filter((entry) => {
+          // Check if resource is still loading (responseEnd is 0 or not set)
+          // Note: responseEnd can be 0 for cross-origin resources without Timing-Allow-Origin
+          // so we also check if duration > 0 to avoid false positives
+          if (entry.responseEnd > 0 || entry.duration > 0) return false;
+
+          // Filter out ignored domains
+          const url = entry.name.toLowerCase();
+          for (const domain of ignoredDomains) {
+            if (url.includes(domain)) return false;
+          }
+
+          return true;
+        });
+
+        if (pendingResources.length > 0) {
+          return {
+            ready: false,
+            reason: `${pendingResources.length} pending requests`,
+          };
+        }
+      }
+
+      return { ready: true };
+    }, IGNORED_DOMAINS);
+  };
+
+  // Poll until page is loaded or timeout
+  while (Date.now() - startTime < timeout) {
+    const result = await isPageLoaded();
+    if (result.ready) {
+      // Wait for idle time to ensure no new requests
+      await page.waitForTimeout(idleTime);
+      const secondCheck = await isPageLoaded();
+      if (secondCheck.ready) {
+        return { ready: true };
+      }
+    }
+    await page.waitForTimeout(100);
+  }
+
+  // Timeout reached - return result instead of throwing to allow graceful handling
+  return { ready: false, reason: "timeout" };
 }
 
 /**
@@ -89,7 +180,7 @@ class BrowserClient {
     }
 
     const context = await this.browser.newContext({
-      viewport: { width: 1280, height: 720 },
+      viewport: { width: 1920, height: 1080 },
       ignoreHTTPSErrors: true,
     });
     const page = await context.newPage();
@@ -128,6 +219,187 @@ class BrowserClient {
       });
     }
     return pages;
+  }
+
+  /**
+   * Get an ARIA snapshot of a page for AI agent consumption.
+   * Returns a YAML representation of the accessibility tree with element refs.
+   * @param {string} name - Page name
+   * @returns {Promise<string>} YAML accessibility tree
+   */
+  async getAISnapshot(name) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+
+    // Only inject if not already present
+    const hasSnapshot = await page.evaluate(
+      () => typeof window.__devBrowser_getAISnapshot === "function",
+    );
+    if (!hasSnapshot) {
+      const script = getSnapshotScript();
+      await page.addScriptTag({ content: script });
+    }
+
+    // Generate and return the snapshot
+    return page.evaluate(() => window.__devBrowser_getAISnapshot());
+  }
+
+  /**
+   * Get an element handle by its snapshot ref.
+   * Must call getAISnapshot first to generate refs.
+   * @param {string} name - Page name
+   * @param {string} ref - Element ref (e.g., "e1", "e5")
+   * @returns {Promise<import('playwright').ElementHandle>} Element handle
+   */
+  async selectSnapshotRef(name, ref) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+
+    return page.evaluateHandle((r) => {
+      const refs = window.__devBrowserRefs;
+      if (!refs) {
+        throw new Error("No refs available. Call getAISnapshot first.");
+      }
+      const element = refs[r];
+      if (!element) {
+        throw new Error(
+          `Ref "${r}" not found. Available refs: ${Object.keys(refs).join(", ")}`,
+        );
+      }
+      return element;
+    }, ref);
+  }
+
+  /**
+   * Inject design feedback overlay into a page.
+   * Safe to call multiple times - prevents double initialization.
+   * @param {string} name - Page name
+   * @returns {Promise<void>}
+   */
+  async injectDesignFeedback(name) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+
+    // Only inject if not already present
+    const hasOverlay = await page.evaluate(
+      () => !!window.__designFeedbackInitialized,
+    );
+    if (!hasOverlay) {
+      const script = getDesignFeedbackScript();
+      await page.addScriptTag({ content: script });
+    }
+  }
+
+  /**
+   * Activate design feedback mode in a page (user can click to annotate).
+   * @param {string} name - Page name
+   * @returns {Promise<void>}
+   */
+  async activateDesignFeedbackMode(name) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+    await page.evaluate(() => window.__designFeedbackAPI?.activate());
+  }
+
+  /**
+   * Deactivate design feedback mode in a page.
+   * @param {string} name - Page name
+   * @returns {Promise<void>}
+   */
+  async deactivateDesignFeedbackMode(name) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+    await page.evaluate(() => window.__designFeedbackAPI?.deactivate());
+  }
+
+  /**
+   * Get submitted design feedback from a page (ready for processing).
+   * Does not clear the queue.
+   * @param {string} name - Page name
+   * @returns {Promise<Array<Object>>} Array of submitted feedback objects
+   */
+  async getSubmittedFeedback(name) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+    return page.evaluate(() => window.__designFeedbackSubmit?.slice() || []);
+  }
+
+  /**
+   * Clear and return submitted design feedback from a page.
+   * @param {string} name - Page name
+   * @returns {Promise<Array<Object>>} Array of cleared feedback objects
+   */
+  async clearSubmittedFeedback(name) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+    return clearSubmittedFeedback(page);
+  }
+
+  /**
+   * Get saved design feedback count (not yet submitted).
+   * @param {string} name - Page name
+   * @returns {Promise<number>}
+   */
+  async getSavedFeedbackCount(name) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+    return page.evaluate(() => window.__designFeedbackSaved?.length || 0);
+  }
+
+  /**
+   * Trigger "Send All" to submit all saved feedback.
+   * @param {string} name - Page name
+   * @returns {Promise<void>}
+   */
+  async sendAllFeedback(name) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+    await page.evaluate(() => window.__designFeedbackAPI?.sendAll());
+  }
+
+  /**
+   * Wait for design feedback to be submitted.
+   * Blocks until user clicks Submit or Send All.
+   *
+   * @param {string} name - Page name
+   * @param {Object} options - Wait options
+   * @param {number} [options.timeout=0] - Timeout in ms (0 = no timeout)
+   * @returns {Promise<Array<Object>>} Array of submitted feedback objects
+   */
+  async waitForFeedbackSubmission(name, options = {}) {
+    const normalized = normalizePageName(name);
+    if (!this.pages.has(normalized)) {
+      throw new Error(`Page "${name}" not found. Create it first with page().`);
+    }
+    const page = this.pages.get(normalized);
+    return waitForSubmission(page, options);
   }
 
   /**
