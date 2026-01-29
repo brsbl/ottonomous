@@ -99,7 +99,9 @@ export async function waitForPageLoad(page, options = {}) {
         const resources = performance.getEntriesByType("resource");
         const pendingResources = resources.filter((entry) => {
           // Check if resource is still loading (responseEnd is 0 or not set)
-          if (entry.responseEnd > 0) return false;
+          // Note: responseEnd can be 0 for cross-origin resources without Timing-Allow-Origin
+          // so we also check if duration > 0 to avoid false positives
+          if (entry.responseEnd > 0 || entry.duration > 0) return false;
 
           // Filter out ignored domains
           const url = entry.name.toLowerCase();
@@ -136,10 +138,8 @@ export async function waitForPageLoad(page, options = {}) {
     await page.waitForTimeout(100);
   }
 
-  // Timeout reached
-  throw new Error(
-    "Page load timeout: page did not stabilize within the timeout period",
-  );
+  // Timeout reached - return result instead of throwing to allow graceful handling
+  return { ready: false, reason: "timeout" };
 }
 
 /**

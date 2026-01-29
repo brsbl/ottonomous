@@ -250,7 +250,7 @@
     }
 
     .df-marker {
-      position: absolute;
+      position: fixed;
       width: 24px;
       height: 24px;
       background: #3b82f6;
@@ -675,8 +675,8 @@
     const marker = document.createElement("div");
     marker.className = "df-marker";
     marker.textContent = String(number);
-    marker.style.left = `${rect.left + window.scrollX - 12}px`;
-    marker.style.top = `${rect.top + window.scrollY - 12}px`;
+    marker.style.left = `${rect.left - 12}px`;
+    marker.style.top = `${rect.top - 12}px`;
     document.body.appendChild(marker);
     markers.push(marker);
   }

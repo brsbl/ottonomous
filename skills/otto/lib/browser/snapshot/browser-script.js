@@ -313,7 +313,8 @@
 
     // ARIA checked state (for custom checkbox/radio implementations)
     const ariaChecked = element.getAttribute("aria-checked");
-    if (ariaChecked === "true") states.push("checked");
+    if (ariaChecked === "true" && !states.includes("checked"))
+      states.push("checked");
 
     // Disabled state
     if (element.disabled) {

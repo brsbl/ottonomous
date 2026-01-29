@@ -8,7 +8,7 @@ Live browser annotation for visual refinement. Click elements, describe changes,
 
 ## Setup
 
-Start the browser server before running feedback mode:
+Start the browser server before running feedback mode (from project root):
 
 ```bash
 cd skills/otto/lib/browser && npm i && node server.js &
@@ -43,7 +43,7 @@ Wait for `Server running` message before proceeding.
 ### 1. Initialize and Navigate
 
 ```javascript
-import { connect, waitForPageLoad } from './lib/browser/client.js'
+import { connect, waitForPageLoad } from '../otto/lib/browser/client.js'
 
 const client = await connect({ headless: false })
 const page = await client.page('feedback')

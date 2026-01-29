@@ -133,15 +133,15 @@ Use Tailwind classes that reference the design tokens:
 | Token Category | Tailwind Class Pattern |
 |----------------|------------------------|
 | Colors | `bg-primary`, `text-foreground`, `border-border` |
-| Spacing | `p-sm`, `gap-md`, `mt-lg` |
+| Spacing | `p-1`, `p-2`, `gap-4`, `mt-6` (numeric scale) |
 | Typography | `text-lg`, `font-heading` |
-| Radius | `rounded-md`, `rounded-lg` |
+| Radius | `rounded-sm`, `rounded-md`, `rounded-lg` |
 | Shadows | `shadow-sm`, `shadow-md` |
 
 ### Example Usage
 
 ```tsx
-<div className="flex flex-col gap-md p-lg bg-surface rounded-lg shadow-md">
+<div className="flex flex-col gap-4 p-6 bg-surface rounded-lg shadow-md">
   <h1 className="text-2xl font-heading text-foreground">
     Welcome
   </h1>
@@ -149,7 +149,7 @@ Use Tailwind classes that reference the design tokens:
     placeholder="Email"
     className="border-border focus:ring-primary"
   />
-  <Button variant="primary" className="mt-md">
+  <Button variant="primary" className="mt-4">
     Sign In
   </Button>
 </div>

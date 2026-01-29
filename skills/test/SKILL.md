@@ -252,7 +252,7 @@ Use `browser` mode for visual verification and element interaction testing.
 
 Create a single browser client at the start of browser testing:
 ```javascript
-import { connect, waitForPageLoad } from './lib/browser/client.js'
+import { connect, waitForPageLoad } from '../otto/lib/browser/client.js'
 const client = await connect() // headless by default, reuse throughout session
 ```
 
@@ -283,7 +283,7 @@ await waitForPageLoad(page)
 
 ### 5. Visual Inspection
 
-1. Capture screenshot to `./test-screenshots/`
+1. Capture screenshot to `.otto/test-screenshots/`
 2. Read the screenshot and check for:
    - Layout issues (overlapping elements, broken alignment)
    - Missing or incorrect content

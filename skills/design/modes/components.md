@@ -39,7 +39,7 @@ Default to `npm` if no lockfile found.
 Install all required Radix primitives:
 
 ```bash
-<manager> @radix-ui/react-select @radix-ui/react-checkbox @radix-ui/react-radio-group @radix-ui/react-dialog @radix-ui/react-dropdown-menu @radix-ui/react-tooltip @radix-ui/react-tabs
+<manager> @radix-ui/react-select @radix-ui/react-checkbox @radix-ui/react-radio-group @radix-ui/react-dialog @radix-ui/react-dropdown-menu @radix-ui/react-tooltip @radix-ui/react-tabs lucide-react
 ```
 
 ---
