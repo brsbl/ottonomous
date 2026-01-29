@@ -6,16 +6,6 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
   
 <img width="3072" height="1428" alt="image 1 (1)" src="https://github.com/user-attachments/assets/2e8b420b-8b85-43af-9db7-764f6d4dc269" />
 
-## Workflow
-
-```
-                 ┌─────────────────────────────────┐
-/spec → /task →  │ /next → /test → /review → /doc  │ → /summary
-                 └─────── repeat per session ──────┘
-```
-
-Sessions group related tasks that share context and can be implemented together by a single agent.
-
 ## Installation
 
 ```bash
@@ -32,13 +22,22 @@ Sessions group related tasks that share context and can be implemented together 
 - Node.js 18+
 - Git
 
+## Workflow
+
+```
+                 ┌─────────────────────────────────┐
+/spec → /task →  │ /next → /test → /review → /doc  │ → /summary
+                 └─────── repeat per session ──────┘
+```
+
+Sessions group related tasks that share context and can be implemented together by a single agent.
 
 ## Skills
 
 | Skill | Description |
 |-------|-------------|
-| `/spec [product idea]` | Researches best practices then interviews you to define product requirements and technical design. |
-| `/task <spec-id>` | Creates atomic tasks grouped into sessions. Each session is a unit of work with shared context. |
+| `/spec [product idea]` | Researches best practices, analyzes your codebase, then interviews you to define product requirements and technical design. |
+| `/task <spec-id>` | Creates atomic tasks grouped into sessions. Each session is a unit of work with shared context that can be completed by a single agent. |
 | `/next [task\|session\|id\|batch]` | `task`/`session`: returns next id. `{id}`: launches subagent to implement. `batch`: parallel sessions. Uses `frontend-developer` or `backend-architect` based on task type. |
 | `/test <run\|write> [scope]` | `run` lint, type check, run tests, verify UI. `write` set up tests, linting and typechecking (if needed). |
 | `/review [scope]` | Multi-agent code review split by directory or component. Uses `architect-reviewer` and `senior-code-reviewer` based on change type. Creates a fix plan for issues found. |
