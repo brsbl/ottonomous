@@ -11,12 +11,12 @@
  */
 function hexToHSL(hex) {
   // Remove # if present
-  hex = hex.replace(/^#/, "");
+  const cleanHex = hex.replace(/^#/, "");
 
   // Parse hex to RGB
-  const r = Number.parseInt(hex.substring(0, 2), 16) / 255;
-  const g = Number.parseInt(hex.substring(2, 4), 16) / 255;
-  const b = Number.parseInt(hex.substring(4, 6), 16) / 255;
+  const r = Number.parseInt(cleanHex.substring(0, 2), 16) / 255;
+  const g = Number.parseInt(cleanHex.substring(2, 4), 16) / 255;
+  const b = Number.parseInt(cleanHex.substring(4, 6), 16) / 255;
 
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
@@ -58,35 +58,35 @@ function hexToHSL(hex) {
  */
 function hslToHex(h, s, l) {
   // Normalize values
-  h = ((h % 360) + 360) % 360;
-  s = Math.max(0, Math.min(100, s)) / 100;
-  l = Math.max(0, Math.min(100, l)) / 100;
+  const hue = ((h % 360) + 360) % 360;
+  const sat = Math.max(0, Math.min(100, s)) / 100;
+  const light = Math.max(0, Math.min(100, l)) / 100;
 
-  const c = (1 - Math.abs(2 * l - 1)) * s;
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  const m = l - c / 2;
+  const c = (1 - Math.abs(2 * light - 1)) * sat;
+  const x = c * (1 - Math.abs(((hue / 60) % 2) - 1));
+  const m = light - c / 2;
 
-  let r = 0,
-    g = 0,
-    b = 0;
+  let r = 0;
+  let g = 0;
+  let b = 0;
 
-  if (h >= 0 && h < 60) {
+  if (hue >= 0 && hue < 60) {
     r = c;
     g = x;
     b = 0;
-  } else if (h >= 60 && h < 120) {
+  } else if (hue >= 60 && hue < 120) {
     r = x;
     g = c;
     b = 0;
-  } else if (h >= 120 && h < 180) {
+  } else if (hue >= 120 && hue < 180) {
     r = 0;
     g = c;
     b = x;
-  } else if (h >= 180 && h < 240) {
+  } else if (hue >= 180 && hue < 240) {
     r = 0;
     g = x;
     b = c;
-  } else if (h >= 240 && h < 300) {
+  } else if (hue >= 240 && hue < 300) {
     r = x;
     g = 0;
     b = c;
@@ -98,7 +98,7 @@ function hslToHex(h, s, l) {
 
   const toHex = (n) => {
     const hex = Math.round((n + m) * 255).toString(16);
-    return hex.length === 1 ? "0" + hex : hex;
+    return hex.length === 1 ? `0${hex}` : hex;
   };
 
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
@@ -134,7 +134,8 @@ function generateShadeScale(baseHex) {
     if (targetL > 80) {
       // Lighter shades: reduce saturation slightly
       return Math.max(10, hsl.s - (targetL - 80) * 0.5);
-    } else if (targetL < 30) {
+    }
+    if (targetL < 30) {
       // Darker shades: increase saturation slightly for richness
       return Math.min(100, hsl.s + (30 - targetL) * 0.3);
     }
@@ -208,14 +209,14 @@ function getSplitComplementary(hex) {
  * @returns {number} Relative luminance (0-1)
  */
 function getRelativeLuminance(hex) {
-  hex = hex.replace(/^#/, "");
+  const cleanHex = hex.replace(/^#/, "");
 
-  const r = Number.parseInt(hex.substring(0, 2), 16) / 255;
-  const g = Number.parseInt(hex.substring(2, 4), 16) / 255;
-  const b = Number.parseInt(hex.substring(4, 6), 16) / 255;
+  const r = Number.parseInt(cleanHex.substring(0, 2), 16) / 255;
+  const g = Number.parseInt(cleanHex.substring(2, 4), 16) / 255;
+  const b = Number.parseInt(cleanHex.substring(4, 6), 16) / 255;
 
   const toLinear = (c) => {
-    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
   };
 
   return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
