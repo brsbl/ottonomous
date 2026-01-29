@@ -114,8 +114,7 @@ All design artifacts go to `.otto/design/`:
 
 | Output | Path |
 |--------|------|
-| Style guide source | `.otto/design/style-guide.md` |
-| Style guide HTML | `.otto/design/style-guide.html` |
+| Interactive design studio | `.otto/design/studio.html` |
 | Wireframe mocks | `.otto/design/mocks/{spec-id}/` |
 
 Project outputs go to source:

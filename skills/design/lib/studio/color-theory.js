@@ -250,6 +250,7 @@ export {
   getAnalogous,
   getTriadic,
   getSplitComplementary,
+  getRelativeLuminance,
   getContrastRatio,
   meetsWCAG
 };
@@ -264,6 +265,7 @@ if (typeof window !== 'undefined') {
     getAnalogous,
     getTriadic,
     getSplitComplementary,
+    getRelativeLuminance,
     getContrastRatio,
     meetsWCAG
   };

@@ -806,7 +806,7 @@
     .preview-form__input:focus {
       outline: none;
       border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.1);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
     }
 
     .preview-form__input::placeholder {
@@ -2524,6 +2524,7 @@
         const info = PHILOSOPHY_INFO[name];
         const card = document.createElement('div');
         card.className = 'philosophy-card';
+        card.setAttribute('data-philosophy', name);
         card.setAttribute('role', 'listitem');
         card.setAttribute('tabindex', '0');
         card.setAttribute('aria-label', name + ' philosophy: ' + info.description);
@@ -3383,10 +3384,10 @@
       });
       lines.push('    },');
       lines.push('    semantic: {');
-      lines.push('      success: \'#22c55e\',');
-      lines.push('      warning: \'#f59e0b\',');
-      lines.push('      error: \'#ef4444\',');
-      lines.push('      info: \'#3b82f6\'');
+      lines.push('      success: \'' + document.getElementById('successColor').value + '\',');
+      lines.push('      warning: \'' + document.getElementById('warningColor').value + '\',');
+      lines.push('      error: \'' + document.getElementById('errorColor').value + '\',');
+      lines.push('      info: \'' + document.getElementById('infoColor').value + '\'');
       lines.push('    }');
       lines.push('  },');
       lines.push('  dark: {');

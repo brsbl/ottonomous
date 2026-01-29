@@ -93,28 +93,33 @@ mkdir -p .otto/design
 cp skills/design/lib/studio/template.html .otto/design/studio.html
 ```
 
-If seed values or context exist, inject them into the HTML:
+If seed values or context exist, pass them via URL parameters when opening the studio:
 
-```html
-<script>
-  // Seeded from existing project
-  window.__studioSeedValues = {
-    colors: {
-      primary: '#3B82F6',
-      secondary: '#6366F1'
+```bash
+# Simple context type
+open ".otto/design/studio.html?context=task"
+
+# Full context with seed values as JSON
+context=$(cat <<'EOF'
+{
+  "type": "task",
+  "name": "Task Management App",
+  "seed": {
+    "colors": {
+      "primary": "#3B82F6",
+      "secondary": "#6366F1"
     },
-    typography: {
-      fonts: { heading: 'Inter, system-ui, sans-serif' }
+    "typography": {
+      "fonts": { "heading": "Inter, system-ui, sans-serif" }
     }
-  };
-
-  // Context from spec or product idea
-  window.__studioContext = {
-    type: 'task',  // or 'ecommerce', 'dashboard', etc.
-    name: 'Task Management App'
-  };
-</script>
+  }
+}
+EOF
+)
+open ".otto/design/studio.html?context=$(echo "$context" | jq -sRr @uri)"
 ```
+
+The studio template reads context from the URL `context` parameter or from a `data-context` attribute on the root element.
 
 ### Context Type Detection
 
@@ -169,16 +174,15 @@ read -p "Press Enter when export is complete..."
 After user confirms, check for exported files:
 
 ```bash
-# Check if files were exported
-if [ -f "design-tokens.ts" ]; then
+# Check if files were downloaded to Downloads
+if [ -f ~/Downloads/design-tokens.ts ]; then
   mkdir -p src/lib
-  mv design-tokens.ts src/lib/
+  mv ~/Downloads/design-tokens.ts src/lib/
 fi
 
-if [ -f "tailwind.config.ts" ]; then
-  # Backup existing if present
-  [ -f "tailwind.config.ts" ] && mv tailwind.config.ts tailwind.config.ts.bak
-  mv tailwind.config.ts ./
+if [ -f ~/Downloads/tailwind.config.ts ]; then
+  [ -f tailwind.config.ts ] && mv tailwind.config.ts tailwind.config.ts.bak
+  mv ~/Downloads/tailwind.config.ts ./
 fi
 ```
 
