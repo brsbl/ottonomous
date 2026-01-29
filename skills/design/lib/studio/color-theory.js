@@ -11,12 +11,12 @@
  */
 function hexToHSL(hex) {
   // Remove # if present
-  hex = hex.replace(/^#/, '');
+  hex = hex.replace(/^#/, "");
 
   // Parse hex to RGB
-  const r = parseInt(hex.substring(0, 2), 16) / 255;
-  const g = parseInt(hex.substring(2, 4), 16) / 255;
-  const b = parseInt(hex.substring(4, 6), 16) / 255;
+  const r = Number.parseInt(hex.substring(0, 2), 16) / 255;
+  const g = Number.parseInt(hex.substring(2, 4), 16) / 255;
+  const b = Number.parseInt(hex.substring(4, 6), 16) / 255;
 
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
@@ -45,7 +45,7 @@ function hexToHSL(hex) {
   return {
     h: Math.round(h * 360),
     s: Math.round(s * 100),
-    l: Math.round(l * 100)
+    l: Math.round(l * 100),
   };
 }
 
@@ -66,25 +66,39 @@ function hslToHex(h, s, l) {
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
   const m = l - c / 2;
 
-  let r = 0, g = 0, b = 0;
+  let r = 0,
+    g = 0,
+    b = 0;
 
   if (h >= 0 && h < 60) {
-    r = c; g = x; b = 0;
+    r = c;
+    g = x;
+    b = 0;
   } else if (h >= 60 && h < 120) {
-    r = x; g = c; b = 0;
+    r = x;
+    g = c;
+    b = 0;
   } else if (h >= 120 && h < 180) {
-    r = 0; g = c; b = x;
+    r = 0;
+    g = c;
+    b = x;
   } else if (h >= 180 && h < 240) {
-    r = 0; g = x; b = c;
+    r = 0;
+    g = x;
+    b = c;
   } else if (h >= 240 && h < 300) {
-    r = x; g = 0; b = c;
+    r = x;
+    g = 0;
+    b = c;
   } else {
-    r = c; g = 0; b = x;
+    r = c;
+    g = 0;
+    b = x;
   }
 
   const toHex = (n) => {
     const hex = Math.round((n + m) * 255).toString(16);
-    return hex.length === 1 ? '0' + hex : hex;
+    return hex.length === 1 ? "0" + hex : hex;
   };
 
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
@@ -112,7 +126,7 @@ function generateShadeScale(baseHex) {
     700: 34,
     800: 26,
     900: 18,
-    950: 10
+    950: 10,
   };
 
   // Adjust saturation slightly for light and dark shades
@@ -155,8 +169,8 @@ function getAnalogous(hex) {
   const hsl = hexToHSL(hex);
   return [
     hslToHex((hsl.h - 30 + 360) % 360, hsl.s, hsl.l),
-    hex.startsWith('#') ? hex : `#${hex}`,
-    hslToHex((hsl.h + 30) % 360, hsl.s, hsl.l)
+    hex.startsWith("#") ? hex : `#${hex}`,
+    hslToHex((hsl.h + 30) % 360, hsl.s, hsl.l),
   ];
 }
 
@@ -168,9 +182,9 @@ function getAnalogous(hex) {
 function getTriadic(hex) {
   const hsl = hexToHSL(hex);
   return [
-    hex.startsWith('#') ? hex : `#${hex}`,
+    hex.startsWith("#") ? hex : `#${hex}`,
     hslToHex((hsl.h + 120) % 360, hsl.s, hsl.l),
-    hslToHex((hsl.h + 240) % 360, hsl.s, hsl.l)
+    hslToHex((hsl.h + 240) % 360, hsl.s, hsl.l),
   ];
 }
 
@@ -182,9 +196,9 @@ function getTriadic(hex) {
 function getSplitComplementary(hex) {
   const hsl = hexToHSL(hex);
   return [
-    hex.startsWith('#') ? hex : `#${hex}`,
+    hex.startsWith("#") ? hex : `#${hex}`,
     hslToHex((hsl.h + 150) % 360, hsl.s, hsl.l),
-    hslToHex((hsl.h + 210) % 360, hsl.s, hsl.l)
+    hslToHex((hsl.h + 210) % 360, hsl.s, hsl.l),
   ];
 }
 
@@ -194,11 +208,11 @@ function getSplitComplementary(hex) {
  * @returns {number} Relative luminance (0-1)
  */
 function getRelativeLuminance(hex) {
-  hex = hex.replace(/^#/, '');
+  hex = hex.replace(/^#/, "");
 
-  const r = parseInt(hex.substring(0, 2), 16) / 255;
-  const g = parseInt(hex.substring(2, 4), 16) / 255;
-  const b = parseInt(hex.substring(4, 6), 16) / 255;
+  const r = Number.parseInt(hex.substring(0, 2), 16) / 255;
+  const g = Number.parseInt(hex.substring(2, 4), 16) / 255;
+  const b = Number.parseInt(hex.substring(4, 6), 16) / 255;
 
   const toLinear = (c) => {
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
@@ -234,10 +248,10 @@ function meetsWCAG(foreground, background) {
 
   return {
     ratio: Math.round(ratio * 100) / 100,
-    aa: ratio >= 4.5,        // Normal text AA
-    aaLarge: ratio >= 3,     // Large text AA (14pt bold or 18pt)
-    aaa: ratio >= 7,         // Normal text AAA
-    aaaLarge: ratio >= 4.5   // Large text AAA
+    aa: ratio >= 4.5, // Normal text AA
+    aaLarge: ratio >= 3, // Large text AA (14pt bold or 18pt)
+    aaa: ratio >= 7, // Normal text AAA
+    aaaLarge: ratio >= 4.5, // Large text AAA
   };
 }
 
@@ -252,11 +266,11 @@ export {
   getSplitComplementary,
   getRelativeLuminance,
   getContrastRatio,
-  meetsWCAG
+  meetsWCAG,
 };
 
 // Also expose on window for direct HTML embedding
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   window.ColorTheory = {
     hexToHSL,
     hslToHex,
@@ -267,6 +281,6 @@ if (typeof window !== 'undefined') {
     getSplitComplementary,
     getRelativeLuminance,
     getContrastRatio,
-    meetsWCAG
+    meetsWCAG,
   };
 }
