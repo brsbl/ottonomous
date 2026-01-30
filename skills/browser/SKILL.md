@@ -3,6 +3,7 @@ name: browser
 description: Ad-hoc browser automation for data extraction, verification, and UI exploration. Use when inspecting frontend state, verifying UI works, extracting page data, or planning UI changes.
 argument-hint: [url | explore | verify | extract]
 model: sonnet
+allowed-tools: Read, Bash(node *), Bash(mkdir *)
 ---
 
 **Argument:** $ARGUMENTS
@@ -18,15 +19,20 @@ model: sonnet
 
 ## Browser Client
 
-**Import:**
+**CRITICAL: Create exactly ONE browser client. Do NOT call `connect()` more than once.**
+
 ```javascript
 import { connect, waitForPageLoad } from 'skills/otto/lib/browser/client.js'
+
+// Call connect() ONCE - headless so no visible window
+const client = await connect({ headless: true })
 ```
 
-**Initialize once per session:**
-```javascript
-const client = await connect() // headless, reuse throughout
-```
+**Rules:**
+- Call `connect()` exactly ONCE per session
+- Reuse `client` for ALL pages and ALL operations
+- Only call `client.disconnect()` at the very end
+- NEVER create multiple browser instances
 
 **Core operations:**
 ```javascript
@@ -188,8 +194,9 @@ await emailInput.fill('user@example.com')
 
 ## Tips
 
-- **One client per session**: Create once, reuse for all pages
-- **Named pages**: `client.page('main')` returns same page if called again
+- **ONE client only**: Call `connect({ headless: true })` exactly once, reuse for everything
+- **Named pages**: `client.page('main')` returns same page if called again - no new windows
 - **Wait for load**: Always call `waitForPageLoad(page)` after navigation
 - **Screenshots**: Save to `.otto/screenshots/` for review
 - **Refs change**: After any DOM change, get a fresh ARIA snapshot
+- **Cleanup**: Call `client.disconnect()` only when completely done

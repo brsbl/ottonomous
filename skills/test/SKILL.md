@@ -286,17 +286,22 @@ Summarize results:
 
 Use `browser` mode for visual verification and element interaction testing.
 
-**Important:** Create ONE browser client at the start and reuse it for all testing. Do not create multiple browser instances.
-
 ### 1. Initialize Browser
 
-Create a single browser client at the start of browser testing:
+**CRITICAL: Create exactly ONE browser client. Do NOT call `connect()` more than once.**
+
 ```javascript
 import { connect, waitForPageLoad } from '../otto/lib/browser/client.js'
-const client = await connect() // headless by default, reuse throughout session
+
+// Call connect() ONCE at the start - headless so no visible window
+const client = await connect({ headless: true })
 ```
 
-Keep this `client` instance and reuse it for all subsequent steps. Only call `client.disconnect()` at the very end when all testing is complete.
+**Rules:**
+- Call `connect()` exactly ONCE per session
+- Reuse `client` for ALL pages and ALL operations
+- Only call `client.disconnect()` at the very end
+- NEVER create multiple browser instances
 
 ### 2. Get Changed Files
 
