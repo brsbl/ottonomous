@@ -102,9 +102,14 @@ Write a spec covering:
 
 ### 5. Approval
 
-Present draft to user. Use `AskUserQuestion` to:
-- Confirm approval, or
-- Collect specific change requests
+**Save the draft first** to `.otto/specs/{id}.md` (with `status: draft` in frontmatter).
+
+**Output the full draft spec** as rendered markdown so the user can review it inline.
+
+**Then use `AskUserQuestion`** with options:
+- "Approve"
+- "Request changes"
+- "Open in editor" — if selected, run `cursor .otto/specs/{id}.md` or `code .otto/specs/{id}.md` then ask again
 
 Revise until approved.
 

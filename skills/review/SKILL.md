@@ -34,7 +34,8 @@ model: opus
 | 1. Analyze | Categorize changes and assign reviewers |
 | 2. Review | Launch subagents to analyze changes |
 | 3. Synthesize | Collect and deduplicate findings |
-| 4. Persist | Create fix plan JSON and report |
+| 4. Approve | Present fix plan with approaches for user approval |
+| 5. Persist | Save approved fix plan to JSON |
 
 **Fix Mode** (`/review fix [priorities]`):
 | Phase | Purpose |
@@ -82,9 +83,10 @@ Categorize files by change type to assign appropriate reviewers:
 **Output Format:**
 ```
 ### [P{N}] {Brief title}
-**Location:** `file/path.ts:123`
-{1 paragraph: why it's a bug, triggers, severity}
-{Optional: up to 3 lines showing fix}
+**Files:** `file/path.ts:123` (primary), `file/path.test.ts` (add test) — if multiple
+**Problem:** {1 paragraph: why it's a bug, triggers, severity}
+**Fix:** {How to fix it — specific approach, not just "fix the bug"}
+**Done when:** {Verification condition — how to know it's fixed}
 ```
 
 ### 2. Review Changes
@@ -143,15 +145,49 @@ Present unified findings:
 **Verdict: [CORRECT / NEEDS FIXES]**
 ```
 
-### 4. Persist Fix Plan
+### 4. Present Fix Plan for Approval
 
-For each finding, define:
-- What to fix
-- Where (file, line)
-- How (approach)
+**If no findings (CORRECT):** Report "No issues found" and stop.
+
+**If findings exist**, create a fix plan with:
+- What to fix (the problem)
+- Files involved (primary file + any related files like tests or callers)
+- How (specific fix approach — required, not optional)
+- Done condition (how to verify the fix worked)
 - Dependencies (which fixes must complete first)
 
-**If no findings (CORRECT):** Skip creating fix-plan.json, report "No issues found".
+**Output the full fix plan** as rendered markdown:
+
+```markdown
+## Fix Plan
+
+### [P0] Null pointer dereference in user lookup
+**Files:** `src/auth/users.ts:47` (primary), `src/auth/users.test.ts` (add test)
+**Problem:** `user.profile` accessed without null check when user not found
+**Fix:** Add early return with 404 response when user is null
+**Done when:** Function returns 404 for missing user; test covers this case
+
+### [P1] Race condition in cache invalidation
+**Files:** `src/cache/store.ts:123` (primary)
+**Problem:** Cache read and delete not atomic, stale data returned under load
+**Fix:** Use Redis transaction (MULTI/EXEC) to make operation atomic
+**Done when:** Cache operations are atomic; no stale reads under concurrent access
+
+## Summary
+| Priority | Count |
+|----------|-------|
+| P0 | 1 |
+| P1 | 1 |
+```
+
+**Then use `AskUserQuestion`** with options:
+- "Approve and save plan"
+- "Request changes" — revise the fix approaches based on feedback
+- "Open in editor" — save draft to `.otto/reviews/fix-plan-draft.md`, open it, then ask again
+
+Revise until approved.
+
+### 5. Persist Approved Plan
 
 **Write fix plan to `.otto/reviews/fix-plan.json`:**
 ```json
@@ -162,27 +198,21 @@ For each finding, define:
   "branch": "{current branch}",
   "commit_sha": "{HEAD commit}",
   "summary": { "p0": 0, "p1": 0, "p2": 0, "p3": 0 },
-  "verdict": "CORRECT | NEEDS FIXES",
+  "verdict": "NEEDS FIXES",
   "fixes": [
     {
       "id": "f1",
       "priority": "P0",
-      "title": "Brief title",
-      "location": { "file": "path/to/file.ts", "line": 123 },
-      "description": "Why it's a bug",
-      "suggested_fix": "Optional code snippet",
+      "title": "Null pointer dereference in user lookup",
+      "problem": "user.profile accessed without null check when user not found",
+      "fix": "Add early return with 404 response when user is null",
+      "files": [
+        { "path": "src/auth/users.ts", "line": 47, "role": "primary" },
+        { "path": "src/auth/users.test.ts", "role": "add test case" }
+      ],
+      "done_when": "Function returns 404 for missing user; test covers this case",
       "status": "pending",
       "depends_on": []
-    },
-    {
-      "id": "f2",
-      "priority": "P1",
-      "title": "Another issue",
-      "location": { "file": "path/to/other.ts", "line": 456 },
-      "description": "Description",
-      "suggested_fix": "Optional",
-      "status": "pending",
-      "depends_on": ["f1"]
     }
   ]
 }
@@ -190,12 +220,7 @@ For each finding, define:
 
 **Report:**
 ```
-## Review Complete
-
-Findings: {p0} P0, {p1} P1, {p2} P2, {p3} P3
-Verdict: {CORRECT | NEEDS FIXES}
-
-Fix plan saved to `.otto/reviews/fix-plan.json`
+Fix plan approved and saved to `.otto/reviews/fix-plan.json`
 Run `/review fix` to implement all fixes, or `/review fix P0` for critical only.
 ```
 
@@ -231,9 +256,9 @@ Check if `.otto/reviews/fix-plan.json` exists:
 - 6+ unblocked: 3-5 subagents
 
 **Each subagent receives:**
-- Fix details (priority, description, location, suggested_fix)
-- Verification: "Ensure file compiles, run type check"
-- Stage: "Run `git add {file}` after fix"
+- Fix details: priority, problem, fix approach, files (with roles), done_when
+- Instructions: Implement the fix, verify done_when condition is met
+- Stage: "Run `git add {files}` after fix"
 - Update: "Mark fix status as done in fix-plan.json"
 
 **After each wave completes:**
@@ -277,9 +302,10 @@ Commit: {hash}
 
 ### [P1] Division by zero when progress is 0%
 
-**Location:** `src/components/ProgressBar.tsx:34`
-
-The percentage calculation `100 / progress` will throw when `progress` is 0, which occurs when a task is newly created. This affects TaskList which renders ProgressBar for all tasks.
+**Files:** `src/components/ProgressBar.tsx:34` (primary)
+**Problem:** The percentage calculation `100 / progress` will throw when `progress` is 0, which occurs when a task is newly created. This affects TaskList which renders ProgressBar for all tasks.
+**Fix:** Guard against zero by checking `progress > 0` before division
+**Done when:** ProgressBar renders without error when progress is 0
 
 ```tsx
 const width = progress > 0 ? (100 / progress) : 0;
