@@ -1,6 +1,6 @@
 ---
 name: test
-description: Runs lint, type check, tests, and visual verification. Auto-detects tools (ESLint/Biome, TypeScript/mypy, vitest/jest/pytest/cargo) and sets up missing ones.
+description: Runs lint, type check, tests, and visual verification. Auto-detects tools (ESLint/Biome, TypeScript/mypy, vitest/jest/pytest/cargo). Use when running tests, linting, type checking, or writing tests.
 argument-hint: <run | write | browser | all> [staged | uncommitted | branch]
 model: opus
 ---
@@ -196,7 +196,7 @@ Use the git command from the scope table above.
 
 ### Identify Testable Code
 
-Look for **pure functions** - functions with no side effects that take inputs and return outputs.
+**Only write tests for pure functions** - functions with no side effects that take inputs and return outputs.
 
 **Good candidates:**
 - Input validation/parsing (argument parsers, validators)
@@ -209,9 +209,37 @@ Look for **pure functions** - functions with no side effects that take inputs an
 - No modification of external state
 - Same inputs always produce same outputs
 
+**Do NOT write tests for:**
+- Files with only I/O operations (API calls, file reads, database queries)
+- Simple pass-through functions or wrappers
+- Configuration files or constants
+- Files that already have adequate test coverage
+
+If no testable pure functions exist in the changed files, skip test generation and report: "No testable pure functions found in changed files."
+
 ### Extract Pure Functions (if needed)
 
 If testable logic is mixed with I/O, extract pure functions into separate modules that can be imported and tested independently.
+
+### Scale Test Writers
+
+Group changed files by module and launch parallel `test-writer` subagents:
+
+| Files | Subagents | Grouping |
+|-------|-----------|----------|
+| 1-3 | 1 | All files |
+| 4-8 | 2-3 | By directory |
+| 9+ | 3-5 | By module/component |
+
+**Launch using Task tool with `subagent_type: "test-writer"`**
+
+**Each subagent receives:**
+- File list to write tests for
+- Test runner detected (vitest/jest/pytest/etc.)
+- Test file naming convention (e.g., `*.test.ts`)
+- Instruction to skip files with no pure functions
+
+Wait for all subagents to complete before running tests.
 
 ### Write Tests
 
@@ -232,12 +260,24 @@ Run the detected test command and save output to `.otto/test-results/output.log`
 
 **If tests fail:** Read the error output, fix the code, and re-run until all tests pass.
 
-## 11. Report (run/write modes)
+## 11. Update Docs (write mode only)
+
+After writing tests, update the `related_tests` field in `.otto/docs/files/` for each source file that got new tests.
+
+```bash
+# For src/auth/users.ts with new test src/auth/users.test.ts
+# Update .otto/docs/files/src-auth-users.json
+```
+
+If the doc file doesn't exist, skip this step (docs will be created on next `/doc` run).
+
+## 12. Report (run/write modes)
 
 Summarize results:
 - Lint: pass/fail (errors fixed if any)
 - Type check: pass/fail (errors fixed if any)
 - Unit test pass/fail counts
+- Tests written (write mode): count and files
 - Location of test logs
 
 ---

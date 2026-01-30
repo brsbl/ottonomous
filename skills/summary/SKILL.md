@@ -1,6 +1,6 @@
 ---
 name: summary
-description: Synthesizes code docs into user-facing HTML summary. Reads .otto/docs/, creates semantic narrative explaining what changed and why it matters. Use after /doc.
+description: Synthesizes code docs into user-facing HTML summary. Creates semantic narrative explaining what changed and why it matters. Use when creating PR summaries, release notes, or change overviews.
 argument-hint: [staged | uncommitted | branch]
 model: opus
 ---

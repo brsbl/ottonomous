@@ -1,13 +1,9 @@
 ---
 name: task
-description: Generates parallelizable task lists from specs. Breaks specs into atomic, prioritized tasks with dependencies. Activates when user has a spec and mentions tasks, implementation, breakdown, work plan, or what to do next.
+description: Generates parallelizable task lists from specs. Breaks specs into atomic, prioritized tasks with dependencies. Use when you have a spec and need tasks, implementation breakdown, or a work plan.
 argument-hint: list | <spec-id>
 model: opus
 ---
-
-# Task Generation
-
-Generate implementation tasks from an approved spec.
 
 **Argument:** $ARGUMENTS
 
@@ -99,33 +95,7 @@ Group related tasks into **sessions** — units of work that can be completed in
 - Session A depends on Session B if any task in A depends on any task in B
 - Session priority = minimum priority of its tasks
 
-### 3. Present for Confirmation
-
-Show sessions with nested task tables:
-
-```
-Proposed sessions for {spec-name}:
-
-## Session S1: {session-title} (P{priority})
-| ID | Title | Type | Priority | Depends On |
-|----|-------|------|----------|------------|
-| 1 | Setup project | backend | P0 | - |
-| 2 | Core types | backend | P0 | 1 |
-
-## Session S2: {session-title} (P{priority}, depends on S1)
-| ID | Title | Type | Priority | Depends On |
-|----|-------|------|----------|------------|
-| 3 | Core feature | frontend | P1 | 2 |
-| 4 | Feature tests | frontend | P1 | 3 |
-```
-
-Note parallelism:
-- "**Parallel sessions:** S{ids} can run concurrently"
-- "**Sequential sessions:** S1 → S2 → S3"
-
-Use `AskUserQuestion` to confirm or get changes.
-
-### 4. Save
+### 3. Save Draft
 
 Write to `.otto/tasks/{spec-id}.json`:
 ```json
@@ -157,9 +127,39 @@ Write to `.otto/tasks/{spec-id}.json`:
 }
 ```
 
+### 4. Approval
+
+Show sessions with nested task tables:
+
+```
+Proposed sessions for {spec-name}:
+
+## Session S1: {session-title} (P{priority})
+| ID | Title | Type | Priority | Depends On |
+|----|-------|------|----------|------------|
+| 1 | Setup project | backend | P0 | - |
+| 2 | Core types | backend | P0 | 1 |
+
+## Session S2: {session-title} (P{priority}, depends on S1)
+| ID | Title | Type | Priority | Depends On |
+|----|-------|------|----------|------------|
+| 3 | Core feature | frontend | P1 | 2 |
+| 4 | Feature tests | frontend | P1 | 3 |
+```
+
+Note parallelism:
+- "**Parallel sessions:** S{ids} can run concurrently"
+- "**Sequential sessions:** S1 → S2 → S3"
+
+**Use `AskUserQuestion`** with options:
+- "Approve"
+- "Request changes"
+
+Revise until approved.
+
 Stage: `git add .otto/tasks/{spec-id}.json`
 
-Confirm: "Created {n} tasks in {m} sessions for {spec-name}"
+Report: "Created {n} tasks in {m} sessions for {spec-name}"
 
 ### 5. Next Steps
 

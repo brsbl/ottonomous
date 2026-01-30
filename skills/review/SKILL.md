@@ -1,6 +1,6 @@
 ---
 name: review
-description: Reviews code changes for bugs with P0-P3 prioritized feedback. Uses parallel subagents for thorough analysis, then creates fix plans. Use /review fix to implement fixes. Activates when reviewing code, finding bugs, checking quality, or before merging.
+description: Reviews code changes for bugs with P0-P3 prioritized feedback. Uses parallel subagents for thorough analysis, then creates fix plans. Use when reviewing code, finding bugs, checking quality, or before merging. Use /review fix to implement fixes.
 argument-hint: [staged | uncommitted | branch] | fix [P0 | P0-P1 | all]
 model: opus
 ---

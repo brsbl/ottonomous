@@ -1,7 +1,8 @@
 ---
 name: reset
-description: Resets workflow artifacts (.otto/ directory). Removes docs, sessions, tasks, and specs created by the plugin. Use when starting over. Destructive - requires confirmation.
+description: Resets workflow artifacts (.otto/ directory). Removes docs, sessions, tasks, and specs. Use when starting over. Destructive - requires confirmation.
 model: opus
+model-invokable: false
 arguments:
   - name: targets
     description: "Subdirectories to clear: tasks, specs, docs, sessions, or all (default: all)"

@@ -1,6 +1,6 @@
 ---
 name: doc
-description: Documents code changes with parallel subagents. Creates structured per-file documentation optimized for agent consumption. Use after implementing features.
+description: Documents code changes with parallel subagents. Creates structured per-file documentation optimized for agent consumption. Use when documenting code changes, creating code docs, or after implementing features.
 argument-hint: [staged | uncommitted | branch]
 model: opus
 ---
