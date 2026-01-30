@@ -284,115 +284,59 @@ Summarize results:
 
 # Browser Mode
 
-Use `browser` mode for visual verification and element interaction testing.
-
-### 1. Initialize Browser
-
-**CRITICAL: Create exactly ONE browser client. Do NOT call `connect()` more than once.**
+## Setup
 
 ```javascript
 import { connect, waitForPageLoad } from '../otto/lib/browser/client.js'
 
-// Call connect() ONCE at the start - headless so no visible window
 const client = await connect({ headless: true })
 ```
 
-**Rules:**
-- Call `connect()` exactly ONCE per session
-- Reuse `client` for ALL pages and ALL operations
-- Only call `client.disconnect()` at the very end
-- NEVER create multiple browser instances
+## Navigate & Capture
 
-### 2. Get Changed Files
-
-Use the scope to determine which files changed (see git commands in table above).
-
-### 3. Identify Affected Pages
-
-Map code changes to UI locations:
-- Component files → pages that render them
-- API routes → pages that call them
-- Style files → pages that use them
-
-### 4. Navigate to Page
-
-Reuse the existing client to get or create named pages:
 ```javascript
-// Get or create a named page (reuses existing page if already open)
 const page = await client.page('test')
-await page.goto('http://localhost:3000/affected-route')
+await page.goto('http://localhost:3000')
 await waitForPageLoad(page)
-```
 
-**Page reuse:** `client.page('test')` returns the same page instance if called again with the same name. Use this to navigate to different URLs without opening new windows.
+// Screenshot
+await page.screenshot({ path: '.otto/test-screenshots/page.png' })
 
-### 5. Visual Inspection
-
-1. Capture screenshot to `.otto/test-screenshots/`
-2. Read the screenshot and check for:
-   - Layout issues (overlapping elements, broken alignment)
-   - Missing or incorrect content
-   - Styling problems (wrong colors, fonts, spacing)
-   - Error states or blank screens
-
-### 6. Get ARIA Snapshot
-
-Use `getAISnapshot()` to get the accessibility tree with refs:
-```javascript
+// ARIA snapshot
 const snapshot = await client.getAISnapshot('test')
+console.log(snapshot)
 ```
 
-**Snapshot format:**
-```yaml
-- banner:
-  - link "Home" [ref=e1]
-- main:
-  - heading "Welcome" [ref=e2]:
-    - /level: 1
-  - button "Submit" [disabled] [ref=e3]
-```
+## Interact
 
-### 7. Interact with Elements
-
-Use `selectSnapshotRef()` to get element handles:
 ```javascript
-const button = await client.selectSnapshotRef('test', 'e3')
-await button.click()
+// Click by ref
+const btn = await client.selectSnapshotRef('test', 'e3')
+await btn.click()
+
+// Fill input by ref
+const input = await client.selectSnapshotRef('test', 'e5')
+await input.fill('test@example.com')
+
+// Re-capture after interaction
+await waitForPageLoad(page)
+const newSnapshot = await client.getAISnapshot('test')
 ```
 
-**Interaction types:**
-- Click buttons, links, interactive elements
-- Fill form inputs with test data
-- Check state changes ([checked], [disabled], [expanded])
-- Verify expected behavior after interactions
+## Cleanup
 
-### 8. Multi-Step Flows
-
-Test user journeys by chaining interactions:
-1. Fill form inputs
-2. Submit form
-3. Verify success state or navigation
-4. Check for expected content changes
-
-### 9. Fix Issues
-
-If problems found:
-1. Fix the code causing the issue
-2. Re-navigate to the page
-3. Re-verify the fix
-
-### 10. Cleanup & Report
-
-**Close the browser** when all testing is complete:
 ```javascript
 await client.disconnect()
 ```
 
-Summarize results:
-- Pages tested
-- Interactions performed
-- Issues found and fixed
-- Location of screenshots
+## Workflow
+
+1. Get changed files (use scope from arguments)
+2. Map changes to affected pages
+3. Navigate, screenshot, get ARIA snapshot
+4. Verify UI state, interact as needed
+5. Fix issues found, re-verify
+6. Disconnect and report results
 
 ---
 
