@@ -34,7 +34,7 @@ model: opus
 | 1. Analyze | Categorize changes and assign reviewers |
 | 2. Review | Launch subagents to analyze changes |
 | 3. Synthesize | Collect and deduplicate findings |
-| 4. Approve | Present fix plan with approaches for user approval |
+| 4. Approve | Show findings, ask user to approve before saving |
 | 5. Persist | Save approved fix plan to JSON |
 
 **Fix Mode** (`/review fix [priorities]`):
