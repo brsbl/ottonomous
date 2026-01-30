@@ -103,7 +103,7 @@ If a file fits both categories, assign to both reviewers.
 
 Wait for all subagents to complete.
 
-### Step 3: Synthesize and Approve
+### Step 3: Synthesize Findings
 
 1. **Collect** all findings from subagents
 2. **Deduplicate** overlapping findings
@@ -128,7 +128,23 @@ Wait for all subagents to complete.
 
 **If no findings:** Report "No issues found" and stop.
 
-**If findings exist:** Use `AskUserQuestion` with options:
+### Step 4: Resolve and Approve
+
+**Resolve ambiguous fixes first.** If any fix contains multiple approaches ("Either...OR", "Option A/B"), use `AskUserQuestion` to pick one before approval:
+
+```
+[P0] Plugin discovery limited to 3 hardcoded paths
+
+The fix has multiple options:
+A) Restore two-pass file fetching (more complete, adds complexity)
+B) Remove dead countCommands/countSkills functions (simpler, less data)
+
+Which approach?
+```
+
+Update the fix with the chosen approach.
+
+**Then ask for approval** using `AskUserQuestion`:
 - "Approve and save plan"
 - "Request changes" — revise based on feedback
 - "Open in editor" — save to `.otto/reviews/fix-plan-draft.md` for editing
