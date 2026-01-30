@@ -140,8 +140,6 @@ updated: {YYYY-MM-DD}
 
 Revise until approved. On approval, update `status: draft` to `status: approved` in the file.
 
-Stage: `git add .otto/specs/{id}.md`
-
 Report: "Spec approved and saved to `.otto/specs/{id}.md`"
 
 ### 7. Next Steps

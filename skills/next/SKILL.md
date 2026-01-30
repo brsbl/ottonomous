@@ -137,8 +137,7 @@ Launching {n} priority-{p} sessions in parallel:
 
 1. Read the task from tasks.json
 2. Update task status to "in_progress"
-3. Stage: `git add .otto/tasks/{spec-id}.json`
-4. Report: "Starting task {id}: {title}"
+3. Report: "Starting task {id}: {title}"
 
 **Launch subagent using Task tool:**
 - `subagent_type`: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks)
@@ -158,8 +157,7 @@ Report: "Task {id} complete."
 
 1. Read the session and its tasks from tasks.json
 2. Update session status to "in_progress"
-3. Stage: `git add .otto/tasks/{spec-id}.json`
-4. Report: "Starting session {id}: {title} ({n} tasks)"
+3. Report: "Starting session {id}: {title} ({n} tasks)"
 
 **Launch subagent using Task tool:**
 - `subagent_type`: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks)

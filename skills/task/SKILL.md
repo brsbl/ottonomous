@@ -157,8 +157,6 @@ Note parallelism:
 
 Revise until approved.
 
-Stage: `git add .otto/tasks/{spec-id}.json`
-
 Report: "Created {n} tasks in {m} sessions for {spec-name}"
 
 ### 5. Next Steps
