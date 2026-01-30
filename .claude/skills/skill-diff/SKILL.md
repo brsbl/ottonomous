@@ -2,6 +2,7 @@
 name: skill-diff
 description: Shows side-by-side diffs of skill changes. Generates HTML comparison of before/after for changed SKILL.md files. Use when reviewing skill changes.
 argument-hint: [base-commit]
+model: opus
 ---
 
 Generate visual diffs for changed skills.

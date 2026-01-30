@@ -2,7 +2,7 @@
 name: browser
 description: Ad-hoc browser automation for data extraction, verification, and UI exploration. Use when inspecting frontend state, verifying UI works, extracting page data, or planning UI changes.
 argument-hint: [url | explore | verify | extract]
-model: sonnet
+model: opus
 allowed-tools: Read, Bash(node *), Bash(mkdir *)
 ---
 

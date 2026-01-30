@@ -108,20 +108,16 @@ Wait for all subagents to complete.
 1. **Collect** all findings from subagents
 2. **Deduplicate** overlapping findings
 3. **Sort** by priority (P0 first)
-4. **Present** unified findings with summary table:
+4. **Present** findings table for review:
 
 ```markdown
 ## Code Review Findings
 
-{Findings sorted by priority}
-
-## Summary
-| Priority | Count |
-|----------|-------|
-| P0 | {n} |
-| P1 | {n} |
-| P2 | {n} |
-| P3 | {n} |
+| P | Problem | Fix Approach | Files | Done When |
+|---|---------|--------------|-------|-----------|
+| P0 | Null pointer in user lookup | Add early return with 404 | `users.ts:47` | Returns 404 for missing user |
+| P1 | Race condition in cache | Use mutex lock | `cache.ts:23` | Concurrent requests don't corrupt |
+| ... | ... | ... | ... | ... |
 
 **Verdict: CORRECT | NEEDS FIXES**
 ```

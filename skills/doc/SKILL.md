@@ -29,10 +29,10 @@ model: opus
 
 Check if CLAUDE.md contains the doc discovery section. If not, append:
 
-```markdown
+```
 ## Code Docs
 
-Before modifying a file, check `.otto/docs/files/{file-path-with-dashes}.json` for context.
+`.otto/docs/files/{file-path-with-dashes}.json` contains purpose, exports, patterns, gotchas, and recent changes for each file in the codebase.
 ```
 
 ### 2. Analyze Changes
@@ -158,24 +158,3 @@ Location: .otto/docs/files/
 
 Run /summary to generate a user-facing summary.
 ```
-
----
-
-## Agent Discovery
-
-Agents can find documentation for any file:
-
-```bash
-# Find docs for src/auth/users.ts
-cat .otto/docs/files/src-auth-users.json
-
-# List all documented files
-ls .otto/docs/files/
-```
-
-The per-file format ensures agents working on a specific file can quickly understand:
-- What the file does (`purpose`)
-- What it exports (`exports`)
-- Patterns to follow (`patterns`)
-- What to watch out for (`gotchas`)
-- Recent changes and why (`changes`)
