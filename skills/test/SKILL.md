@@ -1,6 +1,6 @@
 ---
 name: test
-description: Runs lint, type check, tests, and visual verification. Auto-detects tools (ESLint/Biome, TypeScript/mypy, vitest/jest/pytest/cargo). Use when running tests, linting, type checking, or writing tests.
+description: Runs lint, type check, tests, and visual verification. Auto-detects tools. Use when running tests, linting, type checking, or writing tests.
 argument-hint: <run | write | browser | all> [staged | uncommitted | branch]
 model: opus
 ---
@@ -9,276 +9,119 @@ model: opus
 
 | Command | Behavior |
 |---------|----------|
-| `run` | Lint + type check + run tests (branch) |
-| `run staged` | Lint + type check + run tests (staged) |
-| `run uncommitted` | Lint + type check + run tests (uncommitted) |
-| `run branch` | Lint + type check + run tests (branch) |
-| `write` | Generate tests, then run full pipeline (branch) |
-| `write staged` | Generate tests, then run full pipeline (staged) |
-| `write uncommitted` | Generate tests, then run full pipeline (uncommitted) |
-| `write branch` | Generate tests, then run full pipeline (branch) |
-| `browser` | Visual verification + element interaction (branch) |
-| `browser staged` | Visual verification + element interaction (staged) |
-| `browser uncommitted` | Visual verification + element interaction (uncommitted) |
-| `browser branch` | Visual verification + element interaction (branch) |
-| `all` | run + browser combined (branch) |
-| `all staged` | run + browser combined (staged) |
-| `all uncommitted` | run + browser combined (uncommitted) |
-| `all branch` | run + browser combined (branch) |
+| `run` | Lint + type check + run tests |
+| `write` | Generate tests, then run pipeline |
+| `browser` | Visual verification |
+| `all` | run + browser combined |
 
-**Scope determines which files to analyze:**
+**Scope (optional, default: branch):**
 
-| Scope | Git command |
-|-------|-------------|
-| `branch` (default) | `git diff main...HEAD --name-only` |
+| Scope | Command |
+|-------|---------|
+| `branch` | `git diff main...HEAD --name-only` |
 | `staged` | `git diff --cached --name-only` |
 | `uncommitted` | `git diff --name-only` |
 
 ---
 
-## 1. Detect Test Runner
+# Run Mode
 
-| File | Runner | Command |
-|------|--------|---------|
-| `package.json` with vitest | Vitest | `npx vitest run` |
-| `package.json` with jest | Jest | `npx jest` |
-| `package.json` with `"test"` | npm | `npm test` |
-| `pyproject.toml` or `pytest.ini` | pytest | `pytest` |
+## 1. Detect Tools
+
+| Config | Tool | Command |
+|--------|------|---------|
+| `package.json` + vitest | Vitest | `npx vitest run` |
+| `package.json` + jest | Jest | `npx jest` |
+| `package.json` + `"test"` | npm | `npm test` |
+| `pyproject.toml` | pytest | `pytest` |
 | `Cargo.toml` | cargo | `cargo test` |
 | `go.mod` | go | `go test ./...` |
+| `.eslintrc*` / `eslint.config.*` | ESLint | `npx eslint .` |
+| `biome.json` | Biome | `npx biome check .` |
+| `tsconfig.json` | TypeScript | `npx tsc --noEmit` |
 
-If no test runner found, set one up:
+## 2. Setup (if missing)
 
-## 2. Setup Test Harness (if needed)
-
-**JavaScript/TypeScript:**
 ```bash
+# JS/TS test runner
 npm install -D vitest
+
+# JS/TS linter
+npm install -D eslint @eslint/js
+
+# JS/TS types
+npm install -D typescript && npx tsc --init
+
+# Python
+pip install pytest ruff mypy
 ```
 
-Create `vitest.config.js`:
+## 3. Run Pipeline
+
+```bash
+# 1. Lint
+npx eslint . --fix  # or: npx biome check . --write
+
+# 2. Type check
+npx tsc --noEmit    # or: mypy .
+
+# 3. Test
+npx vitest run      # or: pytest, cargo test, go test ./...
+```
+
+Fix errors, re-run until all pass.
+
+---
+
+# Write Mode
+
+## 1. Get Changed Files
+
+```bash
+git diff main...HEAD --name-only  # branch scope
+git diff --cached --name-only     # staged scope
+git diff --name-only              # uncommitted scope
+```
+
+## 2. Identify Testable Code
+
+Test pure functions only:
+- Input validation, parsing
+- String formatting, transformation
+- Data aggregation, calculation
+
+Skip:
+- I/O operations (fetch, fs, db)
+- Pass-through wrappers
+- Config files
+
+## 3. Launch Test Writers
+
+| Files | Subagents |
+|-------|-----------|
+| 1-3 | 1 |
+| 4-8 | 2-3 |
+| 9+ | 3-5 |
+
 ```javascript
-import { defineConfig } from 'vitest/config'
-
-export default defineConfig({
-  test: {
-    include: ['**/*.test.{js,ts}'],
-  },
-})
-```
-
-Add to `package.json`:
-```json
+// Task tool
 {
-  "scripts": {
-    "test": "vitest run"
-  }
+  subagent_type: "test-writer",
+  prompt: "Write tests for: [file list]. Runner: vitest. Convention: *.test.ts"
 }
 ```
 
-**Python:** `pip install pytest`
+## 4. Test Coverage
 
-**Rust/Go:** Built-in test runners, no setup needed.
+Each function needs:
+- Happy path
+- Edge cases (empty, null, boundary)
+- Invalid inputs
+- Error handling
 
----
+## 5. Run Pipeline
 
-## 3. Detect Linter
-
-| File/Config | Linter | Command |
-|-------------|--------|---------|
-| `.eslintrc*` or `eslint.config.*` | ESLint | `npx eslint .` |
-| `biome.json` | Biome | `npx biome check .` |
-| `pyproject.toml` with `[tool.ruff]` | Ruff | `ruff check .` |
-| `Cargo.toml` | Clippy | `cargo clippy -- -D warnings` |
-| `go.mod` | go vet | `go vet ./...` |
-
-If no linter found, set one up:
-
-## 4. Setup Linter (if needed)
-
-**JavaScript/TypeScript:**
-```bash
-npm install -D eslint @eslint/js
-```
-
-Create `eslint.config.js`:
-```javascript
-import js from '@eslint/js'
-
-export default [
-  js.configs.recommended,
-  {
-    rules: {
-      'no-unused-vars': 'warn',
-      'no-undef': 'error',
-    },
-  },
-]
-```
-
-**Python:**
-```bash
-pip install ruff
-```
-
-Add to `pyproject.toml`:
-```toml
-[tool.ruff]
-line-length = 100
-select = ["E", "F", "W"]
-```
-
-**Rust:** Clippy is included with rustup, no setup needed.
-
-**Go:** go vet is built-in, no setup needed.
-
----
-
-## 5. Detect Type Checker
-
-| File/Config | Checker | Command |
-|-------------|---------|---------|
-| `tsconfig.json` | TypeScript | `npx tsc --noEmit` |
-| `pyproject.toml` with mypy | mypy | `mypy .` |
-| `Cargo.toml` | (built into cargo) | (covered by `cargo clippy`) |
-| `go.mod` | (built into go) | (covered by `go vet`) |
-
-If no type checker found for TypeScript/Python projects, set one up:
-
-## 6. Setup Type Checker (if needed)
-
-**TypeScript (if .ts/.tsx files exist but no tsconfig.json):**
-```bash
-npm install -D typescript
-npx tsc --init
-```
-
-The generated `tsconfig.json` provides sensible defaults. Adjust `strict` and `target` as needed.
-
-**Python (if .py files exist but no mypy config):**
-```bash
-pip install mypy
-```
-
-Add to `pyproject.toml`:
-```toml
-[tool.mypy]
-python_version = "3.11"
-warn_return_any = true
-warn_unused_ignores = true
-```
-
-**Rust/Go:** Type checking is built into the compiler, no setup needed.
-
----
-
-## 7. Run Lint
-
-Run the detected linter command.
-
-**If lint errors found:** Fix the issues before proceeding. Re-run until all lint checks pass.
-
-## 8. Run Type Check
-
-Run the detected type checker command.
-
-**If type errors found:** Fix the issues before proceeding. Re-run until all type checks pass.
-
----
-
-## 9. Generate Tests (write mode)
-
-If `write` is specified, generate tests for code changes before running.
-
-### Get Changed Files
-
-Use the git command from the scope table above.
-
-### Identify Testable Code
-
-**Only write tests for pure functions** - functions with no side effects that take inputs and return outputs.
-
-**Good candidates:**
-- Input validation/parsing (argument parsers, validators)
-- String formatting/transformation (template generators, formatters)
-- Data aggregation/calculation (reducers, calculators)
-- Configuration parsing (frontmatter, YAML, JSON parsers)
-
-**Signs of pure functions:**
-- No `fs.readFile`, `fetch`, `console.log`, or other I/O
-- No modification of external state
-- Same inputs always produce same outputs
-
-**Do NOT write tests for:**
-- Files with only I/O operations (API calls, file reads, database queries)
-- Simple pass-through functions or wrappers
-- Configuration files or constants
-- Files that already have adequate test coverage
-
-If no testable pure functions exist in the changed files, skip test generation and report: "No testable pure functions found in changed files."
-
-### Extract Pure Functions (if needed)
-
-If testable logic is mixed with I/O, extract pure functions into separate modules that can be imported and tested independently.
-
-### Scale Test Writers
-
-Group changed files by module and launch parallel `test-writer` subagents:
-
-| Files | Subagents | Grouping |
-|-------|-----------|----------|
-| 1-3 | 1 | All files |
-| 4-8 | 2-3 | By directory |
-| 9+ | 3-5 | By module/component |
-
-**Launch using Task tool with `subagent_type: "test-writer"`**
-
-**Each subagent receives:**
-- File list to write tests for
-- Test runner detected (vitest/jest/pytest/etc.)
-- Test file naming convention (e.g., `*.test.ts`)
-- Instruction to skip files with no pure functions
-
-Wait for all subagents to complete before running tests.
-
-### Write Tests
-
-For each testable function, ensure coverage of:
-
-**Test Categories Checklist:**
-- [ ] **Happy path** - normal expected inputs
-- [ ] **Edge cases** - empty, null, undefined, boundary values
-- [ ] **Invalid inputs** - wrong types, malformed data
-- [ ] **Boundary conditions** - min/max values, array limits
-- [ ] **Error handling** - graceful failures, meaningful errors
-
----
-
-## 10. Run Tests
-
-Run the detected test command and save output to `.otto/test-results/output.log`.
-
-**If tests fail:** Read the error output, fix the code, and re-run until all tests pass.
-
-## 11. Update Docs (write mode only)
-
-After writing tests, update the `related_tests` field in `.otto/docs/files/` for each source file that got new tests.
-
-```bash
-# For src/auth/users.ts with new test src/auth/users.test.ts
-# Update .otto/docs/files/src-auth-users.json
-```
-
-If the doc file doesn't exist, skip this step (docs will be created on next `/doc` run).
-
-## 12. Report (run/write modes)
-
-Summarize results:
-- Lint: pass/fail (errors fixed if any)
-- Type check: pass/fail (errors fixed if any)
-- Unit test pass/fail counts
-- Tests written (write mode): count and files
-- Location of test logs
+Same as Run Mode step 3.
 
 ---
 
@@ -299,28 +142,20 @@ const page = await client.page('test')
 await page.goto('http://localhost:3000')
 await waitForPageLoad(page)
 
-// Screenshot
 await page.screenshot({ path: '.otto/test-screenshots/page.png' })
-
-// ARIA snapshot
 const snapshot = await client.getAISnapshot('test')
-console.log(snapshot)
 ```
 
 ## Interact
 
 ```javascript
-// Click by ref
 const btn = await client.selectSnapshotRef('test', 'e3')
 await btn.click()
 
-// Fill input by ref
 const input = await client.selectSnapshotRef('test', 'e5')
 await input.fill('test@example.com')
 
-// Re-capture after interaction
 await waitForPageLoad(page)
-const newSnapshot = await client.getAISnapshot('test')
 ```
 
 ## Cleanup
@@ -329,21 +164,10 @@ const newSnapshot = await client.getAISnapshot('test')
 await client.disconnect()
 ```
 
-## Workflow
-
-1. Get changed files (use scope from arguments)
-2. Map changes to affected pages
-3. Navigate, screenshot, get ARIA snapshot
-4. Verify UI state, interact as needed
-5. Fix issues found, re-verify
-6. Disconnect and report results
-
 ---
 
 # All Mode
 
-Use `all` mode to run both `run` and `browser` modes sequentially.
-
-1. Execute Run Mode (steps 1-11)
-2. Execute Browser Mode (steps 1-10)
-3. Combined report with all results
+1. Run Mode (lint, type check, test)
+2. Browser Mode (visual verification)
+3. Report results
