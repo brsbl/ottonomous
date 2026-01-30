@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
-import fs from "fs";
-import path from "path";
-import { execFileSync } from "child_process";
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
 import {
-  getFileAtCommit,
   findChangedSkills,
   generateDiffHtml,
+  generateIndexPage,
+  getFileAtCommit,
   getSkillName,
   wrapInTemplate,
-  generateIndexPage,
 } from "./skill-diff.utils.js";
 
 // Parse command line arguments
@@ -42,7 +42,9 @@ if (changedSkills.length === 0) {
 }
 
 console.log(`Found ${changedSkills.length} changed skill(s):`);
-changedSkills.forEach((skill) => console.log(`  - ${skill}`));
+for (const skill of changedSkills) {
+  console.log(`  - ${skill}`);
+}
 
 // Generate diff HTML for each changed skill
 const skillInfos = [];
@@ -53,7 +55,9 @@ for (const skillPath of changedSkills) {
 
   // Get before and after content
   const before = getFileAtCommit(baseCommit, skillPath);
-  const after = fs.existsSync(skillPath) ? fs.readFileSync(skillPath, "utf-8") : null;
+  const after = fs.existsSync(skillPath)
+    ? fs.readFileSync(skillPath, "utf-8")
+    : null;
 
   if (!before && !after) {
     console.log(`  Skipping - file doesn't exist in either version`);
@@ -96,7 +100,9 @@ function openInBrowser(filePath) {
     }
     // Windows
     else if (process.platform === "win32") {
-      execFileSync("cmd", ["/c", "start", "", absolutePath], { stdio: "ignore" });
+      execFileSync("cmd", ["/c", "start", "", absolutePath], {
+        stdio: "ignore",
+      });
     }
     // Linux
     else {
