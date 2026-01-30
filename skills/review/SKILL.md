@@ -1,6 +1,6 @@
 ---
 name: review
-description: Reviews code changes for bugs with P0-P3 prioritized feedback. Uses parallel subagents for thorough analysis, then creates fix plans. Use /review fix to implement fixes. Activates when reviewing code, finding bugs, checking quality, or before merging.
+description: Reviews code changes for bugs with P0-P3 prioritized feedback. Uses parallel subagents for thorough analysis, then creates fix plans. Use when reviewing code, finding bugs, checking quality, or before merging. Use /review fix to implement fixes.
 argument-hint: [staged | uncommitted | branch] | fix [P0 | P0-P1 | all]
 model: opus
 ---
@@ -9,16 +9,14 @@ model: opus
 
 | Command | Behavior |
 |---------|----------|
-| `/review` | Review → Synthesize → Create Fix Plan (branch diff). Launches parallel review subagents. |
-| `/review staged` | Same as above, on staged changes |
-| `/review uncommitted` | Same as above, on uncommitted changes |
-| `/review fix` or `/review fix all` | Implement ALL fixes from saved plan using parallel fix subagents |
-| `/review fix P0` | Implement only P0 fixes using parallel fix subagents |
-| `/review fix P0-P1` | Implement P0 and P1 fixes using parallel fix subagents |
+| `/review` | Review branch diff, synthesize findings, create fix plan |
+| `/review staged` | Review staged changes only |
+| `/review uncommitted` | Review uncommitted changes only |
+| `/review fix` | Implement all fixes from saved plan |
+| `/review fix P0` | Implement only P0 (critical) fixes |
+| `/review fix P0-P1` | Implement P0 and P1 fixes |
 
-**Scope (for review mode):**
-
-| Scope | Git command |
+| Scope | Git Command |
 |-------|-------------|
 | `branch` (default) | `git diff main...HEAD` |
 | `staged` | `git diff --cached` |
@@ -26,261 +24,206 @@ model: opus
 
 ---
 
-## Workflow
+## Review Criteria
 
-**Review Mode** (`/review [scope]`):
-| Phase | Purpose |
-|-------|---------|
-| 1. Analyze | Categorize changes and assign reviewers |
-| 2. Review | Launch subagents to analyze changes |
-| 3. Synthesize | Collect and deduplicate findings |
-| 4. Persist | Create fix plan JSON and report |
+Pass this section to all review subagents.
 
-**Fix Mode** (`/review fix [priorities]`):
-| Phase | Purpose |
-|-------|---------|
-| 1. Load | Load or generate fix plan |
-| 2. Filter | Select fixes by priority |
-| 3. Implement | Fix issues using parallel subagents |
-| 4. Commit | Stage and commit fixes |
+### Priority Levels
 
-### Review Criteria
-
-**Priority Levels:**
 - **P0**: Crashes, data loss, security vulnerabilities, breaks core functionality
 - **P1**: Wrong behavior affecting users, but has workarounds
 - **P2**: Edge cases, minor bugs, non-critical issues
 - **P3**: Code smells, maintainability issues, minor improvements
 
-**A finding should meet ALL of these:**
+### Detection Rules
+
+A finding must meet ALL of these:
 1. Meaningful impact on correctness, performance, usability, security, or maintainability
 2. Discrete and actionable (specific issue, not general concern)
 3. Introduced in this change (not pre-existing)
 4. Author would fix it if aware (not intentional design choice)
 5. No assumptions about unstated intent
 
-**Do NOT flag:** trivial style issues, pre-existing problems, hypothetical issues, documentation gaps, or missing tests.
+Do NOT flag: trivial style issues, pre-existing problems, hypothetical issues, documentation gaps, or missing tests.
 
-### 1. Analyze Change Types
+### Finding Format
 
-Categorize files by change type to assign appropriate reviewers:
+```
+### [P{N}] {Brief title}
+**Files:** `file/path.ts:123` (primary), `file/path.test.ts` (add test)
+**Problem:** {Why it's a bug, what triggers it, severity}
+**Fix:** {Specific approach, not just "fix the bug"}
+**Done when:** {How to verify the fix worked}
+```
 
-**Architectural changes** (use `architect-reviewer`):
+**Example:**
+```
+### [P1] Division by zero when progress is 0%
+**Files:** `src/components/ProgressBar.tsx:34` (primary)
+**Problem:** `100 / progress` throws when progress is 0, which occurs for newly created tasks
+**Fix:** Guard with `progress > 0 ? (100 / progress) : 0`
+**Done when:** ProgressBar renders without error when progress is 0
+```
+
+---
+
+## Review Mode
+
+### Step 1: Categorize Changes
+
+Get the diff and categorize files by change type:
+
+**Architectural changes** → assign to `architect-reviewer`:
 - API routes, endpoints, controllers
 - Database schemas, migrations
 - Service interfaces, dependency injection
 - Configuration files (docker, CI/CD)
 - Directory structure changes
 
-**Implementation changes** (use `senior-code-reviewer`):
+**Implementation changes** → assign to `senior-code-reviewer`:
 - UI components, styling
 - Business logic within existing patterns
 - Bug fixes, refactoring
 - Test files
 - Utility functions
 
-**Output Format:**
-```
-### [P{N}] {Brief title}
-**Location:** `file/path.ts:123`
-{1 paragraph: why it's a bug, triggers, severity}
-{Optional: up to 3 lines showing fix}
-```
+If a file fits both categories, assign to both reviewers.
 
-### 2. Review Changes
+### Step 2: Launch Review Subagents
 
-**Assign files to reviewer types:**
-- Group architectural change files → assign to `architect-reviewer` subagents
-- Group implementation change files → assign to `senior-code-reviewer` subagents
-- If file fits both categories, assign to both reviewers
+**Scale based on change size:**
+- 1-4 files: 1 subagent
+- 5-10 files: 2-3 subagents grouped by directory/component
+- 10+ files: 3-5 subagents grouped by directory/component
 
-**Always launch at minimum 1 review subagent. Scale based on change size:**
-- Small changes (1-4 files): 1 subagent
-- Medium changes (5-10 files): 2-3 subagents grouped by directory/component
-- Large changes (10+ files): 3-5 subagents grouped by directory/component
-
-**Launch subagents using Task tool:**
-- Use `subagent_type: "architect-reviewer"` for architectural files
-- Use `subagent_type: "senior-code-reviewer"` for implementation files
-
-**Each review subagent receives:**
+**Each subagent receives:**
 - File list to review
-- Diff command (use Bash tool directly, do NOT pipe output):
-  - Branch: `git diff main...HEAD -- <files>`
-  - Staged: `git diff --cached -- <files>`
-  - Uncommitted: `git diff -- <files>`
-- Priority levels from above
-- Detection criteria from above
-- Output format from above
+- Diff command: `git diff main...HEAD -- <files>` (or `--cached` / no flag for staged/uncommitted)
+- Review Criteria section above (priority levels, detection rules, finding format)
 
-Wait for all review subagents to complete before synthesizing.
+Wait for all subagents to complete.
 
-### 3. Synthesize Findings
+### Step 3: Synthesize Findings
 
-After all review subagents complete:
-
-1. **Collect** all findings
-2. **Deduplicate** if multiple reviewers covered overlapping areas
-3. **Sort by priority** — P0 first
-4. **Cross-reference** — Note related issues
-
-Present unified findings:
+1. **Collect** all findings from subagents
+2. **Deduplicate** overlapping findings
+3. **Sort** by priority (P0 first)
+4. **Present** findings table for review:
 
 ```markdown
 ## Code Review Findings
 
-{Findings sorted by priority}
+| P | Problem | Fix Approach | Files | Done When |
+|---|---------|--------------|-------|-----------|
+| P0 | Null pointer in user lookup | Add early return with 404 | `users.ts:47` | Returns 404 for missing user |
+| P1 | Race condition in cache | Use mutex lock | `cache.ts:23` | Concurrent requests don't corrupt |
+| ... | ... | ... | ... | ... |
 
-## Summary
-
-| Priority | Count |
-|----------|-------|
-| P0 | {n} |
-| P1 | {n} |
-| P2 | {n} |
-| P3 | {n} |
-
-**Verdict: [CORRECT / NEEDS FIXES]**
+**Verdict: CORRECT | NEEDS FIXES**
 ```
 
-### 4. Persist Fix Plan
+**If no findings:** Report "No issues found" and stop.
 
-For each finding, define:
-- What to fix
-- Where (file, line)
-- How (approach)
-- Dependencies (which fixes must complete first)
+### Step 4: Resolve and Approve
 
-**If no findings (CORRECT):** Skip creating fix-plan.json, report "No issues found".
+**Resolve ambiguous fixes first.** If any fix contains multiple approaches ("Either...OR", "Option A/B"), use `AskUserQuestion` to pick one before approval:
 
-**Write fix plan to `.otto/reviews/fix-plan.json`:**
+```
+[P0] Plugin discovery limited to 3 hardcoded paths
+
+The fix has multiple options:
+A) Restore two-pass file fetching (more complete, adds complexity)
+B) Remove dead countCommands/countSkills functions (simpler, less data)
+
+Which approach?
+```
+
+Update the fix with the chosen approach.
+
+**Then ask for approval** using `AskUserQuestion`:
+- "Approve and save plan"
+- "Request changes" — revise based on feedback
+- "Open in editor" — save to `.otto/reviews/fix-plan-draft.md` for editing
+
+**On approval**, write fix plan to `.otto/reviews/fix-plan.json`:
 ```json
 {
   "version": 1,
   "created": "{timestamp}",
   "scope": "{scope}",
-  "branch": "{current branch}",
-  "commit_sha": "{HEAD commit}",
+  "branch": "{branch}",
+  "commit_sha": "{HEAD}",
   "summary": { "p0": 0, "p1": 0, "p2": 0, "p3": 0 },
-  "verdict": "CORRECT | NEEDS FIXES",
+  "verdict": "NEEDS FIXES",
   "fixes": [
     {
       "id": "f1",
       "priority": "P0",
-      "title": "Brief title",
-      "location": { "file": "path/to/file.ts", "line": 123 },
-      "description": "Why it's a bug",
-      "suggested_fix": "Optional code snippet",
+      "title": "Null pointer dereference in user lookup",
+      "problem": "user.profile accessed without null check",
+      "fix": "Add early return with 404 when user is null",
+      "files": [
+        { "path": "src/auth/users.ts", "line": 47, "role": "primary" },
+        { "path": "src/auth/users.test.ts", "role": "add test" }
+      ],
+      "done_when": "Returns 404 for missing user; test covers case",
       "status": "pending",
       "depends_on": []
-    },
-    {
-      "id": "f2",
-      "priority": "P1",
-      "title": "Another issue",
-      "location": { "file": "path/to/other.ts", "line": 456 },
-      "description": "Description",
-      "suggested_fix": "Optional",
-      "status": "pending",
-      "depends_on": ["f1"]
     }
   ]
 }
 ```
 
-**Report:**
-```
-## Review Complete
-
-Findings: {p0} P0, {p1} P1, {p2} P2, {p3} P3
-Verdict: {CORRECT | NEEDS FIXES}
-
-Fix plan saved to `.otto/reviews/fix-plan.json`
-Run `/review fix` to implement all fixes, or `/review fix P0` for critical only.
-```
+Report: `Fix plan saved. Run /review fix to implement.`
 
 ---
 
-## Fix Mode (`/review fix [priorities]`)
+## Fix Mode
 
-### 1. Load Fix Plan
+### Step 1: Load and Filter
 
-Check if `.otto/reviews/fix-plan.json` exists:
-- **If not found or stale** (code changed since plan created): Automatically run `/review` first, then continue
-- **If found and valid**: Load the plan
+1. Check `.otto/reviews/fix-plan.json` exists
+   - If missing or stale (code changed): run `/review` first
+2. Filter by priority argument:
+   - `fix` or `fix all`: P0-P3
+   - `fix P0`: P0 only
+   - `fix P0-P1`: P0 and P1
+3. If no matching fixes: report "No {priority} issues to fix"
 
-### 2. Filter Fixes
+### Step 2: Implement in Waves
 
-| Argument | Fixes to include |
-|----------|------------------|
-| (none) or `all` | All priorities (P0-P3) |
-| `P0` | Only P0 (critical) |
-| `P0-P1` | P0 and P1 (critical + high) |
+**Select unblocked fixes** — where all `depends_on` are done.
 
-1. Filter fixes by requested priorities
-2. Verify files still exist
-3. If no matching fixes: Report "No {priority} issues to fix"
-
-### 3. Implement Fixes
-
-**Select unblocked fixes** — those where all `depends_on` fixes have status "done".
-
-**Scale subagents based on unblocked fix count:**
-- 1-2 unblocked: 1 subagent
-- 3-5 unblocked: 2-3 subagents
-- 6+ unblocked: 3-5 subagents
+**Scale subagents:**
+- 1-2 fixes: 1 subagent
+- 3-5 fixes: 2-3 subagents
+- 6+ fixes: 3-5 subagents
 
 **Each subagent receives:**
-- Fix details (priority, description, location, suggested_fix)
-- Verification: "Ensure file compiles, run type check"
-- Stage: "Run `git add {file}` after fix"
-- Update: "Mark fix status as done in fix-plan.json"
+- Fix details (priority, problem, fix approach, files, done_when)
+- Instructions: implement fix, verify done_when, run `git add {files}`, mark status done in fix-plan.json
 
-**After each wave completes:**
-1. Re-evaluate which fixes are now unblocked
-2. Launch next wave of subagents
-3. Repeat until all fixes are done
+**After each wave:** re-evaluate unblocked fixes, launch next wave, repeat until done.
 
-**Verify all fixes:**
-1. Run type check: `npx tsc --noEmit` (if TypeScript)
-2. Run linter: detect and run appropriate linter
-3. Report any remaining errors
+**Verify:** Run type check and linter, report errors.
 
-### 4. Commit and Cleanup
+### Step 3: Commit and Cleanup
 
-1. Stage all modified files: `git add <files>`
-2. Create commit:
+1. Create commit:
    ```
    Fix review issues P{highest}-P{lowest}
 
-   - [P{N}] Brief description of fix
-   - [P{N}] Brief description of fix
-   ...
+   - [P{N}] Brief description
+   - [P{N}] Brief description
    ```
-3. Remove fix plan: `rm .otto/reviews/fix-plan.json`
+2. Remove `.otto/reviews/fix-plan.json`
+3. Report results:
+   ```
+   ## Fix Results
+   | Issue | Status |
+   |-------|--------|
+   | [P0] Null reference | ✓ Fixed |
+   | [P1] Race condition | ✓ Fixed |
 
-**Report:**
-```
-## Fix Results
-
-| Issue | Status |
-|-------|--------|
-| [P0] Null reference | ✓ Fixed |
-| [P1] Race condition | ✓ Fixed |
-
-Commit: {hash}
-```
-
----
-
-## Example Finding
-
-### [P1] Division by zero when progress is 0%
-
-**Location:** `src/components/ProgressBar.tsx:34`
-
-The percentage calculation `100 / progress` will throw when `progress` is 0, which occurs when a task is newly created. This affects TaskList which renders ProgressBar for all tasks.
-
-```tsx
-const width = progress > 0 ? (100 / progress) : 0;
-```
+   Commit: {hash}
+   ```

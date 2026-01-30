@@ -1,6 +1,6 @@
 ---
 name: spec
-description: Writes product specifications through collaborative interview with web research. Activates when user mentions planning, requirements, design, new features, architecture, proposals, or needs a spec/PRD/blueprint.
+description: Writes product specifications through collaborative interview with web research. Use when planning, gathering requirements, designing new features, or creating a spec/PRD.
 argument-hint: list | [product idea]
 model: opus
 ---
@@ -100,15 +100,7 @@ Write a spec covering:
 - **Future Considerations** - Deferred features, extensibility
 - **Open Questions** - Unresolved decisions marked as `[TBD: reason]`
 
-### 5. Approval
-
-Present draft to user. Use `AskUserQuestion` to:
-- Confirm approval, or
-- Collect specific change requests
-
-Revise until approved.
-
-### 6. Save
+### 5. Save Draft
 
 Generate unique ID from product idea:
 ```bash
@@ -129,7 +121,7 @@ Write to `.otto/specs/{id}.md`:
 ---
 id: {id}
 name: {Product Idea}
-status: approved
+status: draft
 created: {YYYY-MM-DD}
 updated: {YYYY-MM-DD}
 ---
@@ -137,9 +129,18 @@ updated: {YYYY-MM-DD}
 {spec content}
 ```
 
-Stage: `git add .otto/specs/{id}.md`
+### 6. Approval
 
-Report: "Saved spec to `.otto/specs/{id}.md`"
+**Output the full draft spec** as rendered markdown so the user can review it inline.
+
+**Use `AskUserQuestion`** with options:
+- "Approve"
+- "Request changes"
+- "Open in editor" — open `.otto/specs/{id}.md`, then ask again
+
+Revise until approved. On approval, update `status: draft` to `status: approved` in the file.
+
+Report: "Spec approved and saved to `.otto/specs/{id}.md`"
 
 ### 7. Next Steps
 

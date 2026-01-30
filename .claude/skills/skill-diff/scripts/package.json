@@ -1,0 +1,10 @@
+{
+  "name": "skill-diff",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Local utility for visualizing skill file changes",
+  "main": "skill-diff.js",
+  "dependencies": {
+    "diff": "^7.0.0"
+  }
+}

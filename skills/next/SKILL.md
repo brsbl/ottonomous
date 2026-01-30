@@ -1,7 +1,7 @@
 ---
 name: next
-description: Pick or implement the next task or session. Selection modes return IDs; implementation modes launch subagents. Use to continue working through a task list.
-argument-hint: [task|session|{id}|batch]
+description: Pick or implement the next task or session. Use when continuing work, picking the next task, or implementing tasks from a task list.
+argument-hint: [task | session | batch]
 model: opus
 ---
 
@@ -9,22 +9,25 @@ model: opus
 
 | Argument | Behavior |
 |----------|----------|
-| (none) | Select and return next task id |
-| `task` | Select and return next task id (explicit) |
-| `session` | Select and return next session id |
-| `{task-id}` | Launch subagent to implement the specified task |
-| `{session-id}` | Launch subagent to implement all tasks in that session |
-| `batch` | Launch subagents for highest priority unblocked sessions |
+| (none) or `task` | Select and return next task id (Section 2) |
+| `session` | Select and return next session id (Section 3) |
+| `batch` | Implement all highest-priority unblocked sessions (Section 4) |
+| `{task-id}` (numeric) | Implement the specified task (Section 5) |
+| `{session-id}` (starts with "S") | Implement all tasks in the specified session (Section 6) |
+
+**Always start with Section 1 (Find Tasks).**
 
 ---
 
-### 1. Find Tasks
+## 1. Find Tasks
 
 ```bash
 ls .otto/tasks/*.json 2>/dev/null
 ```
 
 Read each file, check for pending sessions/tasks.
+
+**If no task files:** "No tasks found. Run `/task {spec-id}` to generate."
 
 **If multiple specs have pending work**, use `AskUserQuestion`:
 ```
@@ -37,9 +40,9 @@ Which spec should I work on?
 
 ---
 
-### 2. Select Next Task
+## 2. Select Task
 
-If `$ARGUMENTS` is empty or `task`, select the next task:
+Select the next task:
 
 1. Filter to tasks with status "pending"
 2. Filter to unblocked tasks (all `depends_on` tasks are "done")
@@ -52,7 +55,6 @@ If `$ARGUMENTS` is empty or `task`, select the next task:
 |-------|---------|
 | All tasks "done" | "All tasks complete for {spec-name}!" |
 | Pending but blocked | "{n} tasks blocked. Waiting on: {blocker-ids}" |
-| No tasks in file | "No tasks found. Run `/task {spec-id}` to generate." |
 
 **Report the selected task:**
 ```
@@ -66,9 +68,9 @@ Stop here — do NOT implement.
 
 ---
 
-### 2a. Select Next Session
+## 3. Select Session
 
-If `$ARGUMENTS` is `session`, select the next session:
+Select the next session:
 
 1. Filter to sessions with status "pending"
 2. Filter to unblocked sessions (all `depends_on` sessions are "done")
@@ -81,7 +83,6 @@ If `$ARGUMENTS` is `session`, select the next session:
 |-------|---------|
 | All sessions "done" | "All sessions complete for {spec-name}!" |
 | Pending but blocked | "{n} sessions blocked. Waiting on: {blocker-ids}" |
-| No sessions in file | "No sessions found. Run `/task {spec-id}` to generate." |
 
 **Report the selected session:**
 ```
@@ -95,55 +96,52 @@ Stop here — do NOT implement.
 
 ---
 
-### 2b. Batch Mode
+## 4. Batch Mode
 
-If `$ARGUMENTS` is `batch`:
+Select sessions to implement:
 
 1. Filter to sessions with status "pending"
 2. Filter to unblocked sessions (all `depends_on` sessions are "done")
 3. Select only sessions at the **highest priority level** (lowest number)
 
-**If no unblocked sessions:** Show same messages as session mode.
+**If no unblocked sessions:** Show same messages as Section 3.
 
-**If only 1 session:** Fall through to session implementation (Section 3b).
+**If only 1 session:** Continue to Section 6 with that session.
 
-**Launch parallel subagents:**
+**If multiple sessions:** Launch parallel subagents.
 
-For each session at the highest priority level, launch a subagent using the Task tool:
-- Use `run_in_background: true` for concurrent execution
-- Each subagent implements all tasks in its session following Section 3b logic
-- Mark all sessions as "in_progress" before launching
+Mark all sessions as "in_progress" before launching.
+
+For each session, launch a subagent using Task tool with `run_in_background: true`:
+- `subagent_type`: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks)
+- Provide: session title, task titles, descriptions, files, done conditions
+- Subagent implements tasks sequentially, marking each "done" as completed
 
 **Report:**
 ```
 Launching {n} priority-{p} sessions in parallel:
 - Session {id1}: {title1} ({n} tasks)
 - Session {id2}: {title2} ({n} tasks)
-...
 ```
 
 **Monitor and complete:**
 - Wait for all subagents to finish
-- Report results: "Completed {n}/{total} sessions"
+- Mark sessions as "done"
+- Stage: `git add -A`
+- Report: "Completed {n}/{total} sessions"
 - Suggest: "Run `/next batch` again for next priority level."
 
 ---
 
-### 3. Implement Task
-
-If `$ARGUMENTS` is a task id (numeric, not starting with "S"):
+## 5. Implement Task
 
 1. Read the task from tasks.json
 2. Update task status to "in_progress"
-3. Stage: `git add .otto/tasks/{spec-id}.json`
-4. Report: "Starting task {id}: {title}"
+3. Report: "Starting task {id}: {title}"
 
 **Launch subagent using Task tool:**
-- Provide task title, description, and file hints
-- Select subagent based on task type:
-  - If task type is `frontend`: use `subagent_type: "frontend-developer"`
-  - If task type is `backend`: use `subagent_type: "backend-architect"`
-- Subagent implements the task as described
+- `subagent_type`: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks)
+- Provide: task title, description, files, done condition
 - Wait for subagent to complete
 
 **After subagent completes:**
@@ -155,22 +153,16 @@ Report: "Task {id} complete."
 
 ---
 
-### 3b. Implement Session
-
-If `$ARGUMENTS` is a session id (starts with "S"):
+## 6. Implement Session
 
 1. Read the session and its tasks from tasks.json
 2. Update session status to "in_progress"
-3. Stage: `git add .otto/tasks/{spec-id}.json`
-4. Report: "Starting session {id}: {title} ({n} tasks)"
+3. Report: "Starting session {id}: {title} ({n} tasks)"
 
 **Launch subagent using Task tool:**
-- Provide session title and all task details
-- For each task, select subagent based on task type:
-  - If task type is `frontend`: use `subagent_type: "frontend-developer"`
-  - If task type is `backend`: use `subagent_type: "backend-architect"`
-- Subagent implements tasks sequentially, respecting internal `depends_on`
-- For each task: mark "in_progress", implement, mark "done", stage
+- `subagent_type`: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks)
+- Provide: session title, task titles, descriptions, files, done conditions
+- Subagent implements tasks sequentially, marking each "done" as completed
 - Wait for subagent to complete
 
 **After subagent completes:**

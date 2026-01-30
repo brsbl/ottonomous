@@ -204,8 +204,6 @@ Update `current_phase` → `summary`
 
 ### Phase: summary
 
-Create `.otto/docs/main-project-overview.md` with What/Why/Notable Details.
-
 **Invoke `/summary`**
 
 Set `status` → `completed`
