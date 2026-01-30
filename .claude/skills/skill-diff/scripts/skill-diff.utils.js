@@ -1,4 +1,4 @@
-import { execFileSync } from "child_process";
+import { execFileSync } from "node:child_process";
 import * as Diff from "diff";
 
 /**
@@ -26,7 +26,14 @@ export function getFileAtCommit(commit, filePath) {
  */
 export function findChangedSkills(baseCommit, targetCommit = null) {
   const args = targetCommit
-    ? ["diff", "--name-only", baseCommit, targetCommit, "--", "skills/*/SKILL.md"]
+    ? [
+        "diff",
+        "--name-only",
+        baseCommit,
+        targetCommit,
+        "--",
+        "skills/*/SKILL.md",
+      ]
     : ["diff", "--name-only", baseCommit, "--", "skills/*/SKILL.md"];
 
   try {
@@ -242,7 +249,7 @@ export function generateIndexPage(skills, baseCommit) {
   const skillLinks = skills
     .map(
       (skill) =>
-        `<li><a href="${skill.name}-diff.html">${skill.name}</a> <span class="path">(${skill.path})</span></li>`
+        `<li><a href="${skill.name}-diff.html">${skill.name}</a> <span class="path">(${skill.path})</span></li>`,
     )
     .join("\n      ");
 
