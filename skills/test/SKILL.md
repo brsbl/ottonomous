@@ -127,40 +127,23 @@ Same as Run Mode step 3.
 
 # Browser Mode
 
-## Setup
+Visual verification using browser automation. See [/browser skill](../browser/SKILL.md) for full API.
 
 ```javascript
 import { connect, waitForPageLoad } from '../otto/lib/browser/client.js'
 
 const client = await connect({ headless: true })
-```
-
-## Navigate & Capture
-
-```javascript
 const page = await client.page('test')
+
 await page.goto('http://localhost:3000')
 await waitForPageLoad(page)
-
 await page.screenshot({ path: '.otto/test-screenshots/page.png' })
+
+// Interact using ARIA snapshot refs
 const snapshot = await client.getAISnapshot('test')
-```
-
-## Interact
-
-```javascript
 const btn = await client.selectSnapshotRef('test', 'e3')
 await btn.click()
 
-const input = await client.selectSnapshotRef('test', 'e5')
-await input.fill('test@example.com')
-
-await waitForPageLoad(page)
-```
-
-## Cleanup
-
-```javascript
 await client.disconnect()
 ```
 
