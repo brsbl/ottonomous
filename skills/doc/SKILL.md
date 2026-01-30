@@ -139,11 +139,6 @@ mkdir -p .otto/docs/files
 }
 ```
 
-**Stage docs:**
-```bash
-git add .otto/docs/files/
-```
-
 **Report:**
 ```
 ## Documentation Updated

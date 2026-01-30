@@ -161,11 +161,6 @@ mkdir -p .otto/summaries
 node skills/summary/scripts/md-to-html.js .otto/summaries/{branch}-{date}.md .otto/summaries/{branch}-{date}.html
 ```
 
-**Stage files:**
-```bash
-git add .otto/docs/branches/ .otto/summaries/
-```
-
 **Open in browser:**
 ```bash
 open .otto/summaries/{branch}-{date}.html
