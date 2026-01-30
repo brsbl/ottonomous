@@ -1,97 +1,102 @@
 ---
 name: reset
-description: Resets project to fresh plugin state. Removes all workflow artifacts (.otto/) and generated code while preserving plugin files and git history. Use when starting over or wiping generated code. Destructive - requires confirmation.
+description: Resets workflow artifacts (.otto/ directory). Removes docs, sessions, tasks, and specs created by the plugin. Use when starting over. Destructive - requires confirmation.
 model: opus
+arguments:
+  - name: targets
+    description: "Subdirectories to clear: tasks, specs, docs, sessions, or all (default: all)"
+    required: false
 ---
 
-Reset project to freshly installed plugin state. This is destructive.
+Reset workflow data. Selectively or fully clears the `.otto/` directory.
 
-## Preserved Files (allowlist)
+## Available Targets
 
-Only these survive:
-- `.claude/` - Settings
-- `.claude-plugin/` - Marketplace metadata
-- `skills/` - Plugin skills
-- `.git/` - Version control
-- `README.md`, `LICENSE`, `.gitignore`, `.gitmodules`
+| Target | Directory | Contents |
+|--------|-----------|----------|
+| `tasks` | `.otto/tasks/` | Task lists |
+| `specs` | `.otto/specs/` | Specifications |
+| `docs` | `.otto/docs/` | Changelogs |
+| `sessions` | `.otto/sessions/` | Browser sessions |
+| `all` | `.otto/` | Everything (default) |
 
-## Removed Files
+## Usage Examples
 
-Everything else, including:
-- `.otto/` - Workflow data
-- `src/`, `dist/`, `public/` - App code
-- `node_modules/` - Dependencies
-- `package.json`, lockfiles
-- Framework dirs (`.next/`, `.nuxt/`, etc.)
-- Build configs (`vite.config.*`, `tsconfig*.json`)
+- `/reset` - Clear everything (prompts for confirmation)
+- `/reset tasks` - Clear only task lists
+- `/reset specs tasks` - Clear specs and tasks
+- `/reset sessions` - Clear browser sessions only
+- `/reset all` - Explicit full reset
 
 ## Workflow
 
-### 1. Kill Active Processes
+### 1. Check for .otto/
 
 ```bash
-for pid_file in .otto/otto/sessions/*/browser.pid; do
+if [[ ! -d ".otto" ]]; then
+  echo "No .otto/ directory found. Nothing to reset."
+  exit 0
+fi
+```
+
+If no `.otto/` exists, report and stop.
+
+### 2. Parse Arguments
+
+Map targets to directories:
+```
+tasks    -> .otto/tasks/
+specs    -> .otto/specs/
+docs     -> .otto/docs/
+sessions -> .otto/sessions/
+all      -> .otto/
+```
+
+If no arguments or `all` specified, target entire `.otto/` directory.
+
+### 3. Kill Active Processes (if sessions targeted or all)
+
+```bash
+for pid_file in .otto/sessions/*/browser.pid .otto/otto/sessions/*/browser.pid; do
   [ -f "$pid_file" ] && kill $(cat "$pid_file") 2>/dev/null || true
 done
 ```
 
-### 2. Preview Removal
+### 4. Preview Removal
 
-List items that will be removed with sizes:
+Show what will be removed with sizes:
 ```bash
-to_remove=()
-for item in ./* ./.*; do
-  [[ ! -e "$item" ]] && continue
-  name="${item##*/}"
-  case "$name" in
-    .|..|.claude|.claude-plugin|skills|.git|README.md|LICENSE|.gitignore|.gitmodules) ;;
-    *) to_remove+=("$item") ;;
-  esac
-done
-
-if [[ ${#to_remove[@]} -gt 0 ]]; then
-  du -sh "${to_remove[@]}" 2>/dev/null | sort -hr
-fi
+du -sh <target_dirs> 2>/dev/null
 ```
 
-Show user:
+Display to user:
 ```
 Will remove:
-  node_modules/      180M
-  .otto/              12M
-  src/                 2M
-  ...
-
-Preserved:
-  .claude/, skills/, .git/, README.md, LICENSE
+  .otto/tasks/ (4K)
+  .otto/specs/ (8K)
 ```
 
-### 3. Confirm
+### 5. Confirm
 
 Use `AskUserQuestion`:
-> "This will delete all app code and workflow data. Continue?"
+> "This will delete the selected workflow data. Continue?"
 > Options: "Yes, reset" / "Cancel"
 
-### 4. Remove
+### 6. Remove
 
-After confirmation:
+After confirmation, remove only the targeted directories:
 ```bash
-find . -maxdepth 1 \
-  ! -name '.' \
-  ! -name '.claude' \
-  ! -name '.claude-plugin' \
-  ! -name 'skills' \
-  ! -name '.git' \
-  ! -name 'README.md' \
-  ! -name 'LICENSE' \
-  ! -name '.gitignore' \
-  ! -name '.gitmodules' \
-  -exec rm -rf {} +
+rm -rf <target_dirs>
 ```
 
-### 5. Report
+For `all`, remove entire `.otto/`:
+```bash
+rm -rf .otto
+```
+
+### 7. Report
 
 ```
-Reset complete. Project restored to fresh plugin state.
-Run /otto to start a new build.
+Reset complete. Cleared: tasks, specs
+Run /otto or /spec to continue.
 ```
