@@ -38,9 +38,9 @@ Sessions group related tasks that share context and can be implemented together 
 
 | Skill | Description |
 |-------|-------------|
-| `/spec [idea]` | Researches best practices and interviews you to define product requirements and technical design. |
+| `/spec [idea]` | Researches best practices, interviews you to define requirements and design. |
 | `/spec list` | Lists all specs with id, name, status, and created date. |
-| `/task <spec-id>` | Creates atomic tasks from a spec, grouped into sessions. A session is a unit of work that can be completed by a single agent. |
+| `/task <spec-id>` | Creates atomic tasks grouped into sessions for single-agent completion. |
 | `/task list` | Lists all tasks and their spec, sessions, status etc. |
 
 ### Implementation
