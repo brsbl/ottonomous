@@ -34,18 +34,65 @@ Sessions group related tasks that share context and can be implemented together 
 
 ## Skills
 
+### Specification & Planning
+
 | Skill | Description |
 |-------|-------------|
-| `/spec [product idea]` | Researches best practices, analyzes your codebase, then interviews you to define product requirements and technical design. |
-| `/task <spec-id>` | Creates atomic tasks from a spec, grouped into sessions. Each session is a unit of work with shared context that can be completed by a single agent. |
-| `/next [task\|session\|id\|batch]` | `task`/`session`: returns next id. `{id}`: launches subagent to implement. `batch`: parallel sessions. Uses `frontend-developer` or `backend-architect` based on task type. |
-| `/test <run\|write> [scope]` | `run` lint, type check, run tests, verify UI. `write` set up tests, linting and typechecking (if needed). |
-| `/review [scope]` | Multi-agent code review split by directory or component. Uses `architect-reviewer` and `senior-code-reviewer` based on change type. Creates a fix plan for issues found. |
-| `/review fix [P0\|P0-P1\|all]` | Multi-agent fix implementation. Runs fixes from the plan in parallel batches. |
-| `/doc [scope]` | Documents code changes with what/why/notable details. One entry per logical change. |
-| `/summary` | Combines `/doc` entries into styled HTML summary that opens in your browser. |
-| `/otto <product idea>` | Autonomous spec → tasks → [next/test/review/doc] per session → summary. |
-| `/reset` | Resets project to fresh state. Removes `.otto/` and generated code, preserves plugin files. |
+| `/spec <idea>` | Research best practices, analyze codebase, interview to define requirements and technical design |
+| `/spec list` | List all specs with id, name, status, and created date |
+| `/task <spec-id>` | Generate atomic tasks from approved spec, grouped into parallelizable sessions |
+| `/task list` | List all task files with spec, sessions, tasks, and progress |
+
+### Implementation
+
+| Skill | Description |
+|-------|-------------|
+| `/next` | Return next task id (same as `/next task`) |
+| `/next task` | Return next unblocked task id |
+| `/next session` | Return next unblocked session id |
+| `/next <id>` | Implement task (numeric) or session (S1, S2, etc.) with specialized subagent |
+| `/next batch` | Implement all highest-priority unblocked sessions in parallel |
+
+### Testing
+
+| Skill | Description |
+|-------|-------------|
+| `/test run [scope]` | Lint + type check + run tests |
+| `/test write [scope]` | Generate tests for changed files, then run pipeline |
+| `/test browser [scope]` | Visual verification with browser automation |
+| `/test all [scope]` | Run + browser combined |
+
+### Code Review
+
+| Skill | Description |
+|-------|-------------|
+| `/review [scope]` | Multi-agent code review with P0-P3 prioritized findings, creates fix plan |
+| `/review fix` | Implement all fixes from saved plan |
+| `/review fix P0` | Implement only P0 (critical) fixes |
+| `/review fix P0-P1` | Implement P0 and P1 fixes |
+
+### Documentation
+
+| Skill | Description |
+|-------|-------------|
+| `/doc [scope]` | Document code changes with parallel subagents, creates per-file JSON docs |
+| `/summary [scope]` | Synthesize docs into styled HTML summary, opens in browser |
+
+### Automation
+
+| Skill | Description |
+|-------|-------------|
+| `/otto <idea>` | Autonomous end-to-end: spec → tasks → [next/test/review/doc] per session → summary |
+| `/reset [targets]` | Reset workflow data. Targets: `tasks`, `specs`, `docs`, `sessions`, `all` (default) |
+
+### Utilities
+
+| Skill | Description |
+|-------|-------------|
+| `/browser <url>` | Navigate to URL, capture screenshot and ARIA snapshot |
+| `/browser explore` | Interactive browser exploration |
+| `/browser verify <description>` | Verify specific UI behavior or state |
+| `/browser extract <description>` | Extract specific data from the frontend |
 
 **Scopes:** `staged`, `uncommitted`, `branch` (default)
 
@@ -56,7 +103,9 @@ Sessions group related tasks that share context and can be implemented together 
 ├── specs/                   # Specification documents (.md)
 ├── tasks/                   # Sessions and tasks (.json)
 ├── reviews/                 # Review fix plans (.json)
-├── docs/                    # Change documentation entries
+├── docs/                    # Per-file documentation (.json)
+│   ├── files/               # Individual file docs
+│   └── branches/            # Branch snapshots
 ├── summaries/               # Generated HTML summaries
 └── otto/
     └── sessions/            # Otto session state (state.json)
