@@ -38,10 +38,10 @@ Sessions group related tasks that share context and can be implemented together 
 
 | Skill | Description |
 |-------|-------------|
-| `/spec [idea]` | Researches best practices, analyzes your codebase, then interviews you to define product requirements and technical design. |
+| `/spec [idea]` | Researches best practices and interviews you to define product requirements and technical design. |
 | `/spec list` | Lists all specs with id, name, status, and created date. |
-| `/task <spec-id>` | Creates atomic tasks from a spec, grouped into sessions. Each session is a unit of work with shared context that can be completed by a single agent. |
-| `/task list` | Lists all task files with spec, sessions, tasks, and progress. |
+| `/task <spec-id>` | Creates atomic tasks from a spec, grouped into sessions. A session is a unit of work that can be completed by a single agent. |
+| `/task list` | Lists all tasks and their spec, sessions, status etc. |
 
 ### Implementation
 
@@ -49,8 +49,8 @@ Sessions group related tasks that share context and can be implemented together 
 |-------|-------------|
 | `/next` | Returns next task id. |
 | `/next session` | Returns next session id. |
-| `/next <id>` | Launches subagent to implement task (numeric) or session (S1, S2, etc.). Uses `frontend-developer` or `backend-architect` based on task type. |
-| `/next batch` | Implements all highest-priority unblocked sessions in parallel. |
+| `/next <id>` | Launches subagents to implement a task or session. Uses `frontend-developer` or `backend-architect` agents based on task type. |
+| `/next batch` | Implements all highest-priority unblocked sessions in parallel with subagents. |
 
 ### Testing
 
@@ -67,7 +67,7 @@ Sessions group related tasks that share context and can be implemented together 
 
 | Skill | Description |
 |-------|-------------|
-| `/review` | Multi-agent code review split by directory or component. Uses `architect-reviewer` and `senior-code-reviewer` based on change type. Creates a fix plan for issues found. |
+| `/review` | Multi-agent code review split by directory or component. Uses `architect-reviewer` and `senior-code-reviewer` agents based on change type. Creates a fix plan for issues found. |
 | `/review fix` | Multi-agent fix implementation. Runs all fixes from the plan in parallel batches. |
 | `/review fix P0` | Runs only P0 (critical) fixes. |
 | `/review fix P0-P1` | Runs P0 and P1 fixes. |
