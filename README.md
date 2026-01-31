@@ -38,63 +38,66 @@ Sessions group related tasks that share context and can be implemented together 
 
 | Skill | Description |
 |-------|-------------|
-| `/spec <idea>` | Research best practices, analyze codebase, interview to define requirements and technical design |
-| `/spec list` | List all specs with id, name, status, and created date |
-| `/task <spec-id>` | Generate atomic tasks from approved spec, grouped into parallelizable sessions |
-| `/task list` | List all task files with spec, sessions, tasks, and progress |
+| `/spec [idea]` | Researches best practices, analyzes your codebase, then interviews you to define product requirements and technical design. |
+| `/spec list` | Lists all specs with id, name, status, and created date. |
+| `/task <spec-id>` | Creates atomic tasks from a spec, grouped into sessions. Each session is a unit of work with shared context that can be completed by a single agent. |
+| `/task list` | Lists all task files with spec, sessions, tasks, and progress. |
 
 ### Implementation
 
 | Skill | Description |
 |-------|-------------|
-| `/next` | Return next task id (same as `/next task`) |
-| `/next task` | Return next unblocked task id |
-| `/next session` | Return next unblocked session id |
-| `/next <id>` | Implement task (numeric) or session (S1, S2, etc.) with specialized subagent |
-| `/next batch` | Implement all highest-priority unblocked sessions in parallel |
+| `/next` | Returns next task id. |
+| `/next session` | Returns next session id. |
+| `/next <id>` | Launches subagent to implement task (numeric) or session (S1, S2, etc.). Uses `frontend-developer` or `backend-architect` based on task type. |
+| `/next batch` | Implements all highest-priority unblocked sessions in parallel. |
 
 ### Testing
 
 | Skill | Description |
 |-------|-------------|
-| `/test run [scope]` | Lint + type check + run tests |
-| `/test write [scope]` | Generate tests for changed files, then run pipeline |
-| `/test browser [scope]` | Visual verification with browser automation |
-| `/test all [scope]` | Run + browser combined |
+| `/test run [scope]` | Lint, type check, run tests. |
+| `/test write [scope]` | Generate tests, then run pipeline. |
+| `/test browser [scope]` | Visual verification with browser automation. |
+| `/test all [scope]` | Run + browser combined. |
+
+**Scopes:** `staged`, `uncommitted`, `branch` (default)
 
 ### Code Review
 
 | Skill | Description |
 |-------|-------------|
-| `/review [scope]` | Multi-agent code review with P0-P3 prioritized findings, creates fix plan |
-| `/review fix` | Implement all fixes from saved plan |
-| `/review fix P0` | Implement only P0 (critical) fixes |
-| `/review fix P0-P1` | Implement P0 and P1 fixes |
+| `/review [scope]` | Multi-agent code review split by directory or component. Uses `architect-reviewer` and `senior-code-reviewer` based on change type. Creates a fix plan for issues found. |
+| `/review fix` | Multi-agent fix implementation. Runs all fixes from the plan in parallel batches. |
+| `/review fix P0` | Runs only P0 (critical) fixes. |
+| `/review fix P0-P1` | Runs P0 and P1 fixes. |
+
+**Scopes:** `staged`, `uncommitted`, `branch` (default)
 
 ### Documentation
 
 | Skill | Description |
 |-------|-------------|
-| `/doc [scope]` | Document code changes with parallel subagents, creates per-file JSON docs |
-| `/summary [scope]` | Synthesize docs into styled HTML summary, opens in browser |
+| `/doc [scope]` | Documents code changes with what/why/notable details. One entry per logical change. |
+| `/summary [scope]` | Combines `/doc` entries into styled HTML summary that opens in your browser. |
+
+**Scopes:** `staged`, `uncommitted`, `branch` (default)
 
 ### Automation
 
 | Skill | Description |
 |-------|-------------|
-| `/otto <idea>` | Autonomous end-to-end: spec → tasks → [next/test/review/doc] per session → summary |
-| `/reset [targets]` | Reset workflow data. Targets: `tasks`, `specs`, `docs`, `sessions`, `all` (default) |
+| `/otto <idea>` | Autonomous spec → tasks → [next/test/review/doc] per session → summary. |
+| `/reset [targets]` | Resets workflow data. Targets: `tasks`, `specs`, `docs`, `sessions`, `all` (default). |
 
 ### Utilities
 
 | Skill | Description |
 |-------|-------------|
-| `/browser <url>` | Navigate to URL, capture screenshot and ARIA snapshot |
-| `/browser explore` | Interactive browser exploration |
-| `/browser verify <description>` | Verify specific UI behavior or state |
-| `/browser extract <description>` | Extract specific data from the frontend |
-
-**Scopes:** `staged`, `uncommitted`, `branch` (default)
+| `/browser <url>` | Navigate to URL, capture screenshot and ARIA snapshot. |
+| `/browser explore` | Interactive browser exploration. |
+| `/browser verify <desc>` | Verify specific UI behavior or state. |
+| `/browser extract <desc>` | Extract specific data from the frontend. |
 
 ## Architecture
 
