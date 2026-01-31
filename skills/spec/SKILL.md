@@ -131,14 +131,16 @@ updated: {YYYY-MM-DD}
 
 ### 6. Approval
 
-**Output the full draft spec** as rendered markdown so the user can review it inline.
+**Output the full spec** as rendered markdown so the user can review it inline.
 
 **Use `AskUserQuestion`** with options:
 - "Approve"
 - "Request changes"
 - "Open in editor" — open `.otto/specs/{id}.md`, then ask again
 
-Revise until approved. On approval, update `status: draft` to `status: approved` in the file.
+**After each revision:** Output the full updated spec as rendered markdown before asking for approval again. Revise until approved.
+
+On approval, update `status: draft` to `status: approved` in the file.
 
 Report: "Spec approved and saved to `.otto/specs/{id}.md`"
 
