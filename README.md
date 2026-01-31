@@ -1,9 +1,9 @@
 # Ottonomous 🚌💨
 
-Claude Code skills for every stage of product development: spec writing, task prioritization, testing, code review, and documentation. 
+Claude Code skills for every stage of product development: spec writing, task prioritization, testing, code review, and documentation.
 
 Use each skill individually, or let `/otto` run the full loop with subagents.
-  
+
 <img width="3072" height="1428" alt="image 1 (1)" src="https://github.com/user-attachments/assets/2e8b420b-8b85-43af-9db7-764f6d4dc269" />
 
 ## Installation
@@ -49,8 +49,8 @@ Sessions group related tasks that share context and can be implemented together 
 |-------|-------------|
 | `/next` | Returns next task id. |
 | `/next session` | Returns next session id. |
-| `/next <id>` | Launches subagents to implement a task or session. Uses `frontend-developer` or `backend-architect` agents based on task type. |
-| `/next batch` | Implements all highest-priority unblocked sessions in parallel with subagents. |
+| `/next <id>` | Launches subagent to implement task or session. Uses `frontend-developer` or `backend-architect`. |
+| `/next batch` | Implements all highest-priority unblocked sessions in parallel. |
 
 ### Testing
 
@@ -67,10 +67,10 @@ Sessions group related tasks that share context and can be implemented together 
 
 | Skill | Description |
 |-------|-------------|
-| `/review` | Multi-agent code review split by directory or component. Uses `architect-reviewer` and `senior-code-reviewer` agents based on change type. Creates a fix plan for issues found. |
-| `/review fix` | Multi-agent fix implementation. Runs all fixes from the plan in parallel batches. |
-| `/review fix P0` | Runs only P0 (critical) fixes. |
-| `/review fix P0-P1` | Runs P0 and P1 fixes. |
+| `/review` | Multi-agent review with P0-P3 findings. Uses `architect-reviewer` and `senior-code-reviewer`. |
+| `/review fix` | Implements all fixes from plan in parallel batches. |
+| `/review fix P0` | Implements only P0 (critical) fixes. |
+| `/review fix P0-P1` | Implements P0 and P1 fixes. |
 
 **Scope:** `staged`, `uncommitted`, `branch` (default)
 
@@ -78,8 +78,8 @@ Sessions group related tasks that share context and can be implemented together 
 
 | Skill | Description |
 |-------|-------------|
-| `/doc` | Documents code changes with what/why/notable details. One entry per logical change. |
-| `/summary` | Combines `/doc` entries into styled HTML summary that opens in your browser. |
+| `/doc` | Creates per-file documentation with parallel subagents. Optimized for agent consumption. |
+| `/summary` | Synthesizes docs into semantic HTML summary explaining what changed and why. |
 
 **Scope:** `staged`, `uncommitted`, `branch` (default)
 
