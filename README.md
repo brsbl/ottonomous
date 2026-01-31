@@ -21,6 +21,7 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 - [Claude Code](https://claude.ai/claude-code) (CLI)
 - Node.js 18+
 - Git
+- Playwright (`npx playwright install`)
 
 ## Workflow
 
