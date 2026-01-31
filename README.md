@@ -56,32 +56,32 @@ Sessions group related tasks that share context and can be implemented together 
 
 | Skill | Description |
 |-------|-------------|
-| `/test run [scope]` | Lint, type check, run tests. |
-| `/test write [scope]` | Generate tests, then run pipeline. |
-| `/test browser [scope]` | Visual verification with browser automation. |
-| `/test all [scope]` | Run + browser combined. |
+| `/test run` | Lint, type check, run tests. |
+| `/test write` | Generate tests, then run pipeline. |
+| `/test browser` | Visual verification with browser automation. |
+| `/test all` | Run + browser combined. |
 
-**Scopes:** `staged`, `uncommitted`, `branch` (default)
+**Scope:** `staged`, `uncommitted`, `branch` (default)
 
 ### Code Review
 
 | Skill | Description |
 |-------|-------------|
-| `/review [scope]` | Multi-agent code review split by directory or component. Uses `architect-reviewer` and `senior-code-reviewer` based on change type. Creates a fix plan for issues found. |
+| `/review` | Multi-agent code review split by directory or component. Uses `architect-reviewer` and `senior-code-reviewer` based on change type. Creates a fix plan for issues found. |
 | `/review fix` | Multi-agent fix implementation. Runs all fixes from the plan in parallel batches. |
 | `/review fix P0` | Runs only P0 (critical) fixes. |
 | `/review fix P0-P1` | Runs P0 and P1 fixes. |
 
-**Scopes:** `staged`, `uncommitted`, `branch` (default)
+**Scope:** `staged`, `uncommitted`, `branch` (default)
 
 ### Documentation
 
 | Skill | Description |
 |-------|-------------|
-| `/doc [scope]` | Documents code changes with what/why/notable details. One entry per logical change. |
-| `/summary [scope]` | Combines `/doc` entries into styled HTML summary that opens in your browser. |
+| `/doc` | Documents code changes with what/why/notable details. One entry per logical change. |
+| `/summary` | Combines `/doc` entries into styled HTML summary that opens in your browser. |
 
-**Scopes:** `staged`, `uncommitted`, `branch` (default)
+**Scope:** `staged`, `uncommitted`, `branch` (default)
 
 ### Automation
 
@@ -96,8 +96,8 @@ Sessions group related tasks that share context and can be implemented together 
 |-------|-------------|
 | `/browser <url>` | Navigate to URL, capture screenshot and ARIA snapshot. |
 | `/browser explore` | Interactive browser exploration. |
-| `/browser verify <desc>` | Verify specific UI behavior or state. |
-| `/browser extract <desc>` | Extract specific data from the frontend. |
+| `/browser verify` | Verify specific UI behavior or state. |
+| `/browser extract` | Extract specific data from the frontend. |
 
 ## Architecture
 
