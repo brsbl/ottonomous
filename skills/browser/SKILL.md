@@ -1,6 +1,6 @@
 ---
 name: browser
-description: Ad-hoc browser automation for data extraction, verification, and UI exploration. Use when inspecting frontend state, verifying UI works, extracting page data, or planning UI changes.
+description: Browser automation with persistent page state for navigation, screenshots, forms, data extraction, and testing. Use when inspecting UI, taking screenshots, filling forms, extracting page data, verifying frontend behavior, or automating browser workflows.
 argument-hint: [url | explore | verify | extract]
 model: opus
 allowed-tools: Read, Bash(node *), Bash(mkdir *)
@@ -17,13 +17,52 @@ allowed-tools: Read, Bash(node *), Bash(mkdir *)
 
 ---
 
+## Choosing Your Approach
+
+- **Local/source-available sites**: Read source code first to write selectors directly
+- **Unknown layouts**: Use `getAISnapshot()` for element discovery and `selectSnapshotRef()` for interactions
+- **Visual feedback**: Take screenshots to observe results
+
+---
+
 ## Setup
+
+Start the browser server before running scripts:
+
+```bash
+node skills/otto/lib/browser/server.js &
+```
+
+Wait for "Ready" message, then connect:
 
 ```javascript
 import { connect, waitForPageLoad } from 'skills/otto/lib/browser/client.js'
 
 const client = await connect({ headless: true })
 ```
+
+---
+
+## Writing Scripts
+
+Run scripts using `npx tsx` with heredocs for inline execution.
+
+**Key Principles:**
+1. Small scripts doing one action each
+2. Evaluate state at completion
+3. Use descriptive page names
+4. Call `await client.disconnect()` to exit (pages persist)
+5. Use plain JavaScript in `page.evaluate()` (no TypeScript syntax)
+
+---
+
+## Workflow Loop
+
+1. Write script performing one action
+2. Run and observe output
+3. Evaluate results and current state
+4. Decide: complete or need another script?
+5. Repeat until task complete
 
 ---
 
@@ -62,6 +101,36 @@ const newSnapshot = await client.getAISnapshot('main')
 
 ---
 
+## Waiting
+
+```javascript
+await waitForPageLoad(page)
+await page.waitForSelector('.results')
+await page.waitForURL('**/success')
+```
+
+---
+
+## No TypeScript in Browser Context
+
+Code in `page.evaluate()` runs in browser context without TypeScript support. Use plain JavaScript only—type annotations break at runtime.
+
+```javascript
+// ✓ Correct
+await page.evaluate(() => {
+  const items = document.querySelectorAll('.item')
+  return items.length
+})
+
+// ✗ Wrong - TypeScript syntax fails
+await page.evaluate(() => {
+  const items: NodeListOf<Element> = document.querySelectorAll('.item')
+  return items.length
+})
+```
+
+---
+
 ## Cleanup
 
 ```javascript
@@ -83,3 +152,22 @@ await client.disconnect()
 ```
 
 Use `[ref=eN]` values with `selectSnapshotRef()` to interact.
+
+---
+
+## Error Recovery
+
+Page state persists after failures. Debug using screenshots and state inspection to evaluate current conditions before next action.
+
+```javascript
+// After an error, reconnect and inspect
+const client = await connect({ headless: true })
+const snapshot = await client.getAISnapshot('main')
+await client.page('main').then(p => p.screenshot({ path: '.otto/screenshots/debug.png' }))
+```
+
+---
+
+## Scraping Data
+
+For large datasets, intercept and replay network requests rather than scrolling the DOM. See [references/scraping.md](references/scraping.md) for the complete guide covering request capture, schema discovery, and paginated API replay.
