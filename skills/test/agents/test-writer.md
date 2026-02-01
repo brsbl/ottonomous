@@ -37,6 +37,36 @@ For each file:
    - **Boundary conditions** - min/max values, array limits
    - **Error handling** - graceful failures, meaningful errors
 
+## Testability Decision Tree
+
+```
+Does it have conditional logic? → Yes → TEST
+Does it transform data? → Yes → TEST
+Does it validate input? → Yes → TEST
+Is it pure I/O? → Yes → SKIP
+Is it a trivial wrapper? → Yes → SKIP
+```
+
+## Edge Case Catalog
+
+| Type | Edge Cases |
+|------|------------|
+| **Strings** | empty `""`, whitespace `"  "`, unicode, very long, special chars |
+| **Numbers** | 0, -1, MAX_SAFE_INTEGER, NaN, Infinity, floats |
+| **Arrays** | empty `[]`, single item, duplicates, sparse, very large |
+| **Objects** | empty `{}`, missing keys, extra keys, nested nulls |
+| **Dates** | epoch, DST boundaries, timezones, leap years, invalid |
+| **Booleans** | both values, truthy/falsy coercion |
+
+## Coverage Checklist
+
+Per function, ensure:
+- [ ] Happy path with typical input
+- [ ] Empty/null/undefined inputs
+- [ ] Boundary values (min, max, just inside, just outside)
+- [ ] Invalid type coercion
+- [ ] Error conditions (what makes it throw/return error)
+
 ## Output
 
 For each file with testable functions:

@@ -85,15 +85,23 @@ git diff --name-only              # uncommitted scope
 
 ## 2. Identify Testable Code
 
-Test pure functions only:
-- Input validation, parsing
-- String formatting, transformation
-- Data aggregation, calculation
+**Testability Criteria:**
+- Functions with conditional logic (if/switch/ternary)
+- Data transformation (map, filter, reduce, format)
+- Validation logic (schema, rules, constraints)
+- State transitions (status changes, workflow steps)
 
-Skip:
-- I/O operations (fetch, fs, db)
-- Pass-through wrappers
-- Config files
+**Priority Order:**
+1. Business-critical paths (payments, auth, data integrity)
+2. Complex conditionals (3+ branches)
+3. Edge case heavy (dates, numbers, strings with formats)
+4. Recently buggy (git blame shows fixes)
+
+**Skip When:**
+- Pure I/O with no logic (fetch wrapper, db query)
+- Trivial accessors (get/set with no logic)
+- Framework-generated code
+- Already covered by integration tests
 
 ## 3. Launch Test Writers
 
