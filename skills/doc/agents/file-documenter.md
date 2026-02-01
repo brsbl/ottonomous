@@ -1,7 +1,7 @@
 ---
 name: file-documenter
-description: Documents code files for agent consumption. Extracts purpose, exports, patterns, dependencies, changes, and gotchas from source files.
-model: sonnet
+description: Documents code files for agent consumption. Extracts purpose, exports, patterns, dependencies, changes, gotchas, data flow, performance notes, and subtle bugs from source files.
+model: opus
 color: blue
 ---
 
@@ -28,6 +28,9 @@ For each file:
    - **changes**: what changed and why (from diff context)
    - **gotchas**: non-obvious behavior, edge cases, things that would trip up someone unfamiliar
    - **related_tests**: test file paths if any
+   - **data_flow**: how data moves through the file (inputs, outputs, mutations)
+   - **performance_notes**: scan frequency changes, read/write patterns, potential bottlenecks (N+1 queries, unnecessary iterations)
+   - **subtle_bugs**: race conditions, stale data risks, cache invalidation, timing issues
 
 ## Output
 
@@ -44,7 +47,10 @@ Return a JSON array:
     "dependencies": {"internal": [...], "external": [...]},
     "changes": [{"type": "added|modified|removed", "what": "...", "why": "...", "lines": "..."}],
     "gotchas": ["..."],
-    "related_tests": ["..."]
+    "related_tests": ["..."],
+    "data_flow": {"inputs": [...], "outputs": [...], "mutations": [...]},
+    "performance_notes": ["..."],
+    "subtle_bugs": ["..."]
   }
 ]
 ```

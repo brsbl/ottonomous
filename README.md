@@ -58,9 +58,9 @@ Every phase has explicit verification:
 
 | Skill | Description |
 |-------|-------------|
-| `/spec [idea]` | Researches best practices, interviews you to define requirements and design. |
+| `/spec [idea]` | Researches best practices, interviews you to define requirements and design. Includes architect review with S0-S2 findings. |
 | `/spec list` | Lists all specs with id, name, status, and created date. |
-| `/task <spec-id>` | Creates atomic tasks grouped into sessions for single-agent completion. |
+| `/task <spec-id>` | Creates atomic tasks grouped into sessions. Includes review with T0-T2 findings for task structure. |
 | `/task list` | Lists all tasks and their spec, sessions, status etc. |
 
 ### Implementation
@@ -69,7 +69,7 @@ Every phase has explicit verification:
 |-------|-------------|
 | `/next` | Returns next task id. |
 | `/next session` | Returns next session id. |
-| `/next <id>` | Launches subagent to implement task or session. Uses `frontend-developer` or `backend-architect`. |
+| `/next <id>` | Launches subagent to implement task or session. Plans first, then implements. |
 | `/next batch` | Implements all highest-priority unblocked sessions in parallel. |
 
 ### Testing
@@ -107,7 +107,7 @@ Every phase has explicit verification:
 
 | Skill | Description |
 |-------|-------------|
-| `/otto <idea>` | Autonomous spec → tasks → [next/test/review/doc] per session → summary. |
+| `/otto <idea>` | Autonomous spec → tasks → [next/test/review/doc] per session → summary. Best for isolated components, scoped migrations, and prototyping. Not recommended for building apps end-to-end. |
 | `/reset [targets]` | Resets workflow data. Targets: `tasks`, `specs`, `docs`, `sessions`, `all` (default). |
 
 ### Utilities
@@ -152,8 +152,6 @@ skills/                      # Skill implementations (SKILL.md + support files)
 ## Feedback
 
 Found a bug or have a feature request? [Open an issue](https://github.com/brsbl/ottonomous/issues).
-
-Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License
 

@@ -178,7 +178,7 @@ updated: {YYYY-MM-DD}
 **Use `AskUserQuestion`** with options:
 - "Approve"
 - "Request changes"
-- "Open in editor" — open `.otto/specs/{id}.md`, then ask again
+- "Open in editor" — run `open .otto/specs/{id}.md`, then ask again
 
 **After each revision:** Output the full updated spec as rendered markdown before asking for approval again. Revise until approved.
 

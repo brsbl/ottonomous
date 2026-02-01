@@ -32,7 +32,7 @@ Check if CLAUDE.md contains the doc discovery section. If not, append:
 ```
 ## Code Docs
 
-`.otto/docs/files/{file-path-with-dashes}.json` contains purpose, exports, patterns, gotchas, and recent changes for each file in the codebase.
+`.otto/docs/files/{file-path-with-dashes}.json` contains purpose, exports, patterns, gotchas, data flow, performance notes, subtle bugs, and recent changes for each file in the codebase.
 ```
 
 ### 2. Analyze Changes
@@ -83,7 +83,7 @@ git diff main...HEAD -- src/auth/users.ts src/auth/types.ts
 For each file:
 1. Read the full file to understand context
 2. Analyze the diff to understand what changed
-3. Extract: purpose, exports, patterns, dependencies, changes, gotchas, related_tests
+3. Extract: purpose, exports, patterns, dependencies, changes, gotchas, related_tests, data_flow, performance_notes, subtle_bugs
 4. Return JSON array per the output format
 ```
 
@@ -95,7 +95,7 @@ Collect outputs from all subagents:
 
 1. **Parse JSON** from each subagent response
 2. **Merge with existing docs** if file already has documentation in `.otto/docs/files/`
-   - Update `purpose`, `exports`, `patterns`, `dependencies`, `gotchas` with latest
+   - Update `purpose`, `exports`, `patterns`, `dependencies`, `gotchas`, `data_flow`, `performance_notes`, `subtle_bugs` with latest
    - Append new entries to `changes` array (don't replace history)
 3. **Set timestamps** - `updated` field on each file doc
 
@@ -125,6 +125,19 @@ mkdir -p .otto/docs/files
   },
   "gotchas": ["Returns 404 for soft-deleted users, not null"],
   "related_tests": ["src/auth/users.test.ts"],
+  "data_flow": {
+    "inputs": ["User ID from request params", "Profile data from request body"],
+    "outputs": ["User object to response", "Events to message queue"],
+    "mutations": ["Updates user table", "Invalidates user cache"]
+  },
+  "performance_notes": [
+    "Queries user table on every request (no caching)",
+    "N+1 when fetching user with profile - consider JOIN"
+  ],
+  "subtle_bugs": [
+    "Race condition: concurrent profile updates can lose data",
+    "Stale cache if queue consumer fails after DB write"
+  ],
   "changes": [
     {
       "branch": "feature/user-profiles",

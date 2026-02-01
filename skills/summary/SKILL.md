@@ -109,17 +109,23 @@ Parse to get `{org}/{repo}` for GitHub links.
 ## Semantic Changes by Component
 
 ### [src/auth/users.ts](https://github.com/{org}/{repo}/blob/{branch}/src/auth/users.ts)
+📄 [File docs](.otto/docs/files/src-auth-users.json)
 
 - **Purpose of changes:** What problem does this solve or what feature does it add?
 - **Behavioral changes:** How does the behavior differ from before?
 - **Data flow impact:** How do these changes affect data flow through the system?
+- **Performance considerations:** Changes to scan frequency, read/write patterns, potential bottlenecks
+- **Subtle bug risks:** Race conditions, stale data, cache invalidation, timing issues introduced
 - **Dependencies affected:** What other parts of the codebase might be impacted?
 
 ### [src/api/routes.ts](https://github.com/{org}/{repo}/blob/{branch}/src/api/routes.ts)
+📄 [File docs](.otto/docs/files/src-api-routes.json)
 
 - **Purpose of changes:** ...
 - **Behavioral changes:** ...
 - **Data flow impact:** ...
+- **Performance considerations:** ...
+- **Subtle bug risks:** ...
 - **Dependencies affected:** ...
 
 ## Breaking Changes
@@ -143,7 +149,9 @@ Parse to get `{org}/{repo}` for GitHub links.
 - Focus on **"why" and "what it means"** not just "what changed"
 - Explain **semantic meaning and implications**
 - Link to code in branch for easy navigation
-- Per-component sections with consistent 4-field structure
+- Per-component sections with consistent 6-field structure
+- **Highlight performance impacts**: scan frequency changes, read/write pattern modifications
+- **Flag subtle bug sources**: race conditions, stale data, cache issues, timing problems
 - Breaking changes prominent if they exist
 - Omit Breaking Changes section entirely if none exist
 

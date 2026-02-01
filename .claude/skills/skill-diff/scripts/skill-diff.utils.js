@@ -19,22 +19,16 @@ export function getFileAtCommit(commit, filePath) {
 }
 
 /**
- * Find all skill files that have changes between two commits
+ * Find all markdown files in skill directories that have changes between two commits
  * @param {string} baseCommit - Base commit to compare against
  * @param {string} targetCommit - Target commit (default: working directory)
- * @returns {string[]} Array of changed skill file paths
+ * @returns {string[]} Array of changed file paths
  */
 export function findChangedSkills(baseCommit, targetCommit = null) {
+  // Find all .md files anywhere in skills directories
   const args = targetCommit
-    ? [
-        "diff",
-        "--name-only",
-        baseCommit,
-        targetCommit,
-        "--",
-        "skills/*/SKILL.md",
-      ]
-    : ["diff", "--name-only", baseCommit, "--", "skills/*/SKILL.md"];
+    ? ["diff", "--name-only", baseCommit, targetCommit, "--", "skills/**/*.md"]
+    : ["diff", "--name-only", baseCommit, "--", "skills/**/*.md"];
 
   try {
     const output = execFileSync("git", args, {
@@ -94,13 +88,17 @@ export function generateDiffHtml(before, after) {
 }
 
 /**
- * Extract skill name from skill file path
- * @param {string} skillPath - Path like "skills/otto/SKILL.md"
- * @returns {string} Skill name like "otto"
+ * Extract display name from file path
+ * @param {string} filePath - Path like "skills/otto/SKILL.md" or "skills/doc/agents/file-documenter.md"
+ * @returns {string} Name like "otto" or "doc-agents-file-documenter"
  */
-export function getSkillName(skillPath) {
-  const match = skillPath.match(/skills\/([^/]+)\/SKILL\.md/);
-  return match ? match[1] : skillPath;
+export function getSkillName(filePath) {
+  // Remove "skills/" prefix and ".md" suffix, replace "/" with "-"
+  const match = filePath.match(/^skills\/(.+)\.md$/);
+  if (match) {
+    return match[1].replace(/\//g, "-").replace(/-SKILL$/, "");
+  }
+  return filePath;
 }
 
 /**
