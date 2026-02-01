@@ -114,8 +114,38 @@ Mark all sessions as "in_progress" before launching.
 
 For each session, launch a subagent using Task tool with `run_in_background: true`:
 - `subagent_type`: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks)
-- Provide: session title, task titles, descriptions, files, done conditions
+- Include in prompt: session context + planning workflow (see below)
 - Subagent implements tasks sequentially, marking each "done" as completed
+
+**Subagent prompt must include:**
+
+```markdown
+## Session Context
+- **Session:** {session title}
+- **Tasks:** {task titles with descriptions}
+- **Files:** {file lists from all tasks}
+- **Done when:** {done conditions for each task}
+- **Spec path:** {spec_path from task file}
+
+## Required Workflow
+
+**Always plan before implementing.** Simple tasks get simple plans.
+
+### Phase 1: Plan
+1. Read the spec's Technical Design section at {spec_path}
+2. Explore relevant files to understand existing patterns
+3. Write your implementation plan to `.otto/plans/{session_id}.md`:
+   - List each task you will implement
+   - For each task, describe: approach, files to modify, key changes
+   - Note any spec decisions that affect implementation
+
+### Phase 2: Implement
+4. Implement each task according to your plan
+5. After each task: verify the done condition is met
+6. Mark each task "done" as completed
+
+Keep the plan concise - it's for your reference and audit trail.
+```
 
 **Report:**
 ```
@@ -141,8 +171,37 @@ Launching {n} priority-{p} sessions in parallel:
 
 **Launch subagent using Task tool:**
 - `subagent_type`: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks)
-- Provide: task title, description, files, done condition
+- Include in prompt: task context + planning workflow (see below)
 - Wait for subagent to complete
+
+**Subagent prompt must include:**
+
+```markdown
+## Task Context
+- **Task:** {task title}
+- **Description:** {task description}
+- **Files:** {file list}
+- **Done when:** {done condition}
+- **Spec path:** {spec_path from task file}
+
+## Required Workflow
+
+**Always plan before implementing.** Simple tasks get simple plans.
+
+### Phase 1: Plan
+1. Read the spec's Technical Design section at {spec_path}
+2. Explore relevant files to understand existing patterns
+3. Write your implementation plan to `.otto/plans/task-{task_id}.md`:
+   - Describe your approach
+   - List files to modify and key changes
+   - Note any spec decisions that affect implementation
+
+### Phase 2: Implement
+4. Implement according to your plan
+5. Verify the done condition is met
+
+Keep the plan concise - it's for your reference and audit trail.
+```
 
 **After subagent completes:**
 - Update task status to "done"
@@ -161,9 +220,39 @@ Report: "Task {id} complete."
 
 **Launch subagent using Task tool:**
 - `subagent_type`: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks)
-- Provide: session title, task titles, descriptions, files, done conditions
+- Include in prompt: session context + planning workflow (see below)
 - Subagent implements tasks sequentially, marking each "done" as completed
 - Wait for subagent to complete
+
+**Subagent prompt must include:**
+
+```markdown
+## Session Context
+- **Session:** {session title}
+- **Tasks:** {task titles with descriptions}
+- **Files:** {file lists from all tasks}
+- **Done when:** {done conditions for each task}
+- **Spec path:** {spec_path from task file}
+
+## Required Workflow
+
+**Always plan before implementing.** Simple tasks get simple plans.
+
+### Phase 1: Plan
+1. Read the spec's Technical Design section at {spec_path}
+2. Explore relevant files to understand existing patterns
+3. Write your implementation plan to `.otto/plans/{session_id}.md`:
+   - List each task you will implement
+   - For each task, describe: approach, files to modify, key changes
+   - Note any spec decisions that affect implementation
+
+### Phase 2: Implement
+4. Implement each task according to your plan
+5. After each task: verify the done condition is met
+6. Mark each task "done" as completed
+
+Keep the plan concise - it's for your reference and audit trail.
+```
 
 **After subagent completes:**
 - Update session status to "done"

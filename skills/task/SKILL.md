@@ -127,7 +127,46 @@ Write to `.otto/tasks/{spec-id}.json`:
 }
 ```
 
-### 4. Approval
+### 4. Review Task List
+
+Launch `senior-code-reviewer` subagent with Task tool (forked context):
+- Prompt includes: task list JSON, full spec content, review criteria below
+- Subagent has no access to conversation - all context in prompt
+
+**Review Criteria:**
+- Atomicity: Tasks too large (should split)
+- Ordering: Tasks in wrong order, should be resequenced
+- Dependencies: Missing dependencies that will cause blocked work
+- Circular dependencies: Will cause deadlock
+- Completeness: Tasks missing from spec
+- Verifiability: Missing "done when" conditions
+
+**Finding format (T0 = critical, T1 = important, T2 = minor):**
+```
+### [T{0-2}] {title}
+**Tasks:** {task IDs affected}
+**Issue:** {what's wrong}
+**Suggestion:** {split, merge, reorder, add dependency}
+**Alternatives:** {if non-obvious, options}
+```
+
+Wait for review to complete.
+
+### 5. Interview User on Findings
+
+If no findings, skip to step 6.
+
+For each finding (highest priority first):
+1. Present the finding with its priority level
+2. If suggestion is clear: `AskUserQuestion` with "Accept", "Reject", "Modify"
+3. If alternatives exist: `AskUserQuestion` with the options
+4. If accepted: Update the task list JSON file with the change
+5. If rejected: Skip to next finding
+6. If modify: Apply user's modified version to the JSON file
+
+After processing all findings, continue to step 6.
+
+### 6. Approval
 
 Show sessions with nested task tables:
 
@@ -159,7 +198,7 @@ Revise until approved.
 
 Report: "Created {n} tasks in {m} sessions for {spec-name}"
 
-### 5. Next Steps
+### 7. Next Steps
 
 Offer to start:
 > "Run `/next session` to see the first session, or `/next batch` to run all unblocked sessions in parallel."
