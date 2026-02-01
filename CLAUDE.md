@@ -131,6 +131,10 @@ skills/                    # Skill implementations
 └── summaries/             # Generated HTML
 ```
 
+## Code Docs
+
+`.otto/docs/files/{file-path-with-dashes}.json` contains purpose, exports, patterns, gotchas, and recent changes for each file in the codebase.
+
 ## Development Commands
 
 ```bash
