@@ -32,6 +32,26 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 
 Sessions group related tasks that share context and can be implemented together by a single agent.
 
+## Philosophy
+
+### Subagents for Context Separation & Parallelization
+
+Use subagents to isolate concerns and prevent context pollution:
+
+- **Context isolation**: Each subagent gets only what it needs, nothing more
+- **Parallelization**: Run independent tasks concurrently (e.g., reviewing multiple files)
+- **Specialization**: Different expertise per agent (frontend vs backend, architect vs implementer)
+- **Scaling**: 1-2 files = 1 agent, 10+ files = 3-5 agents
+
+### Iterative Review for Verification
+
+Every phase has explicit verification:
+
+- **Planning**: spec → architect review → user approval
+- **Implementation**: code → code review → fix → commit
+- **Verification criteria**: Each step defines "Done when..."
+- **Prioritized findings**: P0-P3 (planning) or S0-S2 (review) to focus effort
+
 ## Skills
 
 ### Specification & Planning
