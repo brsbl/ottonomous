@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "dexie": "^4.3.0",
+    "flexsearch": "^0.8.212",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "zustand": "^5.0.11"
