@@ -25,34 +25,33 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 ## Workflow
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                                                                             │
-│   /spec ──► /task ──►┌────────────────────────────────┐──► /doc ──► /summary ──► PR
-│                      │                                │                     │
-│                      │  ┌─────────────────────────┐   │                     │
-│                      │  │                         │   │                     │
-│                      │  ▼                         │   │                     │
-│                      │  /next batch               │   │                     │
-│                      │  │                         │   │                     │
-│                      │  ▼                         │   │                     │
-│                      │  /clear → /test run staged │   │                     │
-│                      │  │                         │   │                     │
-│                      │  ▼                         │   │                     │
-│                      │  /clear → /test write staged   │                     │
-│                      │  │                         │   │                     │
-│                      │  ▼                         │   │                     │
-│                      │  /clear → /review staged   │   │                     │
-│                      │  │                         │   │                     │
-│                      │  ▼                         │   │                     │
-│                      │  /clear → /review fix staged   │                     │
-│                      │  │                         │   │                     │
-│                      │  ▼                         │   │                     │
-│                      │  commit ───────────────────┘   │                     │
-│                      │         (loop if more tasks)   │                     │
-│                      └────────────────────────────────┘                     │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+                       ┌────────────────────────────┐
+                       │  ┌──────────────────────┐  │
+                       │  │                      │  │
+                       │  ▼                      │  │
+                       │  /next batch            │  │
+                       │  │                      │  │
+                       │  ▼                      │  │
+                       │  /test run staged       │  │
+                       │  │                      │  │
+                       │  ▼                      │  │
+                       │  /test write staged     │  │
+                       │  │                      │  │
+                       │  ▼                      │  │
+                       │  /review staged         │  │
+                       │  │                      │  │
+                       │  ▼                      │  │
+                       │  /review fix staged     │  │
+                       │  │                      │  │
+                       │  ▼                      │  │
+                       │  commit ────────────────┘  │
+                       │       (loop if more tasks) │
+                       └────────────────────────────┘
+                                    │
+/spec ──► /task ──────────────────────────────────────────► /doc ──► /summary ──► PR
 ```
+
+Use `/clear` between steps to reset context.
 
 Sessions group related tasks that share context and can be implemented together by a single agent.
 
