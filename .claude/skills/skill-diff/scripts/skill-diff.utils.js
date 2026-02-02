@@ -314,7 +314,7 @@ export function generateIndexPage(uncommitted, staged, branch, baseCommit) {
     const links = skills
       .map(
         (skill) =>
-          `<li><a href="${skill.outputName}-diff.html">${skill.name}</a> <span class="path">(${skill.path})</span></li>`,
+          `<li><a href="${skill.outputName}-diff.html">${skill.name}</a> <span class="lines">${skill.lines} lines</span> <span class="path">${skill.path}</span></li>`,
       )
       .join("\n        ");
 
@@ -441,6 +441,12 @@ export function generateIndexPage(uncommitted, staged, branch, baseCommit) {
     .path {
       color: #6e7781;
       font-size: 14px;
+    }
+
+    .lines {
+      color: #6e7781;
+      font-size: 12px;
+      margin-left: 8px;
     }
 
     .empty {

@@ -100,7 +100,8 @@ for (const skillPath of uncommittedSkills) {
 
   const outputPath = path.join(outputDir, `${outputName}-diff.html`);
   fs.writeFileSync(outputPath, html);
-  uncommittedInfos.push({ name: skillName, path: skillPath, outputName });
+  const lines = after ? after.split("\n").length : 0;
+  uncommittedInfos.push({ name: skillName, path: skillPath, outputName, lines });
 }
 
 // Process staged changes (index vs HEAD)
@@ -119,7 +120,8 @@ for (const skillPath of stagedSkills) {
 
   const outputPath = path.join(outputDir, `${outputName}-diff.html`);
   fs.writeFileSync(outputPath, html);
-  stagedInfos.push({ name: skillName, path: skillPath, outputName });
+  const lines = after ? after.split("\n").length : 0;
+  stagedInfos.push({ name: skillName, path: skillPath, outputName, lines });
 }
 
 // Process branch changes (HEAD vs main)
@@ -138,7 +140,8 @@ for (const skillPath of branchSkills) {
 
   const outputPath = path.join(outputDir, `${outputName}-diff.html`);
   fs.writeFileSync(outputPath, html);
-  branchInfos.push({ name: skillName, path: skillPath, outputName });
+  const lines = after ? after.split("\n").length : 0;
+  branchInfos.push({ name: skillName, path: skillPath, outputName, lines });
 }
 
 // Generate index page
