@@ -68,9 +68,11 @@ Run scripts using `npx tsx` with heredocs for inline execution.
 
 ## Navigate & Capture
 
+Determine the dev server URL from package.json scripts, running processes, or project config.
+
 ```javascript
 const page = await client.page('main')
-await page.goto('http://localhost:3000')
+await page.goto(url)  // e.g., http://localhost:5173
 await waitForPageLoad(page)
 
 // Screenshot

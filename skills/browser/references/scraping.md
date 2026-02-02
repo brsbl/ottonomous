@@ -106,7 +106,7 @@ console.log(`Collected ${allResults.size} items`)
 
 ### Authentication
 
-In extension mode, extract headers from intercepted requests rather than accessing cookies directly:
+Extract headers from intercepted requests rather than accessing cookies directly:
 
 ```javascript
 let authHeaders = {}

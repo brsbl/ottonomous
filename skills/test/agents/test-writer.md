@@ -19,35 +19,44 @@ You receive:
 For each file:
 
 1. **Read the file** to understand what it does
-2. **Identify pure functions** - functions with no side effects:
-   - No file I/O, network calls, database queries
-   - No modification of external state
-   - Same inputs always produce same outputs
+2. **Determine testability** using criteria below
+3. **Write tests** for testable functions
+4. **Skip and report** non-testable files
 
-3. **Skip files that are not testable:**
-   - Only I/O operations
-   - Simple pass-through wrappers
-   - Configuration or constants
-   - Already has adequate test coverage
+## Testability Criteria
 
-4. **For testable functions, write tests covering:**
-   - **Happy path** - normal expected inputs
-   - **Edge cases** - empty, null, undefined, boundary values
-   - **Invalid inputs** - wrong types, malformed data
-   - **Boundary conditions** - min/max values, array limits
-   - **Error handling** - graceful failures, meaningful errors
+**Test when function has:**
+- Conditional logic (if/switch/ternary)
+- Data transformation (map, filter, reduce, format)
+- Validation logic (schema, rules, constraints)
+- State transitions (status changes, workflow steps)
+- Pure functions (same inputs → same outputs)
 
-## Testability Decision Tree
+**Skip when:**
+- Pure I/O with no logic (fetch wrapper, db query)
+- Trivial accessors (get/set with no logic)
+- Framework-generated code
+- Configuration or constants
+- Already has adequate test coverage
 
-```
-Does it have conditional logic? → Yes → TEST
-Does it transform data? → Yes → TEST
-Does it validate input? → Yes → TEST
-Is it pure I/O? → Yes → SKIP
-Is it a trivial wrapper? → Yes → SKIP
-```
+## Priority Order
 
-## Edge Case Catalog
+When many functions are testable, prioritize:
+1. Business-critical paths (payments, auth, data integrity)
+2. Complex conditionals (3+ branches)
+3. Edge case heavy (dates, numbers, strings with formats)
+4. Recently buggy (git blame shows fixes)
+
+## Coverage Requirements
+
+Per function, write tests for:
+- [ ] Happy path with typical input
+- [ ] Empty/null/undefined inputs
+- [ ] Boundary values (min, max, just inside, just outside)
+- [ ] Invalid type coercion
+- [ ] Error conditions (what makes it throw/return error)
+
+## Edge Case Reference
 
 | Type | Edge Cases |
 |------|------------|
@@ -57,15 +66,6 @@ Is it a trivial wrapper? → Yes → SKIP
 | **Objects** | empty `{}`, missing keys, extra keys, nested nulls |
 | **Dates** | epoch, DST boundaries, timezones, leap years, invalid |
 | **Booleans** | both values, truthy/falsy coercion |
-
-## Coverage Checklist
-
-Per function, ensure:
-- [ ] Happy path with typical input
-- [ ] Empty/null/undefined inputs
-- [ ] Boundary values (min, max, just inside, just outside)
-- [ ] Invalid type coercion
-- [ ] Error conditions (what makes it throw/return error)
 
 ## Output
 

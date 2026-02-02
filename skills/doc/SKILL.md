@@ -1,29 +1,21 @@
 ---
 name: doc
-description: Documents code changes with parallel subagents. Creates structured per-file documentation optimized for agent consumption. Use when documenting code changes, creating code docs, or after implementing features.
+description: Creates per-file documentation capturing intent and context that can't be inferred from code alone. Establishes baseline docs then layers branch changes as narrative. Use after implementing features or when documenting code.
 argument-hint: [staged | uncommitted | branch]
 model: opus
 ---
 
 **Scope:** $ARGUMENTS
 
-| Argument | Files to document |
-|----------|-------------------|
-| (none) or `branch` | Branch diff: `git diff main...HEAD --name-only` |
-| `staged` | Staged changes: `git diff --cached --name-only` |
-| `uncommitted` | Uncommitted changes: `git diff --name-only` |
+| Argument | Command |
+|----------|---------|
+| (none) or `branch` | `git diff main...HEAD --name-only` |
+| `staged` | `git diff --cached --name-only` |
+| `uncommitted` | `git diff --name-only` |
 
 ---
 
 ## Workflow
-
-| Phase | Purpose |
-|-------|---------|
-| 1. Initialize | Add doc discovery to CLAUDE.md (first run only) |
-| 2. Analyze | Get changed files, group by module/directory |
-| 3. Document | Launch parallel file-documenter subagents |
-| 4. Synthesize | Collect entries, merge into existing per-file docs |
-| 5. Save & Report | Write/update per-file JSONs, present results, offer /summary |
 
 ### 1. Initialize (first run only)
 
@@ -32,127 +24,40 @@ Check if CLAUDE.md contains the doc discovery section. If not, append:
 ```
 ## Code Docs
 
-`.otto/docs/files/{file-path-with-dashes}.json` contains purpose, exports, patterns, gotchas, data flow, performance notes, subtle bugs, and recent changes for each file in the codebase.
+`.otto/docs/files/{file-path-with-dashes}.json` contains per-file documentation with purpose, patterns, gotchas, and change history.
 ```
 
-### 2. Analyze Changes
+### 2. Get Changed Files
 
-Get changed files using scope command. If no changes found, report: "No changes to document."
+Run scope command. If no changes, report: "No changes to document."
 
-**Read the diff** to understand what changed:
-- Branch: `git diff main...HEAD`
-- Staged: `git diff --cached`
-- Uncommitted: `git diff`
+Group files by module (parent directory) for subagent batching.
 
-**Group files by module** (parent directory):
-- `src/auth/*` → auth module
-- `src/api/*` → api module
-- `src/utils/*` → utils module
+### 3. Get Commit Sequence
 
-**Calculate subagent count:**
-
-| Files | Subagents | Grouping |
-|-------|-----------|----------|
-| 1-4 | 1 | All files |
-| 5-10 | 2-3 | By directory |
-| 11+ | 3-5 | By module/component |
-
-### 3. Document with Subagents
-
-**Launch file-documenter subagents using Task tool:**
-
-Each subagent receives:
-- File list to document
-- Diff command for those files (use Bash tool directly):
-  - Branch: `git diff main...HEAD -- <files>`
-  - Staged: `git diff --cached -- <files>`
-  - Uncommitted: `git diff -- <files>`
-- Module assignment
-- Output format specification from agent definition
-
-**Example task prompt:**
-```
-Document the following files for agent consumption.
-
-Module: auth
-Files: src/auth/users.ts, src/auth/types.ts
-
-Run this diff command to see what changed:
-git diff main...HEAD -- src/auth/users.ts src/auth/types.ts
-
-For each file:
-1. Read the full file to understand context
-2. Analyze the diff to understand what changed
-3. Extract: purpose, exports, patterns, dependencies, changes, gotchas, related_tests, data_flow, performance_notes, subtle_bugs
-4. Return JSON array per the output format
-```
-
-Wait for all subagents to complete.
-
-### 4. Synthesize Documentation
-
-Collect outputs from all subagents:
-
-1. **Parse JSON** from each subagent response
-2. **Merge with existing docs** if file already has documentation in `.otto/docs/files/`
-   - Update `purpose`, `exports`, `patterns`, `dependencies`, `gotchas`, `data_flow`, `performance_notes`, `subtle_bugs` with latest
-   - Append new entries to `changes` array (don't replace history)
-3. **Set timestamps** - `updated` field on each file doc
-
-### 5. Save & Report
-
-**Create directories:**
+For each file group:
 ```bash
-mkdir -p .otto/docs/files
+git log main..HEAD --oneline --reverse -- <files>
 ```
 
-**Write per-file docs** to `.otto/docs/files/{path-with-dashes}.json`:
-- Convert path: `src/auth/users.ts` → `src-auth-users.json`
+### 4. Launch Subagents
 
-**Per-file doc format:**
-```json
-{
-  "path": "src/auth/users.ts",
-  "module": "auth",
-  "purpose": "User CRUD operations with profile management",
-  "exports": [
-    {"name": "getUser", "signature": "(id: string) => User", "description": "Fetch user by ID"}
-  ],
-  "patterns": ["Repository pattern", "Guard clauses"],
-  "dependencies": {
-    "internal": ["src/db/connection.ts"],
-    "external": ["zod"]
-  },
-  "gotchas": ["Returns 404 for soft-deleted users, not null"],
-  "related_tests": ["src/auth/users.test.ts"],
-  "data_flow": {
-    "inputs": ["User ID from request params", "Profile data from request body"],
-    "outputs": ["User object to response", "Events to message queue"],
-    "mutations": ["Updates user table", "Invalidates user cache"]
-  },
-  "performance_notes": [
-    "Queries user table on every request (no caching)",
-    "N+1 when fetching user with profile - consider JOIN"
-  ],
-  "subtle_bugs": [
-    "Race condition: concurrent profile updates can lose data",
-    "Stale cache if queue consumer fails after DB write"
-  ],
-  "changes": [
-    {
-      "branch": "feature/user-profiles",
-      "date": "2026-01-29",
-      "type": "modified",
-      "what": "Null-check guard before accessing user.profile",
-      "why": "Prevents crash when user is soft-deleted",
-      "lines": "47-52"
-    }
-  ],
-  "updated": "2026-01-29T12:00:00Z"
-}
-```
+| Files | Subagents |
+|-------|-----------|
+| 1-4 | 1 |
+| 5-10 | 2-3 |
+| 11+ | 3-5 |
 
-**Report:**
+**Handoff to file-documenter:**
+- Module name
+- File list
+- Commit sequence (oldest first)
+- Git commands for main version, full diff, per-commit diffs
+
+### 5. Report
+
+Collect results and report:
+
 ```
 ## Documentation Updated
 
@@ -161,8 +66,7 @@ Location: .otto/docs/files/
 
 | File | Purpose |
 |------|---------|
-| src/auth/users.ts | User CRUD operations with profile management |
-| src/api/routes.ts | REST API endpoint definitions |
+| src/auth/users.ts | User CRUD operations |
 
 Run /summary to generate a user-facing summary.
 ```

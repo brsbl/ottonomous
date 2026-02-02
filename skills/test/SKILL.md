@@ -83,27 +83,11 @@ git diff --cached --name-only     # staged scope
 git diff --name-only              # uncommitted scope
 ```
 
-## 2. Identify Testable Code
+Filter to source files (exclude tests, configs, docs).
 
-**Testability Criteria:**
-- Functions with conditional logic (if/switch/ternary)
-- Data transformation (map, filter, reduce, format)
-- Validation logic (schema, rules, constraints)
-- State transitions (status changes, workflow steps)
+## 2. Launch Test Writers
 
-**Priority Order:**
-1. Business-critical paths (payments, auth, data integrity)
-2. Complex conditionals (3+ branches)
-3. Edge case heavy (dates, numbers, strings with formats)
-4. Recently buggy (git blame shows fixes)
-
-**Skip When:**
-- Pure I/O with no logic (fetch wrapper, db query)
-- Trivial accessors (get/set with no logic)
-- Framework-generated code
-- Already covered by integration tests
-
-## 3. Launch Test Writers
+Hand off files to test-writer subagents. They determine testability and write tests.
 
 | Files | Subagents |
 |-------|-----------|
@@ -119,15 +103,7 @@ git diff --name-only              # uncommitted scope
 }
 ```
 
-## 4. Test Coverage
-
-Each function needs:
-- Happy path
-- Edge cases (empty, null, boundary)
-- Invalid inputs
-- Error handling
-
-## 5. Run Pipeline
+## 3. Run Pipeline
 
 Same as Run Mode step 3.
 
@@ -143,7 +119,8 @@ import { connect, waitForPageLoad } from '../otto/lib/browser/client.js'
 const client = await connect({ headless: true })
 const page = await client.page('test')
 
-await page.goto('http://localhost:3000')
+// Determine URL from package.json scripts or running processes
+await page.goto(url)  // e.g., http://localhost:5173
 await waitForPageLoad(page)
 await page.screenshot({ path: '.otto/test-screenshots/page.png' })
 
