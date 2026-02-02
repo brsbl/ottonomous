@@ -38,6 +38,7 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
    - `/clear` then `/test run staged` - Verify tests pass
    - `/clear` then `/test write staged` - Generate missing tests
    - `/clear` then `/review staged` - Review for issues
+   - `/clear` then `/review fix staged` - Fix any issues found
    - Commit when clean
 4. `/doc` - Generate documentation
 5. `/summary` - Create change summary
