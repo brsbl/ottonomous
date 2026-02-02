@@ -86,10 +86,7 @@ Group related tasks into **sessions** — units of work that can be completed in
 - **File overlap**: Tasks modifying shared files
 - **Sequential dependencies**: Dependent tasks that naturally chain
 
-**Session sizing:**
-- Target: 2-5 tasks per session
-- Maximum: 7 tasks
-- Minimum: 1 task
+**Session sizing:** 2-5 tasks per session (minimum 1)
 
 **Session dependencies:**
 - Session A depends on Session B if any task in A depends on any task in B
