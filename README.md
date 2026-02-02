@@ -25,40 +25,37 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 ## Workflow
 
 ```
-/spec                       # define requirements via interview
+/spec                     # define requirements via interview
   │
   ▼
-/task                       # break spec into sessions & tasks
+/task                     # break spec into sessions & tasks
   │
   ▼
-┌─────────────────────────┐
-│  ┌───────────────────┐  │
-│  │                   │  │
-│  ▼                   │  │
-│  /next batch         │  │ # implement sessions in parallel
-│  │                   │  │
-│  ▼                   │  │
-│  /test run staged    │  │ # lint, typecheck, run tests
-│  │                   │  │
-│  ▼                   │  │
-│  /test write staged  │  │ # generate missing tests
-│  │                   │  │
-│  ▼                   │  │
-│  /review staged      │  │ # multi-agent code review
-│  │                   │  │
-│  ▼                   │  │
-│  /review fix staged  │  │ # fix P0-P2 issues
-│  │                   │  │
-│  ▼                   │  │
-│  commit ─────────────┘  │
-│      (loop if more tasks)
-└─────────────────────────┘
+┌───────────────────┐
+│                   │
+▼                   │
+/next batch         │     # implement sessions in parallel
+│                   │
+▼                   │
+/test run staged    │     # lint, typecheck, run tests
+│                   │
+▼                   │
+/test write staged  │     # generate missing tests
+│                   │
+▼                   │
+/review staged      │     # multi-agent code review
+│                   │
+▼                   │
+/review fix staged  │     # fix P0-P2 issues
+│                   │
+▼                   │
+commit ─────────────┘     # loop if more tasks
   │
   ▼
-/doc                        # per-file documentation
+/doc                      # per-file documentation
   │
   ▼
-/summary                    # html changelog
+/summary                  # html changelog
   │
   ▼
  PR
