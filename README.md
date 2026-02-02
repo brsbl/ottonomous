@@ -25,35 +25,43 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 ## Workflow
 
 ```
-                       ┌────────────────────────────┐
-                       │  ┌──────────────────────┐  │
-                       │  │                      │  │
-                       │  ▼                      │  │
-                       │  /next batch            │  │  # implement sessions in parallel
-                       │  │                      │  │
-                       │  ▼                      │  │
-                       │  /test run staged       │  │  # lint, typecheck, run tests
-                       │  │                      │  │
-                       │  ▼                      │  │
-                       │  /test write staged     │  │  # generate missing tests
-                       │  │                      │  │
-                       │  ▼                      │  │
-                       │  /review staged         │  │  # multi-agent code review
-                       │  │                      │  │
-                       │  ▼                      │  │
-                       │  /review fix staged     │  │  # fix P0-P2 issues
-                       │  │                      │  │
-                       │  ▼                      │  │
-                       │  commit ────────────────┘  │
-                       │       (loop if more tasks) │
-                       └────────────────────────────┘
-                                    │
-/spec ──► /task ──────────────────────────────────────────► /doc ──► /summary ──► PR
-   │         │                                                 │         │
-   │         │                                                 │         └── # html changelog
-   │         │                                                 └── # per-file documentation
-   │         └── # break spec into sessions & tasks
-   └── # define requirements via interview
+/spec                       # define requirements via interview
+  │
+  ▼
+/task                       # break spec into sessions & tasks
+  │
+  ▼
+┌─────────────────────────┐
+│  ┌───────────────────┐  │
+│  │                   │  │
+│  ▼                   │  │
+│  /next batch         │  │ # implement sessions in parallel
+│  │                   │  │
+│  ▼                   │  │
+│  /test run staged    │  │ # lint, typecheck, run tests
+│  │                   │  │
+│  ▼                   │  │
+│  /test write staged  │  │ # generate missing tests
+│  │                   │  │
+│  ▼                   │  │
+│  /review staged      │  │ # multi-agent code review
+│  │                   │  │
+│  ▼                   │  │
+│  /review fix staged  │  │ # fix P0-P2 issues
+│  │                   │  │
+│  ▼                   │  │
+│  commit ─────────────┘  │
+│      (loop if more tasks)
+└─────────────────────────┘
+  │
+  ▼
+/doc                        # per-file documentation
+  │
+  ▼
+/summary                    # html changelog
+  │
+  ▼
+ PR
 ```
 
 Use `/clear` between steps to reset context.
