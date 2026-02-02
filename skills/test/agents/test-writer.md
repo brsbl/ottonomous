@@ -1,7 +1,7 @@
 ---
 name: test-writer
 description: Writes unit tests for pure functions. Identifies testable code, skips I/O-heavy files, and ensures comprehensive coverage with happy path, edge cases, and error handling.
-model: sonnet
+model: opus
 color: green
 ---
 
