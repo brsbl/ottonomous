@@ -10,8 +10,8 @@ import {
   generateDiffHtml,
   generateIndexPage,
   getFileAtCommit,
-  getStagedContent,
   getSkillName,
+  getStagedContent,
   wrapInTemplate,
 } from "./skill-diff.utils.js";
 
@@ -96,12 +96,23 @@ for (const skillPath of uncommittedSkills) {
   if (!before && !after) continue;
 
   const { beforeHtml, afterHtml } = generateDiffHtml(before, after);
-  const html = wrapInTemplate(skillName, beforeHtml, afterHtml, "HEAD", "working tree");
+  const html = wrapInTemplate(
+    skillName,
+    beforeHtml,
+    afterHtml,
+    "HEAD",
+    "working tree",
+  );
 
   const outputPath = path.join(outputDir, `${outputName}-diff.html`);
   fs.writeFileSync(outputPath, html);
   const lines = after ? after.split("\n").length : 0;
-  uncommittedInfos.push({ name: skillName, path: skillPath, outputName, lines });
+  uncommittedInfos.push({
+    name: skillName,
+    path: skillPath,
+    outputName,
+    lines,
+  });
 }
 
 // Process staged changes (index vs HEAD)
@@ -116,7 +127,13 @@ for (const skillPath of stagedSkills) {
   if (!before && !after) continue;
 
   const { beforeHtml, afterHtml } = generateDiffHtml(before, after);
-  const html = wrapInTemplate(skillName, beforeHtml, afterHtml, "HEAD", "staged");
+  const html = wrapInTemplate(
+    skillName,
+    beforeHtml,
+    afterHtml,
+    "HEAD",
+    "staged",
+  );
 
   const outputPath = path.join(outputDir, `${outputName}-diff.html`);
   fs.writeFileSync(outputPath, html);
@@ -136,7 +153,13 @@ for (const skillPath of branchSkills) {
   if (!before && !after) continue;
 
   const { beforeHtml, afterHtml } = generateDiffHtml(before, after);
-  const html = wrapInTemplate(skillName, beforeHtml, afterHtml, baseCommit, "HEAD");
+  const html = wrapInTemplate(
+    skillName,
+    beforeHtml,
+    afterHtml,
+    baseCommit,
+    "HEAD",
+  );
 
   const outputPath = path.join(outputDir, `${outputName}-diff.html`);
   fs.writeFileSync(outputPath, html);
@@ -145,7 +168,12 @@ for (const skillPath of branchSkills) {
 }
 
 // Generate index page
-const indexHtml = generateIndexPage(uncommittedInfos, stagedInfos, branchInfos, baseCommit);
+const indexHtml = generateIndexPage(
+  uncommittedInfos,
+  stagedInfos,
+  branchInfos,
+  baseCommit,
+);
 fs.writeFileSync(path.join(outputDir, "index.html"), indexHtml);
 console.log(`\nIndex: ${outputDir}/index.html`);
 

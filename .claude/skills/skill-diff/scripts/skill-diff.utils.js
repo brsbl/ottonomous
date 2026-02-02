@@ -164,7 +164,13 @@ export function getSkillName(filePath) {
  * @param {string} afterLabel - Label for after side (e.g., "HEAD", "staged", "working tree")
  * @returns {string} Complete HTML document
  */
-export function wrapInTemplate(skillName, beforeHtml, afterHtml, beforeLabel, afterLabel) {
+export function wrapInTemplate(
+  skillName,
+  beforeHtml,
+  afterHtml,
+  beforeLabel,
+  afterLabel,
+) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
