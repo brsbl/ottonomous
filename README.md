@@ -29,19 +29,19 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
                        │  ┌──────────────────────┐  │
                        │  │                      │  │
                        │  ▼                      │  │
-                       │  /next batch            │  │
+                       │  /next batch            │  │  # implement sessions in parallel
                        │  │                      │  │
                        │  ▼                      │  │
-                       │  /test run staged       │  │
+                       │  /test run staged       │  │  # lint, typecheck, run tests
                        │  │                      │  │
                        │  ▼                      │  │
-                       │  /test write staged     │  │
+                       │  /test write staged     │  │  # generate missing tests
                        │  │                      │  │
                        │  ▼                      │  │
-                       │  /review staged         │  │
+                       │  /review staged         │  │  # multi-agent code review
                        │  │                      │  │
                        │  ▼                      │  │
-                       │  /review fix staged     │  │
+                       │  /review fix staged     │  │  # fix P0-P2 issues
                        │  │                      │  │
                        │  ▼                      │  │
                        │  commit ────────────────┘  │
@@ -49,6 +49,11 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
                        └────────────────────────────┘
                                     │
 /spec ──► /task ──────────────────────────────────────────► /doc ──► /summary ──► PR
+   │         │                                                 │         │
+   │         │                                                 │         └── # html changelog
+   │         │                                                 └── # per-file documentation
+   │         └── # break spec into sessions & tasks
+   └── # define requirements via interview
 ```
 
 Use `/clear` between steps to reset context.
