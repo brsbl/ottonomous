@@ -2,17 +2,16 @@
 
 Claude Code skills for every stage of product development: spec writing, task prioritization, testing, code review, and documentation.
 
-Use each skill individually, or let `/otto` run the full loop with subagents.
-
 <img width="3072" height="1428" alt="image 1 (1)" src="https://github.com/user-attachments/assets/2e8b420b-8b85-43af-9db7-764f6d4dc269" />
 
-## Installation
+## Add marketplace
 
 ```bash
-# Add marketplace
 /plugin marketplace add brsbl/ottonomous
+```
 
-# Install plugin
+## Install plugin
+```bash
 /plugin install ottonomous@brsbl-ottonomous
 ```
 
@@ -21,49 +20,6 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 - [Claude Code](https://claude.ai/claude-code) (CLI)
 - Node.js 18+
 - Git
-
-## Workflow
-
-```
-/spec                     # define requirements via interview
-  │
-  ▼
-/task                     # break spec into sessions & tasks
-  │
-  ▼
-┌───────────────────┐
-│                   │
-▼                   │
-/next batch         │     # implement sessions in parallel
-│                   │
-▼                   │
-/test run staged    │     # lint, typecheck, run tests
-│                   │
-▼                   │
-/test write staged  │     # generate missing tests
-│                   │
-▼                   │
-/review staged      │     # multi-agent code review
-│                   │
-▼                   │
-/review fix staged  │     # fix P0-P2 issues
-│                   │
-▼                   │
-commit ─────────────┘     # loop if more tasks
-  │
-  ▼
-/doc                      # per-file documentation
-  │
-  ▼
-/summary                  # html changelog
-  │
-  ▼
- PR
-```
-
-Use `/clear` between steps to reset context.
-
-Sessions group related tasks that share context and can be implemented together by a single agent.
 
 ## Philosophy
 
@@ -140,7 +96,7 @@ Every phase has explicit verification:
 
 | Skill | Description |
 |-------|-------------|
-| `/otto <idea>` | Autonomous spec → tasks → [next/test/review/doc] per session → summary. Best for isolated components, scoped migrations, and prototyping. Not recommended for building apps end-to-end. |
+| `/otto <idea>` | Autonomous spec → tasks → [next/test/review/doc] per session → summary. Best for greenfield explorations, scoped migrations, and prototyping. **Not recommended for building apps end-to-end.** |
 | `/reset [targets]` | Resets workflow data. Targets: `tasks`, `specs`, `docs`, `sessions`, `all` (default). |
 
 ### Utilities
@@ -151,6 +107,49 @@ Every phase has explicit verification:
 | `/browser explore` | Interactive browser exploration. |
 | `/browser verify` | Verify specific UI behavior or state. |
 | `/browser extract` | Extract specific data from the frontend. |
+
+
+## Recommended Workflow
+
+```
+/spec                     # define requirements via interview
+  │
+  ▼
+/task                     # break spec into sessions & tasks
+  │
+  ▼
+┌───────────────────┐
+│                   │
+▼                   │
+/next batch         │     # implement sessions of tasks in parallel
+│                   │
+▼                   │
+/test run staged    │     # lint, typecheck, run tests
+│                   │
+▼                   │
+/test write staged  │     # generate new/missing tests
+│                   │
+▼                   │
+/review staged      │     # multi-agent code review
+│                   │
+▼                   │
+/review fix staged  │     # fix P0-P2 issues
+│                   │
+▼                   │
+commit ─────────────┘     # loop if more sessions/tasks
+  │
+  ▼
+/doc                      # per-file documentation of intent, learnings, etc.
+  │
+  ▼
+/summary                  # generate semantic overview of changes, opened in browser
+  │
+  ▼
+ PR
+```
+
+Use `/clear` between steps to reset context.
+
 
 ## Architecture
 
