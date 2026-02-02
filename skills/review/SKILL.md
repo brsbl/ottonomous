@@ -1,6 +1,6 @@
 ---
 name: review
-description: Reviews code changes for bugs with P0-P3 prioritized feedback. Uses parallel subagents for thorough analysis, then creates fix plans. Use when reviewing code, finding bugs, checking quality, or before merging. Use /review fix to implement fixes.
+description: Reviews code changes for bugs with P0-P2 prioritized feedback. Uses parallel subagents for thorough analysis, then creates fix plans. Use when reviewing code, finding bugs, checking quality, or before merging. Use /review fix to implement fixes.
 argument-hint: [staged | uncommitted | branch] | fix [P0 | P0-P1 | all]
 model: opus
 ---
@@ -32,8 +32,7 @@ Pass this section to all review subagents.
 
 - **P0**: Crashes, data loss, security vulnerabilities, breaks core functionality
 - **P1**: Wrong behavior affecting users, but has workarounds
-- **P2**: Edge cases, minor bugs, non-critical issues
-- **P3**: Code smells, maintainability issues, minor improvements
+- **P2**: Edge cases, minor bugs, code smells, maintainability issues
 
 ### Detection Rules
 
@@ -185,7 +184,7 @@ Report: `Fix plan saved. Run /review fix to implement.`
 1. Check `.otto/reviews/fix-plan.json` exists
    - If missing or stale (code changed): run `/review` first
 2. Filter by priority argument:
-   - `fix` or `fix all`: P0-P3
+   - `fix` or `fix all`: P0-P2
    - `fix P0`: P0 only
    - `fix P0-P1`: P0 and P1
 3. If no matching fixes: report "No {priority} issues to fix"

@@ -83,19 +83,11 @@ git diff --cached --name-only     # staged scope
 git diff --name-only              # uncommitted scope
 ```
 
-## 2. Identify Testable Code
+Filter to source files (exclude tests, configs, docs).
 
-Test pure functions only:
-- Input validation, parsing
-- String formatting, transformation
-- Data aggregation, calculation
+## 2. Launch Test Writers
 
-Skip:
-- I/O operations (fetch, fs, db)
-- Pass-through wrappers
-- Config files
-
-## 3. Launch Test Writers
+Hand off files to test-writer subagents. They determine testability and write tests.
 
 | Files | Subagents |
 |-------|-----------|
@@ -111,15 +103,7 @@ Skip:
 }
 ```
 
-## 4. Test Coverage
-
-Each function needs:
-- Happy path
-- Edge cases (empty, null, boundary)
-- Invalid inputs
-- Error handling
-
-## 5. Run Pipeline
+## 3. Run Pipeline
 
 Same as Run Mode step 3.
 
@@ -135,7 +119,8 @@ import { connect, waitForPageLoad } from '../otto/lib/browser/client.js'
 const client = await connect({ headless: true })
 const page = await client.page('test')
 
-await page.goto('http://localhost:3000')
+// Determine URL from package.json scripts or running processes
+await page.goto(url)  // e.g., http://localhost:5173
 await waitForPageLoad(page)
 await page.screenshot({ path: '.otto/test-screenshots/page.png' })
 

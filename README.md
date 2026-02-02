@@ -25,12 +25,65 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 ## Workflow
 
 ```
-                 ┌─────────────────────────────────┐
-/spec → /task →  │ /next → /test → /review → /doc  │ → /summary
-                 └─────── repeat per session ──────┘
+/spec                     # define requirements via interview
+  │
+  ▼
+/task                     # break spec into sessions & tasks
+  │
+  ▼
+┌───────────────────┐
+│                   │
+▼                   │
+/next batch         │     # implement sessions in parallel
+│                   │
+▼                   │
+/test run staged    │     # lint, typecheck, run tests
+│                   │
+▼                   │
+/test write staged  │     # generate missing tests
+│                   │
+▼                   │
+/review staged      │     # multi-agent code review
+│                   │
+▼                   │
+/review fix staged  │     # fix P0-P2 issues
+│                   │
+▼                   │
+commit ─────────────┘     # loop if more tasks
+  │
+  ▼
+/doc                      # per-file documentation
+  │
+  ▼
+/summary                  # html changelog
+  │
+  ▼
+ PR
 ```
 
+Use `/clear` between steps to reset context.
+
 Sessions group related tasks that share context and can be implemented together by a single agent.
+
+## Philosophy
+
+### Subagents for Context Separation & Parallelization
+
+Use subagents to isolate concerns and prevent context pollution:
+
+- **Context isolation**: Each subagent gets only what it needs, nothing more
+- **Parallelization**: Run independent tasks concurrently (e.g., reviewing multiple files)
+- **Specialization**: Different expertise per agent (frontend vs backend, architect vs implementer)
+- **Scaling**: 1-2 files = 1 agent, 10+ files = 3-5 agents
+
+### Iterative Review for Verification
+
+Every phase has explicit verification:
+
+- **Planning**: spec → architect review → user approval
+- **Implementation**: code → code review → fix → commit
+- **Verification criteria**: Each step defines "Done when..."
+- **Prioritized findings**: P0-P2 across all skills (P0 = critical, P1 = important, P2 = minor)
 
 ## Skills
 
@@ -38,9 +91,9 @@ Sessions group related tasks that share context and can be implemented together 
 
 | Skill | Description |
 |-------|-------------|
-| `/spec [idea]` | Researches best practices, interviews you to define requirements and design. |
+| `/spec [idea]` | Researches best practices, interviews you to define requirements and design. Includes architect review with P0-P2 findings. |
 | `/spec list` | Lists all specs with id, name, status, and created date. |
-| `/task <spec-id>` | Creates atomic tasks grouped into sessions for single-agent completion. |
+| `/task <spec-id>` | Creates atomic tasks grouped into sessions. Includes review with P0-P2 findings for task structure. |
 | `/task list` | Lists all tasks and their spec, sessions, status etc. |
 
 ### Implementation
@@ -49,7 +102,7 @@ Sessions group related tasks that share context and can be implemented together 
 |-------|-------------|
 | `/next` | Returns next task id. |
 | `/next session` | Returns next session id. |
-| `/next <id>` | Launches subagent to implement task or session. Uses `frontend-developer` or `backend-architect`. |
+| `/next <id>` | Launches subagent to implement task or session. Plans first, then implements. |
 | `/next batch` | Implements all highest-priority unblocked sessions in parallel. |
 
 ### Testing
@@ -67,7 +120,7 @@ Sessions group related tasks that share context and can be implemented together 
 
 | Skill | Description |
 |-------|-------------|
-| `/review` | Multi-agent review with P0-P3 findings. Uses `architect-reviewer` and `senior-code-reviewer`. |
+| `/review` | Multi-agent review with P0-P2 findings. Uses `architect-reviewer` and `senior-code-reviewer`. |
 | `/review fix` | Implements all fixes from plan in parallel batches. |
 | `/review fix P0` | Implements only P0 (critical) fixes. |
 | `/review fix P0-P1` | Implements P0 and P1 fixes. |
@@ -87,7 +140,7 @@ Sessions group related tasks that share context and can be implemented together 
 
 | Skill | Description |
 |-------|-------------|
-| `/otto <idea>` | Autonomous spec → tasks → [next/test/review/doc] per session → summary. |
+| `/otto <idea>` | Autonomous spec → tasks → [next/test/review/doc] per session → summary. Best for isolated components, scoped migrations, and prototyping. Not recommended for building apps end-to-end. |
 | `/reset [targets]` | Resets workflow data. Targets: `tasks`, `specs`, `docs`, `sessions`, `all` (default). |
 
 ### Utilities
@@ -132,8 +185,6 @@ skills/                      # Skill implementations (SKILL.md + support files)
 ## Feedback
 
 Found a bug or have a feature request? [Open an issue](https://github.com/brsbl/ottonomous/issues).
-
-Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License
 

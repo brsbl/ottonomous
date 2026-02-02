@@ -100,7 +100,49 @@ Write a spec covering:
 - **Future Considerations** - Deferred features, extensibility
 - **Open Questions** - Unresolved decisions marked as `[TBD: reason]`
 
-### 5. Save Draft
+### 5. Review Spec
+
+Launch `architect-reviewer` subagent with Task tool (forked context):
+- Prompt includes: full draft spec content, review criteria below
+- Subagent has no access to conversation - all context in prompt
+
+**Review Criteria:**
+- Completeness: Missing requirements, edge cases, user stories
+- Consistency: Contradictions between sections
+- Feasibility: Technical design that won't work
+- Ambiguity: Vague requirements
+- **Technical correctness:**
+  - Data correctness: Are data models, types, and flows correct?
+  - Scalability: Will this design scale with usage?
+  - Maintainability: Is the architecture clean and maintainable?
+  - Performance: Any obvious performance issues?
+
+**Finding format (P0 = critical, P1 = important, P2 = minor):**
+```
+### [P{0-2}] {title}
+**Section:** {affected section}
+**Issue:** {what's wrong}
+**Suggestion:** {specific improvement}
+**Alternatives:** {if non-obvious, options for user}
+```
+
+Wait for review to complete.
+
+### 6. Interview User on Findings
+
+If no findings, skip to step 7.
+
+For each finding (highest priority first):
+1. Present the finding with its priority level
+2. If suggestion is clear: `AskUserQuestion` with "Accept", "Reject", "Modify"
+3. If alternatives exist: `AskUserQuestion` with the options
+4. If accepted: Update the draft spec with the change
+5. If rejected: Skip to next finding
+6. If modify: Apply user's modified version
+
+After processing all findings, continue to step 7.
+
+### 7. Save Draft
 
 Generate unique ID from product idea:
 ```bash
@@ -129,14 +171,14 @@ updated: {YYYY-MM-DD}
 {spec content}
 ```
 
-### 6. Approval
+### 8. Approval
 
 **Output the full spec** as rendered markdown so the user can review it inline.
 
 **Use `AskUserQuestion`** with options:
 - "Approve"
 - "Request changes"
-- "Open in editor" — open `.otto/specs/{id}.md`, then ask again
+- "Open in editor" — run `open .otto/specs/{id}.md`, then ask again
 
 **After each revision:** Output the full updated spec as rendered markdown before asking for approval again. Revise until approved.
 
@@ -144,7 +186,7 @@ On approval, update `status: draft` to `status: approved` in the file.
 
 Report: "Spec approved and saved to `.otto/specs/{id}.md`"
 
-### 7. Next Steps
+### 9. Next Steps
 
 Offer task generation:
 > "Run `/task {id}` to generate implementation tasks."
