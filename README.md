@@ -25,24 +25,34 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 ## Workflow
 
 ```
-/spec → /task → [ /next batch → /test → /review → commit ] → /doc → /summary → PR
-                 └────────────── loop ──────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│   /spec ──► /task ──►┌────────────────────────────────┐──► /doc ──► /summary ──► PR
+│                      │                                │                     │
+│                      │  ┌─────────────────────────┐   │                     │
+│                      │  │                         │   │                     │
+│                      │  ▼                         │   │                     │
+│                      │  /next batch               │   │                     │
+│                      │  │                         │   │                     │
+│                      │  ▼                         │   │                     │
+│                      │  /clear → /test run staged │   │                     │
+│                      │  │                         │   │                     │
+│                      │  ▼                         │   │                     │
+│                      │  /clear → /test write staged   │                     │
+│                      │  │                         │   │                     │
+│                      │  ▼                         │   │                     │
+│                      │  /clear → /review staged   │   │                     │
+│                      │  │                         │   │                     │
+│                      │  ▼                         │   │                     │
+│                      │  /clear → /review fix staged   │                     │
+│                      │  │                         │   │                     │
+│                      │  ▼                         │   │                     │
+│                      │  commit ───────────────────┘   │                     │
+│                      │         (loop if more tasks)   │                     │
+│                      └────────────────────────────────┘                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
-
-### Recommended Flow
-
-1. `/spec` - Define requirements through interview
-2. `/task` - Generate prioritized task list
-3. **Implementation loop:**
-   - `/next batch` - Implement sessions (stages changes when done)
-   - `/clear` then `/test run staged` - Verify tests pass
-   - `/clear` then `/test write staged` - Generate missing tests
-   - `/clear` then `/review staged` - Review for issues
-   - `/clear` then `/review fix staged` - Fix any issues found
-   - Commit when clean
-4. `/doc` - Generate documentation
-5. `/summary` - Create change summary
-6. Create PR
 
 Sessions group related tasks that share context and can be implemented together by a single agent.
 
