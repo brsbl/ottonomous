@@ -141,9 +141,9 @@ Launch `senior-code-reviewer` subagent with Task tool (forked context):
 - Completeness: Tasks missing from spec
 - Verifiability: Missing "done when" conditions
 
-**Finding format (T0 = critical, T1 = important, T2 = minor):**
+**Finding format (P0 = critical, P1 = important, P2 = minor):**
 ```
-### [T{0-2}] {title}
+### [P{0-2}] {title}
 **Tasks:** {task IDs affected}
 **Issue:** {what's wrong}
 **Suggestion:** {split, merge, reorder, add dependency}

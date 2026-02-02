@@ -25,10 +25,23 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 ## Workflow
 
 ```
-                 ┌─────────────────────────────────┐
-/spec → /task →  │ /next → /test → /review → /doc  │ → /summary
-                 └─────── repeat per session ──────┘
+/spec → /task → [ /next batch → /test → /review → commit ] → /doc → /summary → PR
+                 └────────────── loop ──────────────────┘
 ```
+
+### Recommended Flow
+
+1. `/spec` - Define requirements through interview
+2. `/task` - Generate prioritized task list
+3. **Implementation loop:**
+   - `/next batch` - Implement sessions (stages changes when done)
+   - `/clear` then `/test run staged` - Verify tests pass
+   - `/clear` then `/test write staged` - Generate missing tests
+   - `/clear` then `/review staged` - Review for issues
+   - Commit when clean
+4. `/doc` - Generate documentation
+5. `/summary` - Create change summary
+6. Create PR
 
 Sessions group related tasks that share context and can be implemented together by a single agent.
 
@@ -50,7 +63,7 @@ Every phase has explicit verification:
 - **Planning**: spec → architect review → user approval
 - **Implementation**: code → code review → fix → commit
 - **Verification criteria**: Each step defines "Done when..."
-- **Prioritized findings**: P0-P3 (planning) or S0-S2 (review) to focus effort
+- **Prioritized findings**: P0-P2 across all skills (P0 = critical, P1 = important, P2 = minor)
 
 ## Skills
 
@@ -58,9 +71,9 @@ Every phase has explicit verification:
 
 | Skill | Description |
 |-------|-------------|
-| `/spec [idea]` | Researches best practices, interviews you to define requirements and design. Includes architect review with S0-S2 findings. |
+| `/spec [idea]` | Researches best practices, interviews you to define requirements and design. Includes architect review with P0-P2 findings. |
 | `/spec list` | Lists all specs with id, name, status, and created date. |
-| `/task <spec-id>` | Creates atomic tasks grouped into sessions. Includes review with T0-T2 findings for task structure. |
+| `/task <spec-id>` | Creates atomic tasks grouped into sessions. Includes review with P0-P2 findings for task structure. |
 | `/task list` | Lists all tasks and their spec, sessions, status etc. |
 
 ### Implementation
@@ -87,7 +100,7 @@ Every phase has explicit verification:
 
 | Skill | Description |
 |-------|-------------|
-| `/review` | Multi-agent review with P0-P3 findings. Uses `architect-reviewer` and `senior-code-reviewer`. |
+| `/review` | Multi-agent review with P0-P2 findings. Uses `architect-reviewer` and `senior-code-reviewer`. |
 | `/review fix` | Implements all fixes from plan in parallel batches. |
 | `/review fix P0` | Implements only P0 (critical) fixes. |
 | `/review fix P0-P1` | Implements P0 and P1 fixes. |

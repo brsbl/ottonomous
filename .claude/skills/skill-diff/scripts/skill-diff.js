@@ -5,16 +5,18 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   findChangedSkills,
+  findStagedSkills,
+  findUncommittedSkills,
   generateDiffHtml,
   generateIndexPage,
   getFileAtCommit,
+  getStagedContent,
   getSkillName,
   wrapInTemplate,
 } from "./skill-diff.utils.js";
 
-// Parse command line arguments
-const args = process.argv.slice(2);
-const baseCommit = args[0] || "HEAD";
+// Always compare against main
+const baseCommit = "main";
 
 // Output directory
 const outputDir = ".otto/skill-diffs";
@@ -24,16 +26,25 @@ if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }
 
-console.log(`Finding changed skills compared to ${baseCommit}...`);
+console.log(`Finding changed skills compared to ${baseCommit}...\n`);
 
-// Find changed skill files
-const changedSkills = findChangedSkills(baseCommit);
+// Find changes for each scope
+const uncommittedSkills = findUncommittedSkills();
+const stagedSkills = findStagedSkills();
+const branchSkills = findChangedSkills(baseCommit);
 
-if (changedSkills.length === 0) {
+// Collect all unique skills
+const allSkillsSet = new Set([
+  ...uncommittedSkills,
+  ...stagedSkills,
+  ...branchSkills,
+]);
+
+if (allSkillsSet.size === 0) {
   console.log("No skill files have changes.");
 
   // Still generate index page showing no changes
-  const indexHtml = generateIndexPage([], baseCommit);
+  const indexHtml = generateIndexPage([], [], [], baseCommit);
   fs.writeFileSync(path.join(outputDir, "index.html"), indexHtml);
 
   console.log(`\nOutput: ${outputDir}/index.html`);
@@ -41,45 +52,97 @@ if (changedSkills.length === 0) {
   process.exit(0);
 }
 
-console.log(`Found ${changedSkills.length} changed skill(s):`);
-for (const skill of changedSkills) {
-  console.log(`  - ${skill}`);
+// Report what was found
+if (uncommittedSkills.length > 0) {
+  console.log(`Uncommitted (${uncommittedSkills.length}):`);
+  for (const skill of uncommittedSkills) {
+    console.log(`  - ${skill}`);
+  }
+  console.log();
 }
 
-// Generate diff HTML for each changed skill
-const skillInfos = [];
+if (stagedSkills.length > 0) {
+  console.log(`Staged (${stagedSkills.length}):`);
+  for (const skill of stagedSkills) {
+    console.log(`  - ${skill}`);
+  }
+  console.log();
+}
 
-for (const skillPath of changedSkills) {
+if (branchSkills.length > 0) {
+  console.log(`Branch vs ${baseCommit} (${branchSkills.length}):`);
+  for (const skill of branchSkills) {
+    console.log(`  - ${skill}`);
+  }
+  console.log();
+}
+
+// Generate diff HTML for each scope
+const uncommittedInfos = [];
+const stagedInfos = [];
+const branchInfos = [];
+
+// Process uncommitted changes (working tree vs HEAD)
+for (const skillPath of uncommittedSkills) {
   const skillName = getSkillName(skillPath);
-  console.log(`\nProcessing ${skillName}...`);
+  const outputName = `uncommitted-${skillName}`;
+  console.log(`Processing uncommitted: ${skillName}...`);
 
-  // Get before and after content
-  const before = getFileAtCommit(baseCommit, skillPath);
+  const before = getFileAtCommit("HEAD", skillPath);
   const after = fs.existsSync(skillPath)
     ? fs.readFileSync(skillPath, "utf-8")
     : null;
 
-  if (!before && !after) {
-    console.log(`  Skipping - file doesn't exist in either version`);
-    continue;
-  }
+  if (!before && !after) continue;
 
-  // Generate diff HTML
   const { beforeHtml, afterHtml } = generateDiffHtml(before, after);
+  const html = wrapInTemplate(skillName, beforeHtml, afterHtml, "HEAD", "working tree");
 
-  // Wrap in template
-  const html = wrapInTemplate(skillName, beforeHtml, afterHtml, baseCommit);
-
-  // Write to file
-  const outputPath = path.join(outputDir, `${skillName}-diff.html`);
+  const outputPath = path.join(outputDir, `${outputName}-diff.html`);
   fs.writeFileSync(outputPath, html);
-  console.log(`  Created: ${outputPath}`);
+  uncommittedInfos.push({ name: skillName, path: skillPath, outputName });
+}
 
-  skillInfos.push({ name: skillName, path: skillPath });
+// Process staged changes (index vs HEAD)
+for (const skillPath of stagedSkills) {
+  const skillName = getSkillName(skillPath);
+  const outputName = `staged-${skillName}`;
+  console.log(`Processing staged: ${skillName}...`);
+
+  const before = getFileAtCommit("HEAD", skillPath);
+  const after = getStagedContent(skillPath);
+
+  if (!before && !after) continue;
+
+  const { beforeHtml, afterHtml } = generateDiffHtml(before, after);
+  const html = wrapInTemplate(skillName, beforeHtml, afterHtml, "HEAD", "staged");
+
+  const outputPath = path.join(outputDir, `${outputName}-diff.html`);
+  fs.writeFileSync(outputPath, html);
+  stagedInfos.push({ name: skillName, path: skillPath, outputName });
+}
+
+// Process branch changes (HEAD vs main)
+for (const skillPath of branchSkills) {
+  const skillName = getSkillName(skillPath);
+  const outputName = `branch-${skillName}`;
+  console.log(`Processing branch: ${skillName}...`);
+
+  const before = getFileAtCommit(baseCommit, skillPath);
+  const after = getFileAtCommit("HEAD", skillPath);
+
+  if (!before && !after) continue;
+
+  const { beforeHtml, afterHtml } = generateDiffHtml(before, after);
+  const html = wrapInTemplate(skillName, beforeHtml, afterHtml, baseCommit, "HEAD");
+
+  const outputPath = path.join(outputDir, `${outputName}-diff.html`);
+  fs.writeFileSync(outputPath, html);
+  branchInfos.push({ name: skillName, path: skillPath, outputName });
 }
 
 // Generate index page
-const indexHtml = generateIndexPage(skillInfos, baseCommit);
+const indexHtml = generateIndexPage(uncommittedInfos, stagedInfos, branchInfos, baseCommit);
 fs.writeFileSync(path.join(outputDir, "index.html"), indexHtml);
 console.log(`\nIndex: ${outputDir}/index.html`);
 

@@ -117,9 +117,9 @@ Launch `architect-reviewer` subagent with Task tool (forked context):
   - Maintainability: Is the architecture clean and maintainable?
   - Performance: Any obvious performance issues?
 
-**Finding format (S0 = critical, S1 = important, S2 = minor):**
+**Finding format (P0 = critical, P1 = important, P2 = minor):**
 ```
-### [S{0-2}] {title}
+### [P{0-2}] {title}
 **Section:** {affected section}
 **Issue:** {what's wrong}
 **Suggestion:** {specific improvement}

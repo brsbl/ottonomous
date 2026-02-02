@@ -19,22 +19,76 @@ export function getFileAtCommit(commit, filePath) {
 }
 
 /**
- * Find all markdown files in skill directories that have changes between two commits
- * @param {string} baseCommit - Base commit to compare against
- * @param {string} targetCommit - Target commit (default: working directory)
- * @returns {string[]} Array of changed file paths
+ * Get file content from the staging area (index)
+ * @param {string} filePath - Path to file relative to repo root
+ * @returns {string|null} File content or null if file doesn't exist in staging
  */
-export function findChangedSkills(baseCommit, targetCommit = null) {
-  // Find all .md files anywhere in skills directories
-  const args = targetCommit
-    ? ["diff", "--name-only", baseCommit, targetCommit, "--", "skills/**/*.md"]
-    : ["diff", "--name-only", baseCommit, "--", "skills/**/*.md"];
-
+export function getStagedContent(filePath) {
   try {
-    const output = execFileSync("git", args, {
+    return execFileSync("git", ["show", `:${filePath}`], {
       encoding: "utf-8",
       stdio: ["pipe", "pipe", "pipe"],
     });
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Find skill files with uncommitted changes (working tree vs HEAD)
+ * @returns {string[]} Array of changed file paths
+ */
+export function findUncommittedSkills() {
+  try {
+    const output = execFileSync(
+      "git",
+      ["diff", "--name-only", "--", "skills/**/*.md"],
+      {
+        encoding: "utf-8",
+        stdio: ["pipe", "pipe", "pipe"],
+      },
+    );
+    return output.trim().split("\n").filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Find skill files with staged changes (index vs HEAD)
+ * @returns {string[]} Array of changed file paths
+ */
+export function findStagedSkills() {
+  try {
+    const output = execFileSync(
+      "git",
+      ["diff", "--cached", "--name-only", "--", "skills/**/*.md"],
+      {
+        encoding: "utf-8",
+        stdio: ["pipe", "pipe", "pipe"],
+      },
+    );
+    return output.trim().split("\n").filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Find skill files changed between current branch and base commit
+ * @param {string} baseCommit - Base commit to compare against (e.g., "main")
+ * @returns {string[]} Array of changed file paths
+ */
+export function findChangedSkills(baseCommit) {
+  try {
+    const output = execFileSync(
+      "git",
+      ["diff", "--name-only", `${baseCommit}...HEAD`, "--", "skills/**/*.md"],
+      {
+        encoding: "utf-8",
+        stdio: ["pipe", "pipe", "pipe"],
+      },
+    );
     return output.trim().split("\n").filter(Boolean);
   } catch {
     return [];
@@ -106,10 +160,11 @@ export function getSkillName(filePath) {
  * @param {string} skillName - Name of the skill
  * @param {string} beforeHtml - HTML content for before side
  * @param {string} afterHtml - HTML content for after side
- * @param {string} baseCommit - Base commit reference
+ * @param {string} beforeLabel - Label for before side (e.g., "main", "HEAD")
+ * @param {string} afterLabel - Label for after side (e.g., "HEAD", "staged", "working tree")
  * @returns {string} Complete HTML document
  */
-export function wrapInTemplate(skillName, beforeHtml, afterHtml, baseCommit) {
+export function wrapInTemplate(skillName, beforeHtml, afterHtml, beforeLabel, afterLabel) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -221,15 +276,15 @@ export function wrapInTemplate(skillName, beforeHtml, afterHtml, baseCommit) {
 <body>
   <a href="index.html" class="back-link">&larr; Back to Index</a>
   <h1>Skill Diff: ${skillName}</h1>
-  <p class="meta">Comparing against: ${baseCommit}</p>
+  <p class="meta">Comparing: ${beforeLabel} → ${afterLabel}</p>
 
   <div class="diff-container">
     <div class="diff-column">
-      <h2>Before (${baseCommit})</h2>
+      <h2>Before (${beforeLabel})</h2>
       <div class="diff-content">${beforeHtml}</div>
     </div>
     <div class="diff-column">
-      <h2>After (current)</h2>
+      <h2>After (${afterLabel})</h2>
       <div class="diff-content">${afterHtml}</div>
     </div>
   </div>
@@ -238,18 +293,58 @@ export function wrapInTemplate(skillName, beforeHtml, afterHtml, baseCommit) {
 }
 
 /**
- * Generate index page listing all skill diffs
- * @param {Array<{name: string, path: string}>} skills - Array of skill info
+ * Generate index page listing all skill diffs by scope
+ * @param {Array<{name: string, path: string, outputName: string}>} uncommitted - Uncommitted changes
+ * @param {Array<{name: string, path: string, outputName: string}>} staged - Staged changes
+ * @param {Array<{name: string, path: string, outputName: string}>} branch - Branch changes vs main
  * @param {string} baseCommit - Base commit reference
  * @returns {string} Complete HTML document for index
  */
-export function generateIndexPage(skills, baseCommit) {
-  const skillLinks = skills
-    .map(
-      (skill) =>
-        `<li><a href="${skill.name}-diff.html">${skill.name}</a> <span class="path">(${skill.path})</span></li>`,
-    )
-    .join("\n      ");
+export function generateIndexPage(uncommitted, staged, branch, baseCommit) {
+  const renderSection = (title, description, skills) => {
+    if (skills.length === 0) {
+      return `
+    <section>
+      <h2>${title}</h2>
+      <p class="description">${description}</p>
+      <p class="empty">No changes</p>
+    </section>`;
+    }
+
+    const links = skills
+      .map(
+        (skill) =>
+          `<li><a href="${skill.outputName}-diff.html">${skill.name}</a> <span class="path">(${skill.path})</span></li>`,
+      )
+      .join("\n        ");
+
+    return `
+    <section>
+      <h2>${title} <span class="count">(${skills.length})</span></h2>
+      <p class="description">${description}</p>
+      <ul>
+        ${links}
+      </ul>
+    </section>`;
+  };
+
+  const uncommittedSection = renderSection(
+    "Uncommitted",
+    "Working tree changes not yet staged",
+    uncommitted,
+  );
+
+  const stagedSection = renderSection(
+    "Staged",
+    "Changes staged for commit",
+    staged,
+  );
+
+  const branchSection = renderSection(
+    "Branch",
+    `All committed changes compared to ${baseCommit}`,
+    branch,
+  );
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -263,6 +358,7 @@ export function generateIndexPage(skills, baseCommit) {
       --text-color: #24292f;
       --border-color: #d0d7de;
       --link-color: #0969da;
+      --section-bg: #f6f8fa;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -271,6 +367,7 @@ export function generateIndexPage(skills, baseCommit) {
         --text-color: #c9d1d9;
         --border-color: #30363d;
         --link-color: #58a6ff;
+        --section-bg: #161b22;
       }
     }
 
@@ -292,14 +389,43 @@ export function generateIndexPage(skills, baseCommit) {
       margin-bottom: 30px;
     }
 
+    section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background-color: var(--section-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    section h2 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+    }
+
+    .count {
+      font-weight: normal;
+      color: #6e7781;
+    }
+
+    .description {
+      color: #6e7781;
+      font-size: 14px;
+      margin: 0 0 16px 0;
+    }
+
     ul {
       list-style: none;
       padding: 0;
+      margin: 0;
     }
 
     li {
-      padding: 12px 0;
+      padding: 8px 0;
       border-bottom: 1px solid var(--border-color);
+    }
+
+    li:last-child {
+      border-bottom: none;
     }
 
     a {
@@ -320,20 +446,16 @@ export function generateIndexPage(skills, baseCommit) {
     .empty {
       color: #6e7781;
       font-style: italic;
+      margin: 0;
     }
   </style>
 </head>
 <body>
   <h1>Skill Diffs</h1>
   <p class="meta">Comparing against: ${baseCommit}</p>
-
-  ${
-    skills.length > 0
-      ? `<ul>
-      ${skillLinks}
-    </ul>`
-      : '<p class="empty">No skill files have changes.</p>'
-  }
+  ${uncommittedSection}
+  ${stagedSection}
+  ${branchSection}
 </body>
 </html>`;
 }

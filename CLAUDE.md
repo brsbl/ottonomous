@@ -36,7 +36,7 @@ Every phase has explicit verification:
 - **Planning**: spec → architect review → user approval
 - **Implementation**: code → code review → fix → commit
 - **Verification criteria**: Each step defines "Done when..."
-- **Prioritized findings**: P0-P3 (planning) or S0-S2 (review) to focus effort
+- **Prioritized findings**: P0-P2 across all skills (P0 = critical, P1 = important, P2 = minor)
 
 ### Workflow Pattern
 
