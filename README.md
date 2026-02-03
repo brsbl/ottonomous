@@ -32,6 +32,15 @@ Use subagents to isolate concerns and prevent context pollution:
 - **Specialization**: Different expertise per agent (frontend vs backend, architect vs implementer)
 - **Scaling**: 1-2 files = 1 agent, 10+ files = 3-5 agents
 
+### Skill/Subagent Separation
+
+Skills and subagents have distinct responsibilities:
+
+- **Skills** define *what* to hand off (file list, diff command, scope, context)
+- **Subagents** define *how* to process (criteria, detection rules, output format)
+
+This keeps subagents self-contained and reusable while skills orchestrate the workflow.
+
 ### Iterative Review for Verification
 
 Every phase has explicit verification:
@@ -47,7 +56,7 @@ Every phase has explicit verification:
 
 | Skill | Description |
 |-------|-------------|
-| `/spec [idea]` | Researches best practices, interviews you to define requirements and design. Includes architect review with P0-P2 findings. |
+| `/spec [idea]` | Researches best practices, interviews you to define requirements and design. `spec-reviewer` validates completeness, consistency, feasibility, and technical correctness. |
 | `/spec list` | Lists all specs with id, name, status, and created date. |
 | `/task <spec-id>` | Creates atomic tasks grouped into sessions. Includes review with P0-P2 findings for task structure. |
 | `/task list` | Lists all tasks and their spec, sessions, status etc. |
@@ -66,7 +75,7 @@ Every phase has explicit verification:
 | Skill | Description |
 |-------|-------------|
 | `/test run` | Lint, type check, run tests. |
-| `/test write` | Generate tests, then run pipeline. |
+| `/test write` | `test-writer` generates tests for pure functions with edge cases, then runs pipeline. |
 | `/test browser` | Visual verification with browser automation. |
 | `/test all` | Run + browser combined. |
 
@@ -76,7 +85,7 @@ Every phase has explicit verification:
 
 | Skill | Description |
 |-------|-------------|
-| `/review` | Multi-agent review with P0-P2 findings. Uses `architect-reviewer` and `senior-code-reviewer`. |
+| `/review` | Multi-agent code review. `architect-reviewer` checks system structure and boundaries; `senior-code-reviewer` checks correctness, security, performance. |
 | `/review fix` | Implements all fixes from plan in parallel batches. |
 | `/review fix P0` | Implements only P0 (critical) fixes. |
 | `/review fix P0-P1` | Implements P0 and P1 fixes. |
@@ -87,7 +96,7 @@ Every phase has explicit verification:
 
 | Skill | Description |
 |-------|-------------|
-| `/doc` | Creates per-file documentation with parallel subagents. Optimized for agent consumption. |
+| `/doc` | Per-file documentation. `file-documenter` captures purpose, patterns, gotchas, and change history. |
 | `/summary` | Synthesizes docs into semantic HTML summary explaining what changed and why. |
 
 **Scope:** `staged`, `uncommitted`, `branch` (default)
@@ -166,16 +175,25 @@ Use `/clear` between steps to reset context.
     └── sessions/            # Otto session state (state.json)
 
 skills/                      # Skill implementations (SKILL.md + support files)
+├── spec/
+│   └── agents/
+│       └── spec-reviewer.md       # Spec validation (completeness, feasibility)
 ├── next/
-│   └── agents/              # Implementation agents
+│   └── agents/                    # Implementation agents
 │       ├── frontend-developer.md
 │       └── backend-architect.md
 ├── review/
-│   └── agents/              # Review agents
-│       ├── architect-reviewer.md
-│       └── senior-code-reviewer.md
+│   └── agents/                    # Code review agents
+│       ├── architect-reviewer.md  # Architectural issues
+│       └── senior-code-reviewer.md # Implementation issues
+├── doc/
+│   └── agents/
+│       └── file-documenter.md     # Per-file documentation
+├── test/
+│   └── agents/
+│       └── test-writer.md         # Test generation
 ├── otto/
-│   └── lib/browser/         # Playwright-based browser automation
+│   └── lib/browser/               # Playwright-based browser automation
 ├── summary/
 │   └── scripts/md-to-html.js
 └── ...

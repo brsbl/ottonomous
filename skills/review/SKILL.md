@@ -24,48 +24,6 @@ model: opus
 
 ---
 
-## Review Criteria
-
-Pass this section to all review subagents.
-
-### Priority Levels
-
-- **P0**: Crashes, data loss, security vulnerabilities, breaks core functionality
-- **P1**: Wrong behavior affecting users, but has workarounds
-- **P2**: Edge cases, minor bugs, code smells, maintainability issues
-
-### Detection Rules
-
-A finding must meet ALL of these:
-1. Meaningful impact on correctness, performance, usability, security, or maintainability
-2. Discrete and actionable (specific issue, not general concern)
-3. Introduced in this change (not pre-existing)
-4. Author would fix it if aware (not intentional design choice)
-5. No assumptions about unstated intent
-
-Do NOT flag: trivial style issues, pre-existing problems, hypothetical issues, documentation gaps, or missing tests.
-
-### Finding Format
-
-```
-### [P{N}] {Brief title}
-**Files:** `file/path.ts:123` (primary), `file/path.test.ts` (add test)
-**Problem:** {Why it's a bug, what triggers it, severity}
-**Fix:** {Specific approach, not just "fix the bug"}
-**Done when:** {How to verify the fix worked}
-```
-
-**Example:**
-```
-### [P1] Division by zero when progress is 0%
-**Files:** `src/components/ProgressBar.tsx:34` (primary)
-**Problem:** `100 / progress` throws when progress is 0, which occurs for newly created tasks
-**Fix:** Guard with `progress > 0 ? (100 / progress) : 0`
-**Done when:** ProgressBar renders without error when progress is 0
-```
-
----
-
 ## Review Mode
 
 ### Step 1: Categorize Changes
@@ -95,10 +53,12 @@ If a file fits both categories, assign to both reviewers.
 - 5-10 files: 2-3 subagents grouped by directory/component
 - 10+ files: 3-5 subagents grouped by directory/component
 
-**Each subagent receives:**
+**Handoff to reviewer subagents:**
 - File list to review
 - Diff command: `git diff main...HEAD -- <files>` (or `--cached` / no flag for staged/uncommitted)
-- Review Criteria section above (priority levels, detection rules, finding format)
+- Scope context (branch, staged, or uncommitted)
+
+Subagents return prioritized findings (P0-P2) in consistent format with Files, Problem, Fix, and Done when.
 
 Wait for all subagents to complete.
 

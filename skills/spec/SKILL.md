@@ -102,29 +102,13 @@ Write a spec covering:
 
 ### 5. Review Spec
 
-Launch `architect-reviewer` subagent with Task tool (forked context):
-- Prompt includes: full draft spec content, review criteria below
-- Subagent has no access to conversation - all context in prompt
+Launch `spec-reviewer` subagent with Task tool:
 
-**Review Criteria:**
-- Completeness: Missing requirements, edge cases, user stories
-- Consistency: Contradictions between sections
-- Feasibility: Technical design that won't work
-- Ambiguity: Vague requirements
-- **Technical correctness:**
-  - Data correctness: Are data models, types, and flows correct?
-  - Scalability: Will this design scale with usage?
-  - Maintainability: Is the architecture clean and maintainable?
-  - Performance: Any obvious performance issues?
+**Handoff to spec-reviewer:**
+- Full draft spec content (markdown)
+- Product name and context
 
-**Finding format (P0 = critical, P1 = important, P2 = minor):**
-```
-### [P{0-2}] {title}
-**Section:** {affected section}
-**Issue:** {what's wrong}
-**Suggestion:** {specific improvement}
-**Alternatives:** {if non-obvious, options for user}
-```
+The subagent reviews for completeness, consistency, feasibility, ambiguity, and technical correctness. Returns prioritized findings (P0-P2) with specific sections, issues, and suggestions.
 
 Wait for review to complete.
 
