@@ -142,6 +142,8 @@ Parse to get `{org}/{repo}` for GitHub links.
 | [src/auth/users.ts](https://github.com/{org}/{repo}/blob/{branch}/src/auth/users.ts) | Added profile CRUD |
 | [src/api/routes.ts](https://github.com/{org}/{repo}/blob/{branch}/src/api/routes.ts) | New profile endpoints |
 
+**List every file individually — no wildcards.** Count must match table rows.
+
 </details>
 ```
 
