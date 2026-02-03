@@ -61,4 +61,6 @@ For each finding:
 **Done when:** {How to verify the fix worked}
 ```
 
+**Multiple valid approaches?** Use `AskUserQuestion` to let the user choose before continuing.
+
 If no issues found, report: "No issues found."
