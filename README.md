@@ -142,10 +142,7 @@ Every phase has explicit verification:
 /next batch         │     # implement sessions of tasks in parallel
 │                   │
 ▼                   │
-/test run staged    │     # lint, typecheck, run tests
-│                   │
-▼                   │
-/test write staged  │     # generate new/missing tests
+/test write staged  │     # generate tests, then lint/typecheck/run all
 │                   │
 ▼                   │
 /review staged      │     # multi-agent code review
