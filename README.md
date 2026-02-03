@@ -23,14 +23,12 @@ Claude Code skills for every stage of product development: spec writing, task pr
 
 ## Philosophy
 
-### Subagents for Context Separation & Parallelization
+### Subagents for Context Isolation
 
 Use subagents to isolate concerns and prevent context pollution:
 
 - **Context isolation**: Each subagent gets only what it needs, nothing more
-- **Parallelization**: Run independent tasks concurrently (e.g., reviewing multiple files)
 - **Specialization**: Different expertise per agent (frontend vs backend, architect vs implementer)
-- **Scaling**: 1-2 files = 1 agent, 10+ files = 3-5 agents
 
 ### Skill/Subagent Separation
 
@@ -40,6 +38,17 @@ Skills and subagents have distinct responsibilities:
 - **Subagents** define *how* to process (criteria, detection rules, output format)
 
 This keeps subagents self-contained and reusable while skills orchestrate the workflow.
+
+### Swarm Orchestration
+
+Skills coordinate multiple subagents working in parallel using `run_in_background: true`:
+
+**Coordination patterns:**
+- **Fan-out/Fan-in** — Spawn N agents, wait for all, synthesize results. Used by `/review`, `/doc`.
+- **Waves** — Complete wave N before starting N+1 (for dependent work). Used by `/review fix`.
+- **Pipeline** — Sequential handoff between specialists. Used by `/otto`.
+
+**Scaling:** 1-4 items = 1 agent, 5-10 = 2-3 agents, 11+ = 3-5 agents. Group by directory or component type.
 
 ### Iterative Review for Verification
 
