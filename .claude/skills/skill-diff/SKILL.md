@@ -16,8 +16,10 @@ Generate visual diffs for changed skills, organized by scope.
 
 ## Usage
 
+Run the script (auto-opens in browser):
+
 ```bash
 node .claude/skills/skill-diff/scripts/skill-diff.js
 ```
 
-Opens `.otto/skill-diffs/index.html` in browser with side-by-side diffs organized by scope.
+Do NOT run `open` manually — the script handles it.

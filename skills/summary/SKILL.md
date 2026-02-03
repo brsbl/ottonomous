@@ -109,7 +109,7 @@ Parse to get `{org}/{repo}` for GitHub links.
 ## Semantic Changes by Component
 
 ### [src/auth/users.ts](https://github.com/{org}/{repo}/blob/{branch}/src/auth/users.ts)
-📄 [File docs](.otto/docs/files/src-auth-users.json)
+📄 [src-auth-users.json](../docs/files/src-auth-users.json)
 
 - **Purpose of changes:** What problem does this solve or what feature does it add?
 - **Behavioral changes:** How does the behavior differ from before?
@@ -119,7 +119,7 @@ Parse to get `{org}/{repo}` for GitHub links.
 - **Dependencies affected:** What other parts of the codebase might be impacted?
 
 ### [src/api/routes.ts](https://github.com/{org}/{repo}/blob/{branch}/src/api/routes.ts)
-📄 [File docs](.otto/docs/files/src-api-routes.json)
+📄 [src-api-routes.json](../docs/files/src-api-routes.json)
 
 - **Purpose of changes:** ...
 - **Behavioral changes:** ...
@@ -139,8 +139,8 @@ Parse to get `{org}/{repo}` for GitHub links.
 
 | File | Summary |
 |------|---------|
-| src/auth/users.ts | Added profile CRUD |
-| src/api/routes.ts | New profile endpoints |
+| [src/auth/users.ts](https://github.com/{org}/{repo}/blob/{branch}/src/auth/users.ts) | Added profile CRUD |
+| [src/api/routes.ts](https://github.com/{org}/{repo}/blob/{branch}/src/api/routes.ts) | New profile endpoints |
 
 </details>
 ```
