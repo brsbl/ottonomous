@@ -131,9 +131,9 @@ updated: {YYYY-MM-DD}
 
 ### 6. Review Spec
 
-Launch `spec-reviewer` subagent with Task tool:
+Launch `technical-product-manager` subagent with Task tool:
 
-**Handoff to spec-reviewer:**
+**Handoff to technical-product-manager:**
 - Spec path: `.otto/specs/{id}.md`
 - Spec ID: `{id}`
 

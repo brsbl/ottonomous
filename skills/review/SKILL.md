@@ -149,7 +149,7 @@ Report: `Fix plan saved. Run /review fix to implement.`
    - `fix P0-P1`: P0 and P1
 3. If no matching fixes: report "No {priority} issues to fix"
 
-### Step 2: Implement in Waves
+### Step 2: Implement in Batches
 
 **Select unblocked fixes** — where all `depends_on` are done.
 
@@ -162,7 +162,7 @@ Report: `Fix plan saved. Run /review fix to implement.`
 - Fix details (priority, problem, fix approach, files, done_when)
 - Instructions: implement fix, verify done_when, run `git add {files}`, mark status done in fix-plan.json
 
-**After each wave:** re-evaluate unblocked fixes, launch next wave, repeat until done.
+**After each batch:** re-evaluate unblocked fixes, launch next batch, repeat until done.
 
 **Verify:** Run type check and linter, report errors.
 
