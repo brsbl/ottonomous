@@ -144,13 +144,16 @@ export function generateDiffHtml(before, after) {
 /**
  * Extract display name from file path
  * @param {string} filePath - Path like "skills/otto/SKILL.md" or "skills/doc/agents/file-documenter.md"
- * @returns {string} Name like "otto" or "doc-agents-file-documenter"
+ * @returns {string} Name like "otto" or "doc-file-documenter"
  */
 export function getSkillName(filePath) {
-  // Remove "skills/" prefix and ".md" suffix, replace "/" with "-"
-  const match = filePath.match(/^skills\/(.+)\.md$/);
+  // skills/otto/SKILL.md → otto
+  // skills/doc/agents/file-documenter.md → doc-file-documenter (drops "agents")
+  const match = filePath.match(/^skills\/([^/]+)\/(?:agents\/)?(.+)\.md$/);
   if (match) {
-    return match[1].replace(/\//g, "-").replace(/-SKILL$/, "");
+    const [, skill, file] = match;
+    if (file === "SKILL") return skill;
+    return `${skill}-${file}`;
   }
   return filePath;
 }
