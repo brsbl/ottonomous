@@ -27,15 +27,15 @@ Claude Code skills for every stage of product development: spec writing, task pr
 
 Use subagents to isolate concerns and prevent context pollution:
 
-- **Context isolation**: Each subagent gets only what it needs, nothing more
-- **Specialization**: Different expertise per agent (frontend vs backend, architect vs implementer)
+- **Context isolation**: Each subagent gets only what it needs, nothing more. Orchestrator agent delegates to and manges subagent
+- **Specialization**: Different expertise per agent (frontend-developer vs backend-architect, senior-code-reviewer vs architect-reviewer, file-documenter vs test-writer, etc)
 
 ### Skill/Subagent Separation
 
 Skills and subagents have distinct responsibilities:
 
-- **Skills** define *what* to hand off (file list, diff command, scope, context)
-- **Subagents** define *how* to process (criteria, detection rules, output format)
+- **Skills** define *what* to hand off (file list, diff command, scope, context) and are instructions for the Orchestrator agent
+- **Subagents** define *how* to process what's handed off (criteria, detection rules, output format)
 
 This keeps subagents self-contained and reusable while skills orchestrate the workflow.
 
@@ -54,7 +54,7 @@ Skills coordinate multiple subagents working in parallel using `run_in_backgroun
 
 Every phase has explicit verification:
 
-- **Planning**: spec → architect review → user approval
+- **Planning**: spec → spec review → user approval
 - **Implementation**: code → code review → fix → commit
 - **Verification criteria**: Each step defines "Done when..."
 - **Prioritized findings**: P0-P2 across all skills (P0 = critical, P1 = important, P2 = minor)
@@ -67,7 +67,7 @@ Every phase has explicit verification:
 |-------|-------------|
 | `/spec [idea]` | Researches best practices, interviews you to define requirements and design. `spec-reviewer` validates completeness, consistency, feasibility, and technical correctness. |
 | `/spec list` | Lists all specs with id, name, status, and created date. |
-| `/task <spec-id>` | Creates atomic tasks grouped into sessions. Includes review with P0-P2 findings for task structure. |
+| `/task <spec-id>` | Creates atomic tasks grouped into agent sessions. Includes review with P0-P2 findings for task structure. |
 | `/task list` | Lists all tasks and their spec, sessions, status etc. |
 
 ### Implementation
@@ -105,8 +105,8 @@ Every phase has explicit verification:
 
 | Skill | Description |
 |-------|-------------|
-| `/doc` | Per-file documentation. `file-documenter` captures purpose, patterns, gotchas, and change history. |
-| `/summary` | Synthesizes docs into semantic HTML summary explaining what changed and why. |
+| `/doc` | for each file that was changed, `file-documenter` captures purpose, patterns, gotchas, and change history not apparent by just reading the code or git history. Primarily a resource for agents. |
+| `/summary` | Synthesizes all docs from /doc into semantic HTML summary explaining what changed and why. Primarily a resource to compliment or replace code review  |
 
 **Scope:** `staged`, `uncommitted`, `branch` (default)
 
@@ -139,7 +139,7 @@ Every phase has explicit verification:
 ┌───────────────────┐
 │                   │
 ▼                   │
-/next batch         │     # implement sessions of tasks in parallel
+/next batch         │     # implement sessions of tasks in parallel then stage results
 │                   │
 ▼                   │
 /test write staged  │     # generate tests, then lint/typecheck/run all
