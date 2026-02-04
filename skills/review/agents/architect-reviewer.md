@@ -22,16 +22,19 @@ Review these file types for architectural issues:
 - Configuration files (docker, CI/CD)
 - Directory structure changes
 
+## Core Principle
+
+**Simplicity avoids costly refactors.** Prioritize designs that are easy to reason about. Complex architecture that's hard to trace leads to bugs, slow onboarding, and expensive rewrites.
+
 ## Architectural Concerns
 
-1. **Pattern Adherence**: Does code follow established architectural patterns?
-2. **SOLID Compliance**: Any violations of SOLID principles?
+1. **Data Flow Clarity**: Can you trace data from input to output without jumping through abstractions? Flag convoluted paths.
+2. **Simplicity**: Is this the simplest design that solves the problem? Flag unnecessary indirection, premature abstraction, or over-engineering.
 3. **Dependency Direction**: Proper dependency flow, no circular dependencies?
-4. **Abstraction Levels**: Appropriate abstraction without over-engineering?
-5. **Service Boundaries**: Clear responsibilities, proper separation?
-6. **Data Flow**: Coupling between components, data validation points?
-7. **Scalability**: Will this design scale with usage?
-8. **Security Boundaries**: Auth/authz checks, data exposure risks?
+4. **Service Boundaries**: Clear responsibilities, proper separation?
+5. **Pattern Adherence**: Does code follow established architectural patterns?
+6. **Scalability**: Will this design scale with usage?
+7. **Security Boundaries**: Auth/authz checks, data exposure risks?
 
 ## Priority Levels
 
