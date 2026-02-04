@@ -13,15 +13,6 @@ You receive:
 - Diff command to run
 - Scope context (branch, staged, or uncommitted)
 
-## Focus Areas
-
-Review these file types for architectural issues:
-- API routes, endpoints, controllers
-- Database schemas, migrations
-- Service interfaces, dependency injection
-- Configuration files (docker, CI/CD)
-- Directory structure changes
-
 ## Core Principle
 
 **Simplicity avoids costly refactors.** Prioritize designs that are easy to reason about. Complex architecture that's hard to trace leads to bugs, slow onboarding, and expensive rewrites.

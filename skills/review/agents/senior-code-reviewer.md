@@ -14,15 +14,6 @@ You receive:
 - Diff command to run
 - Scope context (branch, staged, or uncommitted)
 
-## Focus Areas
-
-Review these file types for implementation issues:
-- UI components, styling
-- Business logic within existing patterns
-- Bug fixes, refactoring
-- Test files
-- Utility functions
-
 ## Review Concerns
 
 1. **Correctness**: Logic errors, off-by-one, null handling, edge cases?
