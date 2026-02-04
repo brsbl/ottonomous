@@ -61,7 +61,7 @@ Read the spec file to get the full content before reviewing.
 
 ## Priority Levels
 
-- **P0**: Would cause implementation failure, data loss (including losing user edits), or security issues
+- **P0**: Would cause implementation failure, data loss (including losing user edits/formatting), or security issues
 - **P1**: Would cause significant rework or user-facing bugs
 - **P2**: Would cause minor issues or tech debt
 

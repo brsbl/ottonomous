@@ -1,7 +1,7 @@
 ---
 name: doc
 description: Creates per-file documentation capturing intent and context that can't be inferred from code alone. Establishes baseline docs then layers branch changes as narrative. Use after implementing features or when documenting code.
-argument-hint: [staged | uncommitted | branch]
+argument-hint: [staged | branch]
 model: opus
 ---
 
@@ -11,7 +11,6 @@ model: opus
 |----------|---------|
 | (none) or `branch` | `git diff main...HEAD --name-only` |
 | `staged` | `git diff --cached --name-only` |
-| `uncommitted` | `git diff --name-only` |
 
 ---
 

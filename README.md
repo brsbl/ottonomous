@@ -88,7 +88,7 @@ Every phase has explicit verification:
 | `/test browser` | Visual verification with browser automation. |
 | `/test all` | Run + browser combined. |
 
-**Scope:** `staged`, `uncommitted`, `branch` (default)
+**Scope:** `staged`, `branch` (default)
 
 ### Code Review
 
@@ -99,7 +99,7 @@ Every phase has explicit verification:
 | `/review fix P0` | Implements only P0 (critical) fixes. |
 | `/review fix P0-P1` | Implements P0 and P1 fixes. |
 
-**Scope:** `staged`, `uncommitted`, `branch` (default)
+**Scope:** `staged`, `branch` (default)
 
 ### Documentation
 
@@ -108,7 +108,7 @@ Every phase has explicit verification:
 | `/doc` | for each file that was changed, `file-documenter` captures purpose, patterns, gotchas, and change history not apparent by just reading the code or git history. Primarily a resource for agents. |
 | `/summary` | Synthesizes all docs from /doc into semantic HTML summary explaining what changed and why. Primarily a resource to compliment or replace code review  |
 
-**Scope:** `staged`, `uncommitted`, `branch` (default)
+**Scope:** `staged`, `branch` (default)
 
 ### Automation
 

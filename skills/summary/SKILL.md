@@ -1,7 +1,7 @@
 ---
 name: summary
 description: Synthesizes code docs into user-facing HTML summary. Creates semantic narrative explaining what changed and why it matters. Use when creating PR summaries, release notes, or change overviews.
-argument-hint: [staged | uncommitted | branch]
+argument-hint: [staged | branch]
 model: opus
 ---
 
@@ -11,7 +11,6 @@ model: opus
 |----------|-------------------|
 | (none) or `branch` | Branch diff: `git diff main...HEAD --name-only` |
 | `staged` | Staged changes: `git diff --cached --name-only` |
-| `uncommitted` | Uncommitted changes: `git diff --name-only` |
 
 ---
 
