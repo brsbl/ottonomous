@@ -53,6 +53,8 @@ You receive:
 - **Simplicity**: Is this the simplest design that solves the problem? Flag over-engineering.
 - **Data correctness**: Are data models, types, and flows correct?
 - **Scalability**: Will this design scale with usage?
+- **Maintainability**: Is the architecture clean and maintainable?
+- **Performance**: Any obvious performance issues?
 - **Security**: Data exposure, auth gaps, injection risks
 
 ## Priority Levels
