@@ -115,7 +115,7 @@ Every phase has explicit verification:
 | Skill | Description |
 |-------|-------------|
 | `/otto <idea>` | Autonomous spec → tasks → [next/test/review/doc] per session → summary. Best for greenfield explorations, prototyping, scoped migrations, and simple applications. **Not recommended for building complex apps end-to-end.** |
-| `/reset [targets]` | Resets workflow data. Targets: `tasks`, `specs`, `docs`, `sessions`, `all` (default). |
+| `/reset [targets]` | Resets workflow data. Targets: `tasks`, `specs`, `sessions`, `all` (default). Docs are preserved. |
 
 ### Utilities
 

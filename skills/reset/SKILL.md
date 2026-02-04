@@ -1,11 +1,11 @@
 ---
 name: reset
-description: Resets workflow artifacts (.otto/ directory). Removes docs, sessions, tasks, and specs. Use when starting over. Destructive - requires confirmation.
+description: Resets workflow artifacts (.otto/ directory). Removes sessions, tasks, and specs. Use when starting over. Destructive - requires confirmation.
 model: opus
 model-invokable: false
 arguments:
   - name: targets
-    description: "Subdirectories to clear: tasks, specs, docs, sessions, or all (default: all)"
+    description: "Subdirectories to clear: tasks, specs, sessions, or all (default: all). Docs are preserved."
     required: false
 ---
 
@@ -17,9 +17,8 @@ Reset workflow data. Selectively or fully clears the `.otto/` directory.
 |--------|-----------|----------|
 | `tasks` | `.otto/tasks/` | Task lists |
 | `specs` | `.otto/specs/` | Specifications |
-| `docs` | `.otto/docs/` | Changelogs |
 | `sessions` | `.otto/sessions/` | Browser sessions |
-| `all` | `.otto/` | Everything (default) |
+| `all` | Above targets | Everything except docs (default) |
 
 ## Usage Examples
 
@@ -48,12 +47,11 @@ Map targets to directories:
 ```
 tasks    -> .otto/tasks/
 specs    -> .otto/specs/
-docs     -> .otto/docs/
 sessions -> .otto/sessions/
-all      -> .otto/
+all      -> tasks + specs + sessions (NOT docs)
 ```
 
-If no arguments or `all` specified, target entire `.otto/` directory.
+If no arguments or `all` specified, target tasks, specs, and sessions. Docs are always preserved.
 
 ### 3. Kill Active Processes (if sessions targeted or all)
 
@@ -90,9 +88,9 @@ After confirmation, remove only the targeted directories:
 rm -rf <target_dirs>
 ```
 
-For `all`, remove entire `.otto/`:
+For `all`, remove tasks, specs, and sessions (preserving docs):
 ```bash
-rm -rf .otto
+rm -rf .otto/tasks .otto/specs .otto/sessions .otto/otto
 ```
 
 ### 7. Report
