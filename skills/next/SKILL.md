@@ -112,10 +112,17 @@ Select sessions to implement:
 
 Mark all sessions as "in_progress" before launching.
 
-For each session, launch a subagent using Task tool with `run_in_background: true`:
+**Launch ALL sessions in a single message** with multiple Task tool calls (one per session), using `run_in_background: true`:
 - `subagent_type`: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks)
 - Include in prompt: session context + planning workflow (see below)
 - Subagent implements tasks sequentially, marking each "done" as completed
+
+Example (3 sessions → 3 Task calls in one response):
+```
+Task(description="Implement S1", prompt="...", subagent_type="frontend-developer", run_in_background=true)
+Task(description="Implement S2", prompt="...", subagent_type="backend-architect", run_in_background=true)
+Task(description="Implement S3", prompt="...", subagent_type="frontend-developer", run_in_background=true)
+```
 
 **Subagent prompt must include:**
 
