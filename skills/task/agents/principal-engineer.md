@@ -57,7 +57,7 @@ You receive:
 
 ## Priority Levels
 
-- **P0**: Would cause implementation failure, deadlock, or missed requirements
+- **P0**: Would cause implementation failure, data loss (including losing user edits), deadlock, or missed requirements
 - **P1**: Would cause significant rework or blocked parallelization
 - **P2**: Would cause minor inefficiency or tech debt
 

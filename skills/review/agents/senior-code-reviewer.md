@@ -25,7 +25,7 @@ You receive:
 
 ## Priority Levels
 
-- **P0**: Crashes, data loss, security vulnerabilities, breaks core functionality
+- **P0**: Crashes, data loss (including losing user edits), security vulnerabilities, breaks core functionality
 - **P1**: Wrong behavior affecting users, but has workarounds
 - **P2**: Edge cases, minor bugs, code smells, maintainability issues
 
