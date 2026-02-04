@@ -23,7 +23,16 @@ Check if CLAUDE.md contains the doc discovery section. If not, append:
 ```
 ## Code Docs
 
-`.otto/docs/files/{file-path-with-dashes}.json` contains per-file documentation with purpose, patterns, gotchas, and change history.
+`.otto/docs/files/{file-path-with-dashes}.json` contains per-file documentation
+with purpose, patterns, gotchas, and change history.
+
+**Before modifying a source file**, check for its doc by converting the path to
+dashes:
+- `packages/desktop/src/main/agent/auth-checker.ts` →
+  `packages-desktop-src-main-agent-auth-checker.ts.json`
+
+The doc contains gotchas and context that may not be obvious from the code
+alone.
 ```
 
 ### 2. Get Changed Files

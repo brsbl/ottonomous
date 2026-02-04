@@ -139,6 +139,12 @@ await page.evaluate(() => {
 await client.disconnect()
 ```
 
+After completing the workflow, remove screenshots:
+
+```bash
+rm -rf .otto/screenshots
+```
+
 ---
 
 ## ARIA Snapshot Format

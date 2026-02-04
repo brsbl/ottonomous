@@ -130,6 +130,12 @@ await btn.click()
 await client.disconnect()
 ```
 
+After completing browser verification, remove screenshots:
+
+```bash
+rm -rf .otto/test-screenshots
+```
+
 ---
 
 # All Mode
