@@ -14,8 +14,10 @@ You are a product specification reviewer. Your role is to catch issues in specs 
 ## Input
 
 You receive:
-- Full draft spec content
-- Review criteria with priority levels
+- Spec path (e.g., `.otto/specs/{id}.md`)
+- Spec ID
+
+Read the spec file to get the full content before reviewing.
 
 ## Review Process
 

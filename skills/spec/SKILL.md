@@ -100,33 +100,7 @@ Write a spec covering:
 - **Future Considerations** - Deferred features, extensibility
 - **Open Questions** - Unresolved decisions marked as `[TBD: reason]`
 
-### 5. Review Spec
-
-Launch `spec-reviewer` subagent with Task tool:
-
-**Handoff to spec-reviewer:**
-- Full draft spec content (markdown)
-- Product name and context
-
-The subagent reviews for completeness, consistency, feasibility, ambiguity, and technical correctness. Returns prioritized findings (P0-P2) with specific sections, issues, and suggestions.
-
-Wait for review to complete.
-
-### 6. Interview User on Findings
-
-If no findings, skip to step 7.
-
-For each finding (highest priority first):
-1. Present the finding with its priority level
-2. If suggestion is clear: `AskUserQuestion` with "Accept", "Reject", "Modify"
-3. If alternatives exist: `AskUserQuestion` with the options
-4. If accepted: Update the draft spec with the change
-5. If rejected: Skip to next finding
-6. If modify: Apply user's modified version
-
-After processing all findings, continue to step 7.
-
-### 7. Save Draft
+### 5. Save Draft
 
 Generate unique ID from product idea:
 ```bash
@@ -154,6 +128,32 @@ updated: {YYYY-MM-DD}
 
 {spec content}
 ```
+
+### 6. Review Spec
+
+Launch `spec-reviewer` subagent with Task tool:
+
+**Handoff to spec-reviewer:**
+- Spec path: `.otto/specs/{id}.md`
+- Spec ID: `{id}`
+
+The subagent reads the spec, reviews for completeness, consistency, feasibility, ambiguity, and technical correctness. Returns prioritized findings (P0-P2) with specific sections, issues, and suggestions.
+
+Wait for review to complete.
+
+### 7. Interview User on Findings
+
+If no findings, skip to step 8.
+
+For each finding (highest priority first):
+1. Present the finding with its priority level
+2. If suggestion is clear: `AskUserQuestion` with "Accept", "Reject", "Modify"
+3. If alternatives exist: `AskUserQuestion` with the options
+4. If accepted: Update the spec file with the change
+5. If rejected: Skip to next finding
+6. If modify: Apply user's modified version
+
+After processing all findings, update the spec file with changes.
 
 ### 8. Approval
 
