@@ -1,7 +1,7 @@
 ---
 name: test
 description: Runs lint, type check, tests, and visual verification. Auto-detects tools. Use when running tests, linting, type checking, or writing tests.
-argument-hint: <run | write | browser | all> [staged | uncommitted | branch]
+argument-hint: <run | write | browser | all> [staged | branch]
 model: opus
 ---
 
@@ -20,7 +20,6 @@ model: opus
 |-------|---------|
 | `branch` | `git diff main...HEAD --name-only` |
 | `staged` | `git diff --cached --name-only` |
-| `uncommitted` | `git diff --name-only` |
 
 ---
 
@@ -80,7 +79,6 @@ Fix errors, re-run until all pass.
 ```bash
 git diff main...HEAD --name-only  # branch scope
 git diff --cached --name-only     # staged scope
-git diff --name-only              # uncommitted scope
 ```
 
 Filter to source files (exclude tests, configs, docs).

@@ -1,7 +1,7 @@
 ---
 name: review
 description: Reviews code changes for bugs with P0-P2 prioritized feedback. Uses parallel subagents for thorough analysis, then creates fix plans. Use when reviewing code, finding bugs, checking quality, or before merging. Use /review fix to implement fixes.
-argument-hint: [staged | uncommitted | branch] | fix [P0 | P0-P1 | all]
+argument-hint: [staged | branch] | fix [P0 | P0-P1 | all]
 model: opus
 ---
 
@@ -11,7 +11,6 @@ model: opus
 |---------|----------|
 | `/review` | Review branch diff, synthesize findings, create fix plan |
 | `/review staged` | Review staged changes only |
-| `/review uncommitted` | Review uncommitted changes only |
 | `/review fix` | Implement all fixes from saved plan |
 | `/review fix P0` | Implement only P0 (critical) fixes |
 | `/review fix P0-P1` | Implement P0 and P1 fixes |
@@ -20,7 +19,6 @@ model: opus
 |-------|-------------|
 | `branch` (default) | `git diff main...HEAD` |
 | `staged` | `git diff --cached` |
-| `uncommitted` | `git diff` |
 
 ---
 
@@ -55,8 +53,8 @@ If a file fits both categories, assign to both reviewers.
 
 **Handoff to reviewer subagents:**
 - File list to review
-- Diff command: `git diff main...HEAD -- <files>` (or `--cached` / no flag for staged/uncommitted)
-- Scope context (branch, staged, or uncommitted)
+- Diff command: `git diff main...HEAD -- <files>` (or `--cached` for staged)
+- Scope context (branch or staged)
 
 Subagents return prioritized findings (P0-P2) in consistent format with Files, Problem, Fix, and Done when.
 
@@ -149,7 +147,7 @@ Report: `Fix plan saved. Run /review fix to implement.`
    - `fix P0-P1`: P0 and P1
 3. If no matching fixes: report "No {priority} issues to fix"
 
-### Step 2: Implement in Waves
+### Step 2: Implement in Batches
 
 **Select unblocked fixes** — where all `depends_on` are done.
 
@@ -162,7 +160,7 @@ Report: `Fix plan saved. Run /review fix to implement.`
 - Fix details (priority, problem, fix approach, files, done_when)
 - Instructions: implement fix, verify done_when, run `git add {files}`, mark status done in fix-plan.json
 
-**After each wave:** re-evaluate unblocked fixes, launch next wave, repeat until done.
+**After each batch:** re-evaluate unblocked fixes, launch next batch, repeat until done.
 
 **Verify:** Run type check and linter, report errors.
 

@@ -45,7 +45,7 @@ Skills coordinate multiple subagents working in parallel using `run_in_backgroun
 
 **Coordination patterns:**
 - **Fan-out/Fan-in** — Spawn N agents, wait for all, synthesize results. Used by `/review`, `/doc`.
-- **Waves** — Complete wave N before starting N+1 (for dependent work). Used by `/review fix`.
+- **Batches** — Complete batch N before starting N+1 (for dependent work). Used by `/review fix`.
 - **Pipeline** — Sequential handoff between specialists. Used by `/otto`.
 
 **Scaling:** 1-4 items = 1 agent, 5-10 = 2-3 agents, 11+ = 3-5 agents. Group by directory or component type.
@@ -65,9 +65,9 @@ Every phase has explicit verification:
 
 | Skill | Description |
 |-------|-------------|
-| `/spec [idea]` | Researches best practices, interviews you to define requirements and design. `spec-reviewer` validates completeness, consistency, feasibility, and technical correctness. |
+| `/spec [idea]` | Researches best practices, interviews you to define requirements and design. `technical-product-manager` validates completeness, consistency, feasibility, and technical correctness. |
 | `/spec list` | Lists all specs with id, name, status, and created date. |
-| `/task <spec-id>` | Creates atomic tasks grouped into agent sessions. Includes review with P0-P2 findings for task structure. |
+| `/task <spec-id>` | Creates atomic tasks grouped into agent sessions. `principal-engineer` reviews work breakdown, dependencies, and completeness. |
 | `/task list` | Lists all tasks and their spec, sessions, status etc. |
 
 ### Implementation
@@ -88,7 +88,7 @@ Every phase has explicit verification:
 | `/test browser` | Visual verification with browser automation. |
 | `/test all` | Run + browser combined. |
 
-**Scope:** `staged`, `uncommitted`, `branch` (default)
+**Scope:** `staged`, `branch` (default)
 
 ### Code Review
 
@@ -99,7 +99,7 @@ Every phase has explicit verification:
 | `/review fix P0` | Implements only P0 (critical) fixes. |
 | `/review fix P0-P1` | Implements P0 and P1 fixes. |
 
-**Scope:** `staged`, `uncommitted`, `branch` (default)
+**Scope:** `staged`, `branch` (default)
 
 ### Documentation
 
@@ -108,14 +108,14 @@ Every phase has explicit verification:
 | `/doc` | for each file that was changed, `file-documenter` captures purpose, patterns, gotchas, and change history not apparent by just reading the code or git history. Primarily a resource for agents. |
 | `/summary` | Synthesizes all docs from /doc into semantic HTML summary explaining what changed and why. Primarily a resource to compliment or replace code review  |
 
-**Scope:** `staged`, `uncommitted`, `branch` (default)
+**Scope:** `staged`, `branch` (default)
 
 ### Automation
 
 | Skill | Description |
 |-------|-------------|
 | `/otto <idea>` | Autonomous spec → tasks → [next/test/review/doc] per session → summary. Best for greenfield explorations, prototyping, scoped migrations, and simple applications. **Not recommended for building complex apps end-to-end.** |
-| `/reset [targets]` | Resets workflow data. Targets: `tasks`, `specs`, `docs`, `sessions`, `all` (default). |
+| `/reset [targets]` | Resets workflow data. Targets: `tasks`, `specs`, `sessions`, `all` (default). Docs are preserved. |
 
 ### Utilities
 
@@ -183,7 +183,10 @@ Use `/clear` between steps to reset context.
 skills/                      # Skill implementations (SKILL.md + support files)
 ├── spec/
 │   └── agents/
-│       └── spec-reviewer.md       # Spec validation (completeness, feasibility)
+│       └── technical-product-manager.md  # Spec validation (completeness, feasibility)
+├── task/
+│   └── agents/
+│       └── principal-engineer.md         # Task decomposition review
 ├── next/
 │   └── agents/                    # Implementation agents
 │       ├── frontend-developer.md

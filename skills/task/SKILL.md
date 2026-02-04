@@ -126,7 +126,7 @@ Write to `.otto/tasks/{spec-id}.json`:
 
 ### 4. Review Task List
 
-Launch `senior-code-reviewer` subagent with Task tool (forked context):
+Launch `principal-engineer` subagent with Task tool (forked context):
 - Prompt includes: task list JSON, full spec content, review criteria below
 - Subagent has no access to conversation - all context in prompt
 
