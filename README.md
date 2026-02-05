@@ -66,6 +66,7 @@ Every phase has explicit verification:
 | Skill | Description |
 |-------|-------------|
 | `/spec [idea]` | Researches best practices, interviews you to define requirements and design. `technical-product-manager` validates completeness, consistency, feasibility, and technical correctness. |
+| `/spec revise {spec}` | Saves a comprehensive spec and goes straight to review with codebase exploration, skipping the interview. |
 | `/spec list` | Lists all specs with id, name, status, and created date. |
 | `/task <spec-id>` | Creates atomic tasks grouped into agent sessions. `principal-engineer` reviews work breakdown, dependencies, and completeness. |
 | `/task list` | Lists all tasks and their spec, sessions, status etc. |
