@@ -95,7 +95,7 @@ Every phase has explicit verification:
 
 | Skill | Description |
 |-------|-------------|
-| `/review` | Multi-agent code review. `architect-reviewer` checks system structure and boundaries; `senior-code-reviewer` checks correctness, security, performance. |
+| `/review` | Multi-agent code review. `architect-reviewer` checks system structure and boundaries; `senior-code-reviewer` checks correctness, security, performance; `false-positive-validator` filters out invalid findings. |
 | `/review fix` | Implements all fixes from plan in parallel batches. |
 | `/review fix P0` | Implements only P0 (critical) fixes. |
 | `/review fix P0-P1` | Implements P0 and P1 fixes. |
@@ -194,8 +194,9 @@ skills/                      # Skill implementations (SKILL.md + support files)
 │       └── backend-architect.md
 ├── review/
 │   └── agents/                    # Code review agents
-│       ├── architect-reviewer.md  # Architectural issues
-│       └── senior-code-reviewer.md # Implementation issues
+│       ├── architect-reviewer.md         # Architectural issues
+│       ├── senior-code-reviewer.md       # Implementation issues
+│       └── false-positive-validator.md   # Validates and filters review findings
 ├── doc/
 │   └── agents/
 │       └── file-documenter.md     # Per-file documentation
