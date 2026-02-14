@@ -81,7 +81,36 @@ Wait for all subagents to complete.
 
 **If no findings:** Report "No issues found" and stop.
 
-### Step 4: Resolve and Approve
+### Step 4: Validate Findings
+
+Skip this step if there are no findings (verdict is already CORRECT).
+
+Launch `false-positive-validator` with:
+- The full findings list from Step 3
+- Scope context (branch or staged)
+- Diff command used
+
+**Process results:**
+1. **Replace** findings list with validated results (KEPT + DOWNGRADED findings only)
+2. **Re-sort** by priority (P0 first)
+3. **Append** a collapsed details section showing what was removed or changed:
+
+```markdown
+<details>
+<summary>Validation: {N} removed, {M} downgraded</summary>
+
+| Finding | Verdict | Reason |
+|---------|---------|--------|
+| [P1] Title | FALSE POSITIVE | Already handled — `file.ts:32` has null check |
+| [P0 → P2] Title | DOWNGRADED | Context negates severity — `api.ts:15` validates input |
+
+</details>
+```
+
+4. **If all findings removed** → verdict becomes CORRECT, report "No issues found after validation" and stop
+5. Otherwise proceed to Step 5
+
+### Step 5: Resolve and Approve
 
 **Resolve ambiguous fixes first.** If any fix contains multiple approaches ("Either...OR", "Option A/B"), use `AskUserQuestion` to pick one before approval:
 
