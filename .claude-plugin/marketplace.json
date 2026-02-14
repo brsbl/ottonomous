@@ -17,8 +17,7 @@
         "./skills/summary",
         "./skills/task",
         "./skills/next",
-        "./skills/doc",
-        "./skills/clean"
+        "./skills/doc"
       ],
       "agents": [
         "./skills/next/agents/frontend-developer.md",
