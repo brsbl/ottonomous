@@ -110,9 +110,9 @@ Launch `false-positive-validator` with:
 4. **If all findings removed** → verdict becomes CORRECT, report "No issues found after validation" and stop
 5. Otherwise proceed to Step 5
 
-### Step 5: Resolve and Approve
+### Step 5: Resolve Ambiguous Fixes
 
-**Resolve ambiguous fixes first.** If any fix contains multiple approaches ("Either...OR", "Option A/B"), use `AskUserQuestion` to pick one before approval:
+**If any fix requires a decision** (contains "Either...OR", "Option A/B", or similar patterns), use `AskUserQuestion` to interview the user:
 
 ```
 [P0] Plugin discovery limited to 3 hardcoded paths
@@ -124,9 +124,16 @@ B) Remove dead countCommands/countSkills functions (simpler, less data)
 Which approach?
 ```
 
-Update the fix with the chosen approach.
+**Process multiple ambiguous fixes** in a single interview when possible:
+- Group related decisions together
+- Show context for each choice
+- Update fixes with chosen approaches
 
-**Then ask for approval** using `AskUserQuestion`:
+**If no ambiguous fixes**, skip to Step 6.
+
+### Step 6: Approve Fix Plan
+
+**Ask for approval** using `AskUserQuestion`:
 - "Approve and save plan"
 - "Request changes" — revise based on feedback
 - "Open in editor" — save to `.otto/reviews/fix-plan-draft.md` for editing
