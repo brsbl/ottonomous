@@ -20,29 +20,41 @@ Ottonomous is a Claude Code plugin for structured product development. It operat
 
 ## Core Philosophy
 
-### Subagents for Context Separation & Parallelization
+### Subagents for Context Isolation
 
 Use subagents to isolate concerns and prevent context pollution:
 
-- **Context isolation**: Each subagent gets only what it needs, nothing more
-- **Parallelization**: Run independent tasks concurrently (e.g., reviewing multiple files)
-- **Specialization**: Different expertise per agent (frontend vs backend, architect vs implementer)
-- **Scaling**: 1-2 files = 1 agent, 10+ files = 3-5 agents
+- **Context isolation**: Each subagent gets only what it needs, nothing more. Orchestrator agent delegates to and manages subagent
+- **Specialization**: Different expertise per agent (frontend-developer vs backend-architect, senior-code-reviewer vs architect-reviewer, file-documenter vs test-writer, etc)
+
+### Skill/Subagent Separation
+
+Skills and subagents have distinct responsibilities:
+
+- **Skills** define *what* to hand off (file list, diff command, scope, context) and are instructions for the Orchestrator agent
+- **Subagents** define *how* to process what's handed off (criteria, detection rules, output format)
+
+This keeps subagents self-contained and reusable while skills orchestrate the workflow.
+
+### Swarm Orchestration
+
+Skills coordinate multiple subagents working in parallel using `run_in_background: true`:
+
+**Coordination patterns:**
+- **Fan-out/Fan-in** — Spawn N agents, wait for all, synthesize results. Used by `/review`, `/doc`.
+- **Batches** — Complete batch N before starting N+1 (for dependent work). Used by `/review fix`.
+- **Pipeline** — Sequential handoff between specialists. Used by `/otto`.
+
+**Scaling:** 1-4 items = 1 agent, 5-10 = 2-3 agents, 11+ = 3-5 agents. Group by directory or component type.
 
 ### Iterative Review for Verification
 
 Every phase has explicit verification:
 
-- **Planning**: spec → architect review → user approval
+- **Planning**: spec → spec review → user approval
 - **Implementation**: code → code review → fix → commit
 - **Verification criteria**: Each step defines "Done when..."
 - **Prioritized findings**: P0-P2 across all skills (P0 = critical, P1 = important, P2 = minor)
-
-### Workflow Pattern
-
-```
-Plan → Review → Approve → Implement → Verify → Document
-```
 
 ## Claude Code Plugin Development
 
@@ -126,9 +138,13 @@ skills/                    # Skill implementations
 .otto/                     # Workflow artifacts (git-ignored)
 ├── specs/                 # Product specifications
 ├── tasks/                 # Sessions and tasks
-├── reviews/               # Fix plans
+├── reviews/               # Review fix plans
 ├── docs/                  # Per-file documentation
-└── summaries/             # Generated HTML
+│   ├── files/             # Individual file docs
+│   └── branches/          # Branch snapshots
+├── summaries/             # Generated HTML summaries
+└── otto/
+    └── sessions/          # Otto session state
 ```
 
 ## Development Commands
