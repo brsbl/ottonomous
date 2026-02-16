@@ -27,7 +27,7 @@ Claude Code skills for every stage of product development: spec writing, task pr
 
 Use subagents to isolate concerns and prevent context pollution:
 
-- **Context isolation**: Each subagent gets only what it needs, nothing more. Orchestrator agent delegates to and manges subagent
+- **Context isolation**: Each subagent gets only what it needs, nothing more. Orchestrator agent delegates to and manages subagent
 - **Specialization**: Different expertise per agent (frontend-developer vs backend-architect, senior-code-reviewer vs architect-reviewer, file-documenter vs test-writer, etc)
 
 ### Skill/Subagent Separation
@@ -205,6 +205,8 @@ skills/                      # Skill implementations (SKILL.md + support files)
 │       └── test-writer.md         # Test generation
 ├── otto/
 │   └── lib/browser/               # Playwright-based browser automation
+├── browser/
+│   └── lib/                          # Playwright browser automation
 ├── summary/
 │   └── scripts/md-to-html.js
 └── ...
