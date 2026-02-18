@@ -14,20 +14,24 @@ You receive:
 - Module assignment
 - Commit sequence (oldest first)
 - Git commands for main version, full diff, per-commit diffs
+- Rename pairs (old path → new path), if any files were renamed
 
 ## Process
 
 For each file:
 
 1. **Check for existing doc** at `.otto/docs/files/{path-with-dashes}.json`
-2. **If no existing doc:** Establish baseline from main version (`git show main:{filepath}`)
-3. **Walk through commits** oldest-first to understand evolution
-4. **Update or create doc** with findings, then write to `.otto/docs/files/`
+2. **If renamed:** Check for an existing doc under the old path name (e.g., `.otto/docs/files/{old-path-with-dashes}.json`). If found, read it as the base doc instead of starting fresh. Update the `path` field to the new path. Add the old path to `previous_paths`. Delete the old doc file.
+3. **If no existing doc (and no rename match):** Establish baseline from main version (`git show main:{filepath}`)
+4. **Walk through commits** oldest-first to understand evolution
+5. **Verify references:** Check that paths in `related_tests` and `dependencies.internal` still exist (use Glob). Remove any stale paths that no longer resolve to a file.
+6. **Update or create doc** with findings, then write to `.otto/docs/files/`
 
 **Merge strategy:**
 - `purpose`, `patterns`, `data_flow`: Update with latest understanding
 - `gotchas`, `performance_notes`, `subtle_bugs`: Merge, don't lose existing insights
 - `changes`: Append new entries, preserve history
+- `previous_paths`: Append only, preserve all entries
 
 **Extract:**
 - **purpose**: 1 sentence - what does this file do?
@@ -61,6 +65,7 @@ Write each doc to `.otto/docs/files/{path-with-dashes}.json`:
   "data_flow": {"inputs": [...], "outputs": [...], "mutations": [...]},
   "performance_notes": ["..."],
   "subtle_bugs": ["..."],
+  "previous_paths": ["old/path/to/file.ts"],
   "changes": [{"commit": "a1b2c3d", "what": "...", "why": "..."}],
   "updated": "2026-01-29T12:00:00Z"
 }

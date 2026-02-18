@@ -39,6 +39,15 @@ alone.
 
 Run scope command. If no changes, report: "No changes to document."
 
+Also detect renames to preserve doc continuity:
+
+| Argument | Rename Command |
+|----------|---------------|
+| (none) or `branch` | `git diff -M --diff-filter=R --name-status main...HEAD` |
+| `staged` | `git diff -M --diff-filter=R --name-status --cached` |
+
+Collect rename pairs (old path → new path) from the output.
+
 Group files by module (parent directory) for subagent batching.
 
 ### 3. Get Commit Sequence
@@ -61,6 +70,7 @@ git log main..HEAD --oneline --reverse -- <files>
 - File list
 - Commit sequence (oldest first)
 - Git commands for main version, full diff, per-commit diffs
+- Rename pairs (old path → new path) for any renamed files in this batch
 
 ### 5. Report
 
