@@ -13,7 +13,6 @@ Ottonomous is a Claude Code plugin for structured product development. It operat
 - `/next` - Pick up and implement the next pending task
 - `/test` - Run and verify tests
 - `/review` - Code review with prioritized findings
-- `/doc` - Generate per-file documentation
 - `/summary` - Create project summary
 - `/browser` - Launch Playwright for browser interactions
 - `/reset` - Clear workflow artifacts
@@ -25,7 +24,7 @@ Ottonomous is a Claude Code plugin for structured product development. It operat
 Use subagents to isolate concerns and prevent context pollution:
 
 - **Context isolation**: Each subagent gets only what it needs, nothing more. Orchestrator agent delegates to and manages subagent
-- **Specialization**: Different expertise per agent (frontend-developer vs backend-architect, senior-code-reviewer vs architect-reviewer, file-documenter vs test-writer, etc)
+- **Specialization**: Different expertise per agent (frontend-developer vs backend-architect, senior-code-reviewer vs architect-reviewer, test-writer, etc)
 
 ### Skill/Subagent Separation
 
@@ -41,7 +40,7 @@ This keeps subagents self-contained and reusable while skills orchestrate the wo
 Skills coordinate multiple subagents working in parallel using `run_in_background: true`:
 
 **Coordination patterns:**
-- **Fan-out/Fan-in** — Spawn N agents, wait for all, synthesize results. Used by `/review`, `/doc`.
+- **Fan-out/Fan-in** — Spawn N agents, wait for all, synthesize results. Used by `/review`.
 - **Batches** — Complete batch N before starting N+1 (for dependent work). Used by `/review fix`.
 - **Pipeline** — Sequential handoff between specialists. Used by `/otto`.
 
@@ -139,9 +138,6 @@ skills/                    # Skill implementations
 ├── specs/                 # Product specifications
 ├── tasks/                 # Sessions and tasks
 ├── reviews/               # Review fix plans
-├── docs/                  # Per-file documentation
-│   ├── files/             # Individual file docs
-│   └── branches/          # Branch snapshots
 ├── summaries/             # Generated HTML summaries
 └── otto/
     └── sessions/          # Otto session state

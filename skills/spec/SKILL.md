@@ -1,14 +1,13 @@
 ---
 name: spec
-description: Writes product specifications through collaborative interview with web research. Use when planning, gathering requirements, designing new features, or creating a spec/PRD.
-argument-hint: list | revise {spec} | [product idea]
+description: 'Writes product specifications through collaborative interview with web research. Use when planning, gathering requirements, designing new features, or creating a spec/PRD.'
+argument-hint: 'list | revise {spec} | [product idea]'
 model: opus
 ---
-
 **Argument:** $ARGUMENTS
 
 | Command | Behavior |
-|---------|----------|
+| --- | --- |
 | `/spec list` | List all specs with id, name, status, created date |
 | `/spec {idea}` | Create new spec through collaborative interview |
 | `/spec revise {spec}` | Save spec and go straight to review with codebase exploration |
@@ -22,11 +21,13 @@ If `$ARGUMENTS` is `list`:
 1. List `.otto/specs/*.md`
 2. For each spec, read frontmatter (id, name, status, created)
 3. Display as table:
-   ```
+
+```plaintext
    | ID | Name | Status | Created |
    |----|------|--------|---------|
    | design-skill-a1b2 | Design Skill | approved | 2026-01-28 |
-   ```
+```
+
 4. If no specs found: "No specs found. Run `/spec {idea}` to create one."
 5. Stop here — do not continue to interview workflow.
 
@@ -36,17 +37,19 @@ If `$ARGUMENTS` is `list`:
 
 If `$ARGUMENTS` starts with `revise`:
 
-**Spec Content:** Everything after `revise ` in $ARGUMENTS
+**Spec Content:** Everything after `revise&#32;` in $ARGUMENTS
 
 If no spec content provided, ask: "Provide the spec content to save. The first line should be the product name."
 
 Parse the provided content:
+
 - **Name:** First line of the spec content
 - **Body:** Everything after the first line
 
 ### 1. Gather Context
 
 **Analyze codebase:**
+
 - Use Glob to find relevant files
 - Use Read to understand current architecture
 - Use Grep to search for related patterns
@@ -57,23 +60,27 @@ Parse the provided content:
 Map the provided content to this template structure (mark missing sections as `[TBD]`):
 
 **Product Requirements:**
+
 - **Overview** - What and why, problem being solved
 - **Goals / Non-Goals** - Explicit scope boundaries
 - **User Stories** - User-facing behavior
 
 **Technical Design:**
+
 - **Architecture** - System design, component relationships
 - **Detailed Design** - Implementation approach, key algorithms
 - **API / Interface** - Public interfaces, contracts
 - **Data Model** - Schema, storage, state
 
 **Planning:**
+
 - **Future Considerations** - Deferred features, extensibility
 - **Open Questions** - Unresolved decisions marked as `[TBD: reason]`
 
 ### 3. Save Draft
 
 Generate unique ID from product name:
+
 ```bash
 name=$(echo "$NAME" | head -1)
 slug="${name,,}"              # Convert to lowercase
@@ -89,6 +96,7 @@ mkdir -p .otto/specs
 ```
 
 Write to `.otto/specs/{id}.md`:
+
 ```yaml
 ---
 id: {id}
@@ -106,6 +114,7 @@ updated: {YYYY-MM-DD}
 If any sections are marked `[TBD]` or contain ambiguous requirements:
 
 Use `AskUserQuestion` to resolve each ambiguity before proceeding to review. For each unclear item:
+
 - Present what's missing or unclear
 - Offer 2-3 options if applicable
 - Update the spec file with the user's answers
@@ -117,6 +126,7 @@ Skip this step if the spec is complete with no `[TBD]` markers.
 Launch `technical-product-manager` subagent with Task tool:
 
 **Handoff to technical-product-manager:**
+
 - Spec path: `.otto/specs/{id}.md`
 - Spec ID: `{id}`
 - Codebase context: Include relevant patterns and architecture discovered in step 1
@@ -130,6 +140,7 @@ Wait for review to complete.
 If no findings, skip to step 7.
 
 For each finding (highest priority first):
+
 1. Present the finding with its priority level
 2. If suggestion is clear: `AskUserQuestion` with "Accept", "Reject", "Modify"
 3. If alternatives exist: `AskUserQuestion` with the options
@@ -143,7 +154,8 @@ After processing all findings, update the spec file with changes.
 
 **Output the full spec** as rendered markdown so the user can review it inline.
 
-**Use `AskUserQuestion`** with options:
+**Use&#32;`AskUserQuestion`** with options:
+
 - "Approve"
 - "Request changes"
 - "Open in editor" — run `open .otto/specs/{id}.md`, then ask again
@@ -157,6 +169,7 @@ Report: "Spec approved and saved to `.otto/specs/{id}.md`"
 ### 8. Next Steps
 
 Offer task generation:
+
 > "Run `/task {id}` to generate implementation tasks."
 
 ---
@@ -170,16 +183,19 @@ If no argument provided, ask: "What would you like to build?"
 ### 1. Gather Context
 
 **Check for existing specs:**
+
 ```bash
 ls .otto/specs/*.md 2>/dev/null
 ```
 
 **Ask about reference projects:**
+
 > "Are there any reference projects or examples I should look at for inspiration?"
 
 If provided, explore the reference project(s) to understand their approach.
 
 **Analyze codebase:**
+
 - Use Glob to find relevant files
 - Use Read to understand current architecture
 - Use Grep to search for related patterns
@@ -188,12 +204,14 @@ If provided, explore the reference project(s) to understand their approach.
 ### 2. Research Best Practices
 
 Use `WebSearch` to find and `WebFetch` to read:
+
 - Industry best practices for the product type
 - Common pitfalls and recommendations
 - How popular projects solve similar problems
 - Documentation and API references
 
 **For visual research** (competitor products, reference implementations):
+
 - Use browser automation (`skills/otto/lib/browser`) to navigate sites and capture screenshots
 - Save screenshots to `.otto/research/`
 
@@ -206,6 +224,7 @@ Use `AskUserQuestion` to gather requirements. For each decision point:
 - Include pros/cons and what research suggests
 
 **Topics to cover:**
+
 - Core requirements and constraints
 - Key architectural decisions
 - Scope boundaries (what's in, what's out)
@@ -216,23 +235,27 @@ Use `AskUserQuestion` to gather requirements. For each decision point:
 Write a spec covering:
 
 **Product Requirements:**
+
 - **Overview** - What and why, problem being solved
 - **Goals / Non-Goals** - Explicit scope boundaries
 - **User Stories** - User-facing behavior
 
 **Technical Design:**
+
 - **Architecture** - System design, component relationships
 - **Detailed Design** - Implementation approach, key algorithms
 - **API / Interface** - Public interfaces, contracts
 - **Data Model** - Schema, storage, state
 
 **Planning:**
+
 - **Future Considerations** - Deferred features, extensibility
 - **Open Questions** - Unresolved decisions marked as `[TBD: reason]`
 
 ### 5. Save Draft
 
 Generate unique ID from product idea:
+
 ```bash
 slug="${ARGUMENTS,,}"          # Convert to lowercase
 slug="${slug// /-}"            # Replace spaces with hyphens
@@ -247,6 +270,7 @@ mkdir -p .otto/specs
 ```
 
 Write to `.otto/specs/{id}.md`:
+
 ```yaml
 ---
 id: {id}
@@ -264,6 +288,7 @@ updated: {YYYY-MM-DD}
 Launch `technical-product-manager` subagent with Task tool:
 
 **Handoff to technical-product-manager:**
+
 - Spec path: `.otto/specs/{id}.md`
 - Spec ID: `{id}`
 
@@ -276,6 +301,7 @@ Wait for review to complete.
 If no findings, skip to step 8.
 
 For each finding (highest priority first):
+
 1. Present the finding with its priority level
 2. If suggestion is clear: `AskUserQuestion` with "Accept", "Reject", "Modify"
 3. If alternatives exist: `AskUserQuestion` with the options
@@ -289,7 +315,8 @@ After processing all findings, update the spec file with changes.
 
 **Output the full spec** as rendered markdown so the user can review it inline.
 
-**Use `AskUserQuestion`** with options:
+**Use&#32;`AskUserQuestion`** with options:
+
 - "Approve"
 - "Request changes"
 - "Open in editor" — run `open .otto/specs/{id}.md`, then ask again
@@ -303,4 +330,5 @@ Report: "Spec approved and saved to `.otto/specs/{id}.md`"
 ### 9. Next Steps
 
 Offer task generation:
+
 > "Run `/task {id}` to generate implementation tasks."

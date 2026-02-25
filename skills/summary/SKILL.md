@@ -18,12 +18,10 @@ model: opus
 
 | Phase | Purpose |
 |-------|---------|
-| 1. Analyze | Get changed files |
-| 2. Check docs | If per-file docs missing, run `/doc` first |
-| 3. Collect | Read per-file docs for changed files |
-| 4. Create snapshot | Write branch snapshot to `.otto/docs/branches/` |
-| 5. Synthesize | Transform docs into semantic narrative |
-| 6. Generate | Convert to HTML, open in browser |
+| 1. Analyze | Get changed files and diffs |
+| 2. Read | Read changed files and their diffs |
+| 3. Synthesize | Create semantic narrative from code and diffs |
+| 4. Generate | Convert to HTML, open in browser |
 
 ### 1. Analyze Changes
 
@@ -33,52 +31,17 @@ Get changed files using scope command. If no changes found, report: "No changes 
 git diff main...HEAD --name-only
 ```
 
-### 2. Check Documentation
+### 2. Read Changes
 
-For each changed file, check if docs exist:
+For each changed file, read the file content and diff:
 
 ```bash
-# Convert path: src/auth/users.ts → src-auth-users.json
-ls .otto/docs/files/src-auth-users.json
+git diff main...HEAD -- <file>
 ```
 
-**If any docs are missing**, run `/doc` first:
-> "Documentation missing for some files. Running /doc first..."
+Read the full file for context when the diff alone isn't sufficient to understand the change.
 
-Then continue with the workflow.
-
-### 3. Collect Documentation
-
-Read per-file docs from `.otto/docs/files/` for all changed files.
-
-### 4. Create Branch Snapshot
-
-**Create directories:**
-```bash
-mkdir -p .otto/docs/branches
-```
-
-**Get branch name:**
-```bash
-git branch --show-current
-```
-
-**Write snapshot** to `.otto/docs/branches/{branch-with-dashes}.json`:
-
-```json
-{
-  "version": 2,
-  "branch": "feature/user-profiles",
-  "created": "2026-01-29T12:00:00Z",
-  "commit_range": "abc123..def456",
-  "files": ["src/auth/users.ts", "src/api/routes.ts"],
-  "file_docs": [
-    { "...per-file doc structure..." }
-  ]
-}
-```
-
-### 5. Synthesize Summary
+### 3. Synthesize Summary
 
 **Get repo info for links:**
 ```bash
@@ -108,7 +71,6 @@ Parse to get `{org}/{repo}` for GitHub links.
 ## Semantic Changes by Component
 
 ### [src/auth/users.ts](https://github.com/{org}/{repo}/blob/{branch}/src/auth/users.ts)
-📄 [src-auth-users.json](../docs/files/src-auth-users.json)
 
 - **Purpose of changes:** What problem does this solve or what feature does it add?
 - **Behavioral changes:** How does the behavior differ from before?
@@ -118,7 +80,6 @@ Parse to get `{org}/{repo}` for GitHub links.
 - **Dependencies affected:** What other parts of the codebase might be impacted?
 
 ### [src/api/routes.ts](https://github.com/{org}/{repo}/blob/{branch}/src/api/routes.ts)
-📄 [src-api-routes.json](../docs/files/src-api-routes.json)
 
 - **Purpose of changes:** ...
 - **Behavioral changes:** ...
@@ -156,7 +117,7 @@ Parse to get `{org}/{repo}` for GitHub links.
 - Breaking changes prominent if they exist
 - Omit Breaking Changes section entirely if none exist
 
-### 6. Generate HTML
+### 4. Generate HTML
 
 **Create directories:**
 ```bash
