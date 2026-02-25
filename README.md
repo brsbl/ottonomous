@@ -28,7 +28,7 @@ Claude Code skills for every stage of product development: spec writing, task pr
 Use subagents to isolate concerns and prevent context pollution:
 
 - **Context isolation**: Each subagent gets only what it needs, nothing more. Orchestrator agent delegates to and manages subagent
-- **Specialization**: Different expertise per agent (frontend-developer vs backend-architect, senior-code-reviewer vs architect-reviewer, file-documenter vs test-writer, etc)
+- **Specialization**: Different expertise per agent (frontend-developer vs backend-architect, senior-code-reviewer vs architect-reviewer, test-writer, etc)
 
 ### Skill/Subagent Separation
 
@@ -44,7 +44,7 @@ This keeps subagents self-contained and reusable while skills orchestrate the wo
 Skills coordinate multiple subagents working in parallel using `run_in_background: true`:
 
 **Coordination patterns:**
-- **Fan-out/Fan-in** — Spawn N agents, wait for all, synthesize results. Used by `/review`, `/doc`.
+- **Fan-out/Fan-in** — Spawn N agents, wait for all, synthesize results. Used by `/review`.
 - **Batches** — Complete batch N before starting N+1 (for dependent work). Used by `/review fix`.
 - **Pipeline** — Sequential handoff between specialists. Used by `/otto`.
 
@@ -106,8 +106,7 @@ Every phase has explicit verification:
 
 | Skill | Description |
 |-------|-------------|
-| `/doc` | for each file that was changed, `file-documenter` captures purpose, patterns, gotchas, and change history not apparent by just reading the code or git history. Primarily a resource for agents. |
-| `/summary` | Synthesizes all docs from /doc into semantic HTML summary explaining what changed and why. Primarily a resource to compliment or replace code review  |
+| `/summary` | Synthesizes code docs into semantic HTML summary explaining what changed and why. Primarily a resource to complement or replace code review. |
 
 **Scope:** `staged`, `branch` (default)
 
@@ -115,7 +114,7 @@ Every phase has explicit verification:
 
 | Skill | Description |
 |-------|-------------|
-| `/otto <idea>` | Autonomous spec → tasks → [next/test/review/doc] per session → summary. Best for greenfield explorations, prototyping, scoped migrations, and simple applications. **Not recommended for building complex apps end-to-end.** |
+| `/otto <idea>` | Autonomous spec → tasks → [next/test/review] per session → summary. Best for greenfield explorations, prototyping, scoped migrations, and simple applications. **Not recommended for building complex apps end-to-end.** |
 | `/reset [targets]` | Resets workflow data. Targets: `tasks`, `specs`, `sessions`, `all` (default). Docs are preserved. |
 
 ### Utilities
@@ -155,9 +154,6 @@ Every phase has explicit verification:
 commit ─────────────┘     # loop if more sessions/tasks
   │
   ▼
-/doc                      # per-file documentation of intent, learnings, etc.
-  │
-  ▼
 /summary                  # generate semantic overview of changes, opened in browser
   │
   ▼
@@ -174,9 +170,6 @@ Use `/clear` between steps to reset context.
 ├── specs/                   # Specification documents (.md)
 ├── tasks/                   # Sessions and tasks (.json)
 ├── reviews/                 # Review fix plans (.json)
-├── docs/                    # Per-file documentation (.json)
-│   ├── files/               # Individual file docs
-│   └── branches/            # Branch snapshots
 ├── summaries/               # Generated HTML summaries
 └── otto/
     └── sessions/            # Otto session state (state.json)
@@ -197,9 +190,6 @@ skills/                      # Skill implementations (SKILL.md + support files)
 │       ├── architect-reviewer.md         # Architectural issues
 │       ├── senior-code-reviewer.md       # Implementation issues
 │       └── false-positive-validator.md   # Validates and filters review findings
-├── doc/
-│   └── agents/
-│       └── file-documenter.md     # Per-file documentation
 ├── test/
 │   └── agents/
 │       └── test-writer.md         # Test generation

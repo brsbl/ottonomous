@@ -1,6 +1,6 @@
 ---
 name: otto
-description: Autonomous product development. Takes an idea and builds it end-to-end with subagents. Write a product spec, generate tasks from spec, implement each task while testing/reviewing/documenting changes, with final verification. Use when you want to build something from scratch.
+description: Autonomous product development. Takes an idea and builds it end-to-end with subagents. Write a product spec, generate tasks from spec, implement each task while testing/reviewing changes, with final verification. Use when you want to build something from scratch.
 argument-hint: [product idea]
 model: opus
 ---
@@ -30,7 +30,6 @@ When a skill asks questions or requests confirmation:
 | `session:{id}:test` | `/test write staged` | tests pass | - |
 | `session:{id}:review` | `/review staged` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
 | `session:{id}:fix` | `/review fix P0-P1` | P0/P1 fixed (if any) | - |
-| `session:{id}:doc` | `/doc staged` | doc entry exists | - |
 | `build` | `npm run build` | exit 0 | - |
 | `test` | `/test all` | tests pass | - |
 | `review` | `/review branch` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
@@ -133,17 +132,11 @@ If review finds P0/P1 issues:
 - Update `current_phase` → `session:{id}:fix`
 
 Otherwise:
-- Update `current_phase` → `session:{id}:doc`
+- Increment `sessions.completed`
 
 #### Phase: session:{id}:fix
 
 **Invoke `/review fix P0-P1`** (implements P0/P1 fixes)
-
-Update `current_phase` → `session:{id}:doc`
-
-#### Phase: session:{id}:doc
-
-**Invoke `/doc staged`**
 
 - Increment `sessions.completed`
 - If more pending sessions: Return to **Per-Session Loop**
