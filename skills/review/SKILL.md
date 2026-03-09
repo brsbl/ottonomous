@@ -188,17 +188,20 @@ Report: `Fix plan saved. Run /review fix to implement.`
 **Select unblocked fixes** — where all `depends_on` are done.
 
 **Scale subagents:**
-- 1-2 fixes: 1 subagent
-- 3-5 fixes: 2-3 subagents
-- 6+ fixes: 3-5 subagents
+- 1-3 fixes: 1 subagent
+- 4-7 fixes: 2 subagents
+- 8+ fixes: 3 subagents (max)
+
+Prefer fewer subagents with multiple fixes each. Single-file fixes in the same directory should always share a subagent.
 
 **Each subagent receives:**
 - Fix details (priority, problem, fix approach, files, done_when)
-- Instructions: implement fix, verify done_when, run `git add {files}`, mark status done in fix-plan.json
+- **The current contents of each file to modify** (read files before launching subagents to avoid per-subagent read rounds)
+- Instructions: implement fix, run `git add {files}`, mark status done in fix-plan.json
 
 **After each batch:** re-evaluate unblocked fixes, launch next batch, repeat until done.
 
-**Verify:** Run type check and linter, report errors.
+**Verify:** Run type check and linter after all fixes are applied. If errors relate to a fix, correct them directly (do not re-launch subagents). Report results.
 
 ### Step 3: Commit and Cleanup
 
