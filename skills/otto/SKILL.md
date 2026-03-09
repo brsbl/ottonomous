@@ -201,6 +201,11 @@ Update `current_phase` → `summary`
 
 Set `status` → `completed`
 
+**Open the generated summary in the default browser:**
+```bash
+open .otto/summaries/{branch}-{date}.html
+```
+
 **Announce:**
 ```
 Session complete!

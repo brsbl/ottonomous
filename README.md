@@ -59,6 +59,41 @@ Every phase has explicit verification:
 - **Verification criteria**: Each step defines "Done when..."
 - **Prioritized findings**: P0-P2 across all skills (P0 = critical, P1 = important, P2 = minor)
 
+## Recommended Workflow
+
+```
+/spec                     # define requirements via interview
+  │
+  ▼
+/task                     # break spec into sessions & tasks
+  │
+  ▼
+┌───────────────────┐
+│                   │
+▼                   │
+/next batch         │     # implement sessions of tasks in parallel then stage results
+│                   │
+▼                   │
+/test write staged  │     # generate tests, then lint/typecheck/run all
+│                   │
+▼                   │
+/review staged      │     # multi-agent code review
+│                   │
+▼                   │
+/review fix staged  │     # fix P0-P2 issues
+│                   │
+▼                   │
+commit ─────────────┘     # loop if more sessions/tasks
+  │
+  ▼
+/summary                  # generate semantic overview of changes, opened in browser
+  │
+  ▼
+ PR
+```
+
+Use `/clear` between steps to reset context.
+
 ## Skills
 
 ### Specification & Planning
@@ -127,42 +162,6 @@ Every phase has explicit verification:
 | `/browser extract` | Extract specific data from the frontend. |
 
 
-## Recommended Workflow
-
-```
-/spec                     # define requirements via interview
-  │
-  ▼
-/task                     # break spec into sessions & tasks
-  │
-  ▼
-┌───────────────────┐
-│                   │
-▼                   │
-/next batch         │     # implement sessions of tasks in parallel then stage results
-│                   │
-▼                   │
-/test write staged  │     # generate tests, then lint/typecheck/run all
-│                   │
-▼                   │
-/review staged      │     # multi-agent code review
-│                   │
-▼                   │
-/review fix staged  │     # fix P0-P2 issues
-│                   │
-▼                   │
-commit ─────────────┘     # loop if more sessions/tasks
-  │
-  ▼
-/summary                  # generate semantic overview of changes, opened in browser
-  │
-  ▼
- PR
-```
-
-Use `/clear` between steps to reset context.
-
-
 ## Architecture
 
 ```
@@ -196,7 +195,7 @@ skills/                      # Skill implementations (SKILL.md + support files)
 ├── otto/
 │   └── lib/browser/               # Playwright-based browser automation
 ├── browser/
-│   └── lib/                          # Playwright browser automation
+│   └── references/                   # Browser automation reference guides
 ├── summary/
 │   └── scripts/md-to-html.js
 └── ...
