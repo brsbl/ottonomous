@@ -28,12 +28,12 @@ When a skill asks questions or requests confirmation:
 | `task` | `/task {spec_id}` | tasks file exists | - |
 | `session:{id}:implement` | `/next {id}` | session status is done | `frontend-developer`, `backend-architect` per task type |
 | `session:{id}:test` | `/test write staged` | tests pass | - |
-| `session:{id}:verify` | `/verify` | criteria pass (or max 3 attempts) | `smoke-tester`, `verify-fixer` |
+| `session:{id}:verify` | `/verify` | all criteria pass | `smoke-tester`, `verify-fixer` |
 | `session:{id}:review` | `/review staged` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
 | `session:{id}:fix` | `/review fix P0-P1` | P0/P1 fixed (if any) | - |
 | `build` | `npm run build` | exit 0 | - |
 | `test` | `/test all` | tests pass | - |
-| `verify` | `/verify` | criteria pass (or max 3 attempts) | `smoke-tester`, `verify-fixer` |
+| `verify` | `/verify` | all criteria pass | `smoke-tester`, `verify-fixer` |
 | `review` | `/review branch` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
 | `review:fix` | `/review fix P0-P1` | P0/P1 fixed (if any) | - |
 | `summary` | `/summary` | HTML created | - |
@@ -127,7 +127,7 @@ Update `current_phase` → `session:{id}:verify`
 **Invoke `/verify`**
 
 Launches the built app and verifies against spec criteria for this session.
-Fix loop: up to 3 attempts (diagnose → fix → rebuild → re-verify).
+Hard gate — loops (diagnose → fix → rebuild → re-verify) until all criteria pass.
 
 Update `current_phase` → `session:{id}:review`
 
@@ -185,7 +185,7 @@ Update `current_phase` → `verify`
 
 **Invoke `/verify`**
 
-Final verification against all spec criteria. Fix loop applies (max 3 attempts).
+Final verification against all spec criteria. Hard gate — loops until all pass.
 
 Update `current_phase` → `review`
 

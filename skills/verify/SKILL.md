@@ -43,13 +43,14 @@ The smoke-tester launches the app, connects agent-browser, and checks whether th
 
 ## Step 4: Fix Loop
 
-If smoke-tester reports failures, loop up to **3 attempts**:
+If smoke-tester reports failures, **keep looping until all criteria pass**:
 
 1. Launch a `verify-fixer` subagent with failure evidence (ARIA snapshots, screenshots, error descriptions)
 2. Rebuild
 3. Re-run smoke-tester
+4. If failures remain, loop again
 
-After 3 attempts, log remaining failures and continue.
+This is a hard gate — the workflow does not proceed until verification passes.
 
 ## Step 5: Cleanup
 
