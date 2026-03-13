@@ -1,147 +1,169 @@
 ---
 name: browser
-description: Browser automation with persistent page state for navigation, screenshots, forms, data extraction, and testing. Use when inspecting UI, taking screenshots, filling forms, extracting page data, verifying frontend behavior, or automating browser workflows.
-argument-hint: [url | explore | verify | extract]
+description: Browser automation for web apps and Electron desktop apps. Supports navigation, screenshots, ARIA snapshots, forms, data extraction, and visual verification. Use when inspecting UI, verifying frontend behavior, or automating browser/desktop workflows.
+argument-hint: [url | explore | verify | extract | electron]
 model: opus
-allowed-tools: Read, Bash(node *), Bash(mkdir *)
+allowed-tools: Bash(agent-browser *), Bash(npx agent-browser *), Bash(open *), Bash(kill *), Bash(sleep *), Bash(curl *), Bash(lsof *), Read
 ---
 
 **Argument:** $ARGUMENTS
 
 | Command | Behavior |
 |---------|----------|
-| `{url}` | Navigate to URL, capture screenshot and ARIA snapshot |
-| `explore` | Interactive exploration - navigate, inspect, understand UI |
+| `{url}` | Navigate to URL, capture screenshot + ARIA snapshot |
+| `explore` | Interactive exploration — navigate, inspect, understand UI |
 | `verify {description}` | Verify specific UI behavior or state |
-| `extract {description}` | Extract specific data from the frontend |
+| `extract {description}` | Extract data from frontend |
+| `electron {app}` | Automate Electron/VS Code desktop app |
 
 ---
 
-## Choosing Your Approach
+## Web Mode (default)
 
-- **Local/source-available sites**: Read source code first to write selectors directly
-- **Unknown layouts**: Use `getAISnapshot()` for element discovery and `selectSnapshotRef()` for interactions
-- **Visual feedback**: Take screenshots to observe results
-
----
-
-## Setup
-
-Start the browser server before running scripts:
+### Navigate & Capture
 
 ```bash
-node skills/otto/lib/browser/server.js &
+agent-browser open {url}
+agent-browser wait 3000
+agent-browser snapshot -i
+agent-browser screenshot .otto/screenshots/page.png
 ```
 
-Wait for "Ready" message, then connect:
+### Interact
 
-```javascript
-import { connect, waitForPageLoad } from 'skills/otto/lib/browser/client.js'
+```bash
+# Click by ref from snapshot
+agent-browser click @e5
 
-const client = await connect({ headless: true })
+# Fill input
+agent-browser fill @e3 "user@example.com"
+
+# Press keys
+agent-browser press Enter
+
+# Re-snapshot after interaction
+agent-browser snapshot -i
+```
+
+### Workflow Loop
+
+1. Snapshot to discover elements
+2. Interact using refs (@e1, @e2...)
+3. Re-snapshot after navigation or state changes
+4. Refs are invalidated on page changes — always re-snapshot
+
+---
+
+## Electron Mode
+
+Automate Electron desktop apps (VS Code, Slack, Discord, Figma, etc.)
+via Chrome DevTools Protocol.
+
+### Launch with CDP
+
+The app must be launched with `--remote-debugging-port`:
+
+```bash
+# VS Code
+open -a "Visual Studio Code" --args --remote-debugging-port=9333
+
+# VS Code with extension development
+code --extensionDevelopmentPath=./ --disable-extensions \
+     --remote-debugging-port=9333 --skip-release-notes .
+
+# Generic Electron app
+open -a "AppName" --args --remote-debugging-port=9333
+
+# Linux
+code --remote-debugging-port=9333
+```
+
+**Important:** Quit the app first if already running. The flag must be present at launch.
+
+### Connect & Interact
+
+```bash
+# Wait for app startup
+sleep 5
+
+# Connect
+agent-browser connect 9333
+
+# Standard snapshot-interact workflow
+agent-browser snapshot -i
+agent-browser click @e5
+agent-browser screenshot .otto/screenshots/electron.png
+```
+
+### Webview Support
+
+Electron apps embed webviews as separate targets. Use tab management:
+
+```bash
+# List all targets (windows + webviews)
+agent-browser tab
+# Output:
+#   0: [page]    VS Code - main window
+#   1: [webview] Chat Panel content
+#   2: [webview] Settings editor
+
+# Switch to webview
+agent-browser tab 1
+agent-browser snapshot -i
+agent-browser screenshot .otto/screenshots/webview.png
+```
+
+### VS Code Extension Verification Pattern
+
+```bash
+# 1. Build the extension
+npm run compile
+
+# 2. Launch VS Code with extension
+code --extensionDevelopmentPath=./ --disable-extensions \
+     --remote-debugging-port=9333 --skip-release-notes . &
+APP_PID=$!
+sleep 8
+
+# 3. Connect
+agent-browser connect 9333
+
+# 4. Check main window
+agent-browser snapshot -i
+
+# 5. Check webviews (if extension has webview panels)
+agent-browser tab
+agent-browser tab 1
+agent-browser snapshot -i
+agent-browser screenshot .otto/screenshots/extension.png
+
+# 6. Cleanup
+agent-browser close
+kill $APP_PID
 ```
 
 ---
 
-## Writing Scripts
+## Diffing (Verify Changes)
 
-Run scripts using `npx tsx` with heredocs for inline execution.
+```bash
+# Snapshot diff — see what changed after an action
+agent-browser snapshot -i
+agent-browser click @e2
+agent-browser diff snapshot
 
-**Key Principles:**
-1. Small scripts doing one action each
-2. Evaluate state at completion
-3. Use descriptive page names
-4. Call `await client.disconnect()` to exit (pages persist)
-5. Use plain JavaScript in `page.evaluate()` (no TypeScript syntax)
-
----
-
-## Workflow Loop
-
-1. Write script performing one action
-2. Run and observe output
-3. Evaluate results and current state
-4. Decide: complete or need another script?
-5. Repeat until task complete
-
----
-
-## Navigate & Capture
-
-Determine the dev server URL from package.json scripts, running processes, or project config.
-
-```javascript
-const page = await client.page('main')
-await page.goto(url)  // e.g., http://localhost:5173
-await waitForPageLoad(page)
-
-// Screenshot
-await page.screenshot({ path: '.otto/screenshots/page.png' })
-
-// ARIA snapshot
-const snapshot = await client.getAISnapshot('main')
-console.log(snapshot)
-```
-
----
-
-## Interact
-
-```javascript
-// Click by ref
-const btn = await client.selectSnapshotRef('main', 'e3')
-await btn.click()
-
-// Fill input by ref
-const input = await client.selectSnapshotRef('main', 'e5')
-await input.fill('user@example.com')
-
-// Re-capture after interaction
-await waitForPageLoad(page)
-const newSnapshot = await client.getAISnapshot('main')
-```
-
----
-
-## Waiting
-
-```javascript
-await waitForPageLoad(page)
-await page.waitForSelector('.results')
-await page.waitForURL('**/success')
-```
-
----
-
-## No TypeScript in Browser Context
-
-Code in `page.evaluate()` runs in browser context without TypeScript support. Use plain JavaScript only—type annotations break at runtime.
-
-```javascript
-// ✓ Correct
-await page.evaluate(() => {
-  const items = document.querySelectorAll('.item')
-  return items.length
-})
-
-// ✗ Wrong - TypeScript syntax fails
-await page.evaluate(() => {
-  const items: NodeListOf<Element> = document.querySelectorAll('.item')
-  return items.length
-})
+# Screenshot diff — visual regression
+agent-browser screenshot baseline.png
+# ... make changes ...
+agent-browser diff screenshot --baseline baseline.png
 ```
 
 ---
 
 ## Cleanup
 
-```javascript
-await client.disconnect()
-```
-
-After completing the workflow, remove screenshots:
-
 ```bash
+agent-browser close
 rm -rf .otto/screenshots
 ```
 
@@ -159,23 +181,4 @@ rm -rf .otto/screenshots
     - button "Submit" [disabled] [ref=e4]
 ```
 
-Use `[ref=eN]` values with `selectSnapshotRef()` to interact.
-
----
-
-## Error Recovery
-
-Page state persists after failures. Debug using screenshots and state inspection to evaluate current conditions before next action.
-
-```javascript
-// After an error, reconnect and inspect
-const client = await connect({ headless: true })
-const snapshot = await client.getAISnapshot('main')
-await client.page('main').then(p => p.screenshot({ path: '.otto/screenshots/debug.png' }))
-```
-
----
-
-## Scraping Data
-
-For large datasets, intercept and replay network requests rather than scrolling the DOM. See [references/scraping.md](references/scraping.md) for the complete guide covering request capture, schema discovery, and paginated API replay.
+Use `@eN` values (e.g., `@e3`) with interaction commands.
