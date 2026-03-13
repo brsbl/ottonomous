@@ -1,8 +1,9 @@
 ---
 name: test
 description: Runs lint, type check, tests, and visual verification. Auto-detects tools. Use when running tests, linting, type checking, or writing tests.
-argument-hint: <run | write | browser | all> [staged | uncommitted | branch]
+argument-hint: <run | write | browser | electron | all> [staged | uncommitted | branch]
 model: opus
+allowed-tools: Bash(agent-browser *), Bash(npx agent-browser *), Bash(code *), Bash(open *), Bash(npm *), Bash(npx *), Bash(kill *), Bash(sleep *), Bash(curl *), Bash(lsof *), Bash(git *), Bash(mkdir *), Read, Write, Edit, Glob, Grep, Agent
 ---
 
 **Arguments:** $ARGUMENTS
@@ -11,8 +12,9 @@ model: opus
 |---------|----------|
 | `run` | Lint + type check + run tests |
 | `write` | Generate tests, then run pipeline |
-| `browser` | Visual verification |
-| `all` | run + browser combined |
+| `browser` | Visual verification (web apps) |
+| `electron` | Visual verification (Electron/VS Code apps) |
+| `all` | run + browser/electron combined |
 
 **Scope (optional, default: branch):**
 
@@ -127,24 +129,56 @@ Same as Run Mode step 3.
 
 # Browser Mode
 
-Visual verification using browser automation. See [/browser skill](../browser/SKILL.md) for full API.
+Visual verification using agent-browser CLI. See [/browser skill](../browser/SKILL.md) for full API.
 
-```javascript
-import { connect, waitForPageLoad } from '../otto/lib/browser/client.js'
+```bash
+# Determine dev server URL from package.json or running processes
+agent-browser open {url}  # e.g., http://localhost:5173
+agent-browser wait 3000
+agent-browser screenshot .otto/test-screenshots/page.png
+agent-browser snapshot -i
 
-const client = await connect({ headless: true })
-const page = await client.page('test')
+# Interact and verify
+agent-browser click @e3
+agent-browser snapshot -i
 
-await page.goto('http://localhost:3000')
-await waitForPageLoad(page)
-await page.screenshot({ path: '.otto/test-screenshots/page.png' })
+agent-browser close
+rm -rf .otto/test-screenshots
+```
 
-// Interact using ARIA snapshot refs
-const snapshot = await client.getAISnapshot('test')
-const btn = await client.selectSnapshotRef('test', 'e3')
-await btn.click()
+---
 
-await client.disconnect()
+# Electron Mode
+
+Visual verification for Electron/VS Code apps via CDP.
+
+```bash
+# Detect: engines.vscode in package.json → VS Code extension
+# Detect: electron in dependencies → Electron app
+
+# Build first
+npm run compile
+
+# Launch (VS Code extension example)
+code --extensionDevelopmentPath=./ --disable-extensions \
+     --remote-debugging-port=9333 . &
+APP_PID=$!
+sleep 8
+
+# Connect and verify
+agent-browser connect 9333
+agent-browser snapshot -i
+agent-browser screenshot .otto/test-screenshots/electron.png
+
+# Check webviews if applicable
+agent-browser tab
+agent-browser tab 1
+agent-browser snapshot -i
+
+# Cleanup
+agent-browser close
+kill $APP_PID
+rm -rf .otto/test-screenshots
 ```
 
 ---
@@ -152,5 +186,5 @@ await client.disconnect()
 # All Mode
 
 1. Run Mode (lint, type check, test)
-2. Browser Mode (visual verification)
+2. Auto-detect: web → Browser Mode, Electron/VS Code → Electron Mode
 3. Report results

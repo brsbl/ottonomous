@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "agent-browser": "^0.18.0",
     "vitest": "^3.0.0"
   }
 }

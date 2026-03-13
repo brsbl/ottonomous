@@ -1,71 +1,190 @@
 ---
 name: browser
-description: Ad-hoc browser automation for data extraction, verification, and UI exploration. Use when inspecting frontend state, verifying UI works, extracting page data, or planning UI changes.
-argument-hint: [url | explore | verify | extract]
+description: Browser automation for web apps and Electron desktop apps. Supports navigation, screenshots, ARIA snapshots, forms, data extraction, and visual verification. Use when inspecting UI, verifying frontend behavior, or automating browser/desktop workflows.
+argument-hint: [url | explore | verify | extract | electron]
 model: opus
-allowed-tools: Read, Bash(node *), Bash(mkdir *)
+allowed-tools: Bash(agent-browser *), Bash(npx agent-browser *), Bash(open *), Bash(kill *), Bash(sleep *), Bash(curl *), Bash(lsof *), Read
 ---
 
 **Argument:** $ARGUMENTS
 
 | Command | Behavior |
 |---------|----------|
-| `{url}` | Navigate to URL, capture screenshot and ARIA snapshot |
-| `explore` | Interactive exploration - navigate, inspect, understand UI |
+| `{url}` | Navigate to URL, capture screenshot + ARIA snapshot |
+| `explore` | Interactive exploration — navigate, inspect, understand UI |
 | `verify {description}` | Verify specific UI behavior or state |
-| `extract {description}` | Extract specific data from the frontend |
+| `extract {description}` | Extract data from frontend |
+| `electron {app}` | Automate Electron/VS Code desktop app |
 
 ---
 
-## Setup
+## Web Mode (default)
 
-```javascript
-import { connect, waitForPageLoad } from 'skills/otto/lib/browser/client.js'
+### Navigate & Capture
 
-const client = await connect({ headless: true })
+```bash
+agent-browser open {url}
+agent-browser wait 3000
+agent-browser snapshot -i
+agent-browser screenshot .otto/screenshots/page.png
+```
+
+### Interact
+
+```bash
+# Click by ref from snapshot
+agent-browser click @e5
+
+# Fill input
+agent-browser fill @e3 "user@example.com"
+
+# Press keys
+agent-browser press Enter
+
+# Re-snapshot after interaction
+agent-browser snapshot -i
+```
+
+### Workflow Loop
+
+1. Snapshot to discover elements
+2. Interact using refs (@e1, @e2...)
+3. Re-snapshot after navigation or state changes
+4. Refs are invalidated on page changes — always re-snapshot
+
+---
+
+## Electron Mode
+
+Automate Electron desktop apps (VS Code, Slack, Discord, Figma, etc.)
+via Chrome DevTools Protocol.
+
+### Launch with CDP
+
+The app must be launched with `--remote-debugging-port`:
+
+```bash
+# VS Code
+open -a "Visual Studio Code" --args --remote-debugging-port=9333
+
+# VS Code with extension development
+code --extensionDevelopmentPath=./ --disable-extensions \
+     --remote-debugging-port=9333 --skip-release-notes .
+
+# Generic Electron app
+open -a "AppName" --args --remote-debugging-port=9333
+
+# Linux
+code --remote-debugging-port=9333
+```
+
+**Important:** Quit the app first if already running. The flag must be present at launch.
+
+### Connect & Interact
+
+```bash
+# Wait for app startup
+sleep 5
+
+# Connect
+agent-browser connect 9333
+
+# Standard snapshot-interact workflow
+agent-browser snapshot -i
+agent-browser click @e5
+agent-browser screenshot .otto/screenshots/electron.png
+```
+
+### Webview Support
+
+Electron apps embed webviews as separate targets. Use tab management:
+
+```bash
+# List all targets (windows + webviews)
+agent-browser tab
+# Output:
+#   0: [page]    VS Code - main window
+#   1: [webview] Chat Panel content
+#   2: [webview] Settings editor
+
+# Switch to webview
+agent-browser tab 1
+agent-browser snapshot -i
+agent-browser screenshot .otto/screenshots/webview.png
+```
+
+### VS Code Extension Verification Pattern
+
+```bash
+# 1. Build the extension
+npm run compile
+
+# 2. Launch VS Code with extension
+code --extensionDevelopmentPath=./ --disable-extensions \
+     --remote-debugging-port=9333 --skip-release-notes . &
+APP_PID=$!
+sleep 8
+
+# 3. Connect
+agent-browser connect 9333
+
+# 4. Check main window
+agent-browser snapshot -i
+
+# 5. Check webviews (if extension has webview panels)
+agent-browser tab
+agent-browser tab 1
+agent-browser snapshot -i
+agent-browser screenshot .otto/screenshots/extension.png
+
+# 6. Cleanup
+agent-browser close
+kill $APP_PID
 ```
 
 ---
 
-## Navigate & Capture
+## Diffing (Verify Changes)
 
-```javascript
-const page = await client.page('main')
-await page.goto('http://localhost:3000')
-await waitForPageLoad(page)
+```bash
+# Snapshot diff — see what changed after an action
+agent-browser snapshot -i
+agent-browser click @e2
+agent-browser diff snapshot
 
-// Screenshot
-await page.screenshot({ path: '.otto/screenshots/page.png' })
-
-// ARIA snapshot
-const snapshot = await client.getAISnapshot('main')
-console.log(snapshot)
+# Screenshot diff — visual regression
+agent-browser screenshot baseline.png
+# ... make changes ...
+agent-browser diff screenshot --baseline baseline.png
 ```
 
 ---
 
-## Interact
+## Design Feedback
 
-```javascript
-// Click by ref
-const btn = await client.selectSnapshotRef('main', 'e3')
-await btn.click()
+For collecting user design feedback, inject the overlay:
 
-// Fill input by ref
-const input = await client.selectSnapshotRef('main', 'e5')
-await input.fill('user@example.com')
+```bash
+# Inject design feedback overlay
+agent-browser eval --stdin < skills/otto/lib/browser/design-feedback/browser-script.js
 
-// Re-capture after interaction
-await waitForPageLoad(page)
-const newSnapshot = await client.getAISnapshot('main')
+# Activate feedback mode
+agent-browser eval "window.__designFeedbackAPI.activate()"
+
+# Check for submitted feedback
+agent-browser eval "JSON.stringify(window.__designFeedbackSubmit || [])"
+
+# Deactivate
+agent-browser eval "window.__designFeedbackAPI.deactivate()"
 ```
 
 ---
 
 ## Cleanup
 
-```javascript
-await client.disconnect()
+```bash
+agent-browser close
+rm -rf .otto/screenshots
 ```
 
 ---
@@ -82,4 +201,4 @@ await client.disconnect()
     - button "Submit" [disabled] [ref=e4]
 ```
 
-Use `[ref=eN]` values with `selectSnapshotRef()` to interact.
+Use `@eN` values (e.g., `@e3`) with interaction commands.

@@ -28,11 +28,13 @@ When a skill asks questions or requests confirmation:
 | `task` | `/task {spec_id}` | tasks file exists | - |
 | `session:{id}:implement` | `/next {id}` | session status is done | `frontend-developer`, `backend-architect` per task type |
 | `session:{id}:test` | `/test write staged` | tests pass | - |
+| `session:{id}:verify` | `/verify` | criteria pass (or max 3 attempts) | `smoke-tester`, `verify-fixer` |
 | `session:{id}:review` | `/review staged` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
 | `session:{id}:fix` | `/review fix P0-P1` | P0/P1 fixed (if any) | - |
 | `session:{id}:doc` | `/doc staged` | doc entry exists | - |
 | `build` | `npm run build` | exit 0 | - |
 | `test` | `/test all` | tests pass | - |
+| `verify` | `/verify` | criteria pass (or max 3 attempts) | `smoke-tester`, `verify-fixer` |
 | `review` | `/review branch` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
 | `review:fix` | `/review fix P0-P1` | P0/P1 fixed (if any) | - |
 | `summary` | `/summary` | HTML created | - |
@@ -119,6 +121,15 @@ Update `current_phase` → `session:{id}:test`
 
 **Invoke `/test write staged`**
 
+Update `current_phase` → `session:{id}:verify`
+
+#### Phase: session:{id}:verify
+
+**Invoke `/verify`**
+
+Launches the built app and verifies against spec criteria for this session.
+Fix loop: up to 3 attempts (diagnose → fix → rebuild → re-verify).
+
 Update `current_phase` → `session:{id}:review`
 
 #### Phase: session:{id}:review
@@ -172,6 +183,16 @@ Update `current_phase` → `test`
 ### Phase: test
 
 **Invoke `/test all`**
+
+Update `current_phase` → `verify`
+
+---
+
+### Phase: verify
+
+**Invoke `/verify`**
+
+Final verification against all spec criteria. Fix loop applies (max 3 attempts).
 
 Update `current_phase` → `review`
 
