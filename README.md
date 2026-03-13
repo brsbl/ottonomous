@@ -2,17 +2,16 @@
 
 Claude Code skills for every stage of product development: spec writing, task prioritization, testing, code review, and documentation.
 
-Use each skill individually, or let `/otto` run the full loop with subagents.
-
 <img width="3072" height="1428" alt="image 1 (1)" src="https://github.com/user-attachments/assets/2e8b420b-8b85-43af-9db7-764f6d4dc269" />
 
-## Installation
+## Add marketplace
 
 ```bash
-# Add marketplace
 /plugin marketplace add brsbl/ottonomous
+```
 
-# Install plugin
+## Install plugin
+```bash
 /plugin install ottonomous@brsbl-ottonomous
 ```
 
@@ -22,15 +21,78 @@ Use each skill individually, or let `/otto` run the full loop with subagents.
 - Node.js 18+
 - Git
 
-## Workflow
+## Philosophy
+
+### Subagents for Context Isolation
+
+Use subagents to isolate concerns and prevent context pollution:
+
+- **Context isolation**: Each subagent gets only what it needs, nothing more. Orchestrator agent delegates to and manages subagent
+- **Specialization**: Different expertise per agent (frontend-developer vs backend-architect, senior-code-reviewer vs architect-reviewer, test-writer, etc)
+
+### Skill/Subagent Separation
+
+Skills and subagents have distinct responsibilities:
+
+- **Skills** define *what* to hand off (file list, diff command, scope, context) and are instructions for the Orchestrator agent
+- **Subagents** define *how* to process what's handed off (criteria, detection rules, output format)
+
+This keeps subagents self-contained and reusable while skills orchestrate the workflow.
+
+### Swarm Orchestration
+
+Skills coordinate multiple subagents working in parallel using `run_in_background: true`:
+
+**Coordination patterns:**
+- **Fan-out/Fan-in** — Spawn N agents, wait for all, synthesize results. Used by `/review`.
+- **Batches** — Complete batch N before starting N+1 (for dependent work). Used by `/review fix`.
+- **Pipeline** — Sequential handoff between specialists. Used by `/otto`.
+
+**Scaling:** 1-4 items = 1 agent, 5-10 = 2-3 agents, 11+ = 3-5 agents. Group by directory or component type.
+
+### Iterative Review for Verification
+
+Every phase has explicit verification:
+
+- **Planning**: spec → spec review → user approval
+- **Implementation**: code → code review → fix → commit
+- **Verification criteria**: Each step defines "Done when..."
+- **Prioritized findings**: P0-P2 across all skills (P0 = critical, P1 = important, P2 = minor)
+
+## Recommended Workflow
 
 ```
-                 ┌─────────────────────────────────┐
-/spec → /task →  │ /next → /test → /review → /doc  │ → /summary
-                 └─────── repeat per session ──────┘
+/spec                     # define requirements via interview
+  │
+  ▼
+/task                     # break spec into sessions & tasks
+  │
+  ▼
+┌───────────────────┐
+│                   │
+▼                   │
+/next batch         │     # implement sessions of tasks in parallel then stage results
+│                   │
+▼                   │
+/test write staged  │     # generate tests, then lint/typecheck/run all
+│                   │
+▼                   │
+/review staged      │     # multi-agent code review
+│                   │
+▼                   │
+/review fix staged  │     # fix P0-P2 issues
+│                   │
+▼                   │
+commit ─────────────┘     # loop if more sessions/tasks
+  │
+  ▼
+/summary                  # generate semantic overview of changes, opened in browser
+  │
+  ▼
+ PR
 ```
 
-Sessions group related tasks that share context and can be implemented together by a single agent.
+Use `/clear` between steps to reset context.
 
 ## Skills
 
@@ -38,9 +100,10 @@ Sessions group related tasks that share context and can be implemented together 
 
 | Skill | Description |
 |-------|-------------|
-| `/spec [idea]` | Researches best practices, interviews you to define requirements and design. |
+| `/spec [idea]` | Researches best practices, interviews you to define requirements and design. `technical-product-manager` validates completeness, consistency, feasibility, and technical correctness. |
+| `/spec revise {spec}` | Saves a comprehensive spec and goes straight to review with codebase exploration, skipping the interview. |
 | `/spec list` | Lists all specs with id, name, status, and created date. |
-| `/task <spec-id>` | Creates atomic tasks grouped into sessions for single-agent completion. |
+| `/task <spec-id>` | Creates atomic tasks grouped into agent sessions. `principal-engineer` reviews work breakdown, dependencies, and completeness. |
 | `/task list` | Lists all tasks and their spec, sessions, status etc. |
 
 ### Implementation
@@ -49,7 +112,7 @@ Sessions group related tasks that share context and can be implemented together 
 |-------|-------------|
 | `/next` | Returns next task id. |
 | `/next session` | Returns next session id. |
-| `/next <id>` | Launches subagent to implement task or session. Uses `frontend-developer` or `backend-architect`. |
+| `/next <id>` | Launches subagent to implement task or session. Plans first, then implements. |
 | `/next batch` | Implements all highest-priority unblocked sessions in parallel. |
 
 ### Testing
@@ -57,38 +120,37 @@ Sessions group related tasks that share context and can be implemented together 
 | Skill | Description |
 |-------|-------------|
 | `/test run` | Lint, type check, run tests. |
-| `/test write` | Generate tests, then run pipeline. |
+| `/test write` | `test-writer` generates tests for pure functions with edge cases, then runs pipeline. |
 | `/test browser` | Visual verification with browser automation. |
 | `/test all` | Run + browser combined. |
 
-**Scope:** `staged`, `uncommitted`, `branch` (default)
+**Scope:** `staged`, `branch` (default)
 
 ### Code Review
 
 | Skill | Description |
 |-------|-------------|
-| `/review` | Multi-agent review with P0-P3 findings. Uses `architect-reviewer` and `senior-code-reviewer`. |
+| `/review` | Multi-agent code review. `architect-reviewer` checks system structure and boundaries; `senior-code-reviewer` checks correctness, security, performance; `false-positive-validator` filters out invalid findings. |
 | `/review fix` | Implements all fixes from plan in parallel batches. |
 | `/review fix P0` | Implements only P0 (critical) fixes. |
 | `/review fix P0-P1` | Implements P0 and P1 fixes. |
 
-**Scope:** `staged`, `uncommitted`, `branch` (default)
+**Scope:** `staged`, `branch` (default)
 
 ### Documentation
 
 | Skill | Description |
 |-------|-------------|
-| `/doc` | Creates per-file documentation with parallel subagents. Optimized for agent consumption. |
-| `/summary` | Synthesizes docs into semantic HTML summary explaining what changed and why. |
+| `/summary` | Synthesizes code docs into semantic HTML summary explaining what changed and why. Primarily a resource to complement or replace code review. |
 
-**Scope:** `staged`, `uncommitted`, `branch` (default)
+**Scope:** `staged`, `branch` (default)
 
 ### Automation
 
 | Skill | Description |
 |-------|-------------|
-| `/otto <idea>` | Autonomous spec → tasks → [next/test/review/doc] per session → summary. |
-| `/reset [targets]` | Resets workflow data. Targets: `tasks`, `specs`, `docs`, `sessions`, `all` (default). |
+| `/otto <idea>` | Autonomous spec → tasks → [next/test/review] per session → summary. Best for greenfield explorations, prototyping, scoped migrations, and simple applications. **Not recommended for building complex apps end-to-end.** |
+| `/reset [targets]` | Resets workflow data. Targets: `tasks`, `specs`, `sessions`, `all` (default). Docs are preserved. |
 
 ### Utilities
 
@@ -99,6 +161,7 @@ Sessions group related tasks that share context and can be implemented together 
 | `/browser verify` | Verify specific UI behavior or state. |
 | `/browser extract` | Extract specific data from the frontend. |
 
+
 ## Architecture
 
 ```
@@ -106,24 +169,33 @@ Sessions group related tasks that share context and can be implemented together 
 ├── specs/                   # Specification documents (.md)
 ├── tasks/                   # Sessions and tasks (.json)
 ├── reviews/                 # Review fix plans (.json)
-├── docs/                    # Per-file documentation (.json)
-│   ├── files/               # Individual file docs
-│   └── branches/            # Branch snapshots
 ├── summaries/               # Generated HTML summaries
 └── otto/
     └── sessions/            # Otto session state (state.json)
 
 skills/                      # Skill implementations (SKILL.md + support files)
+├── spec/
+│   └── agents/
+│       └── technical-product-manager.md  # Spec validation (completeness, feasibility)
+├── task/
+│   └── agents/
+│       └── principal-engineer.md         # Task decomposition review
 ├── next/
-│   └── agents/              # Implementation agents
+│   └── agents/                    # Implementation agents
 │       ├── frontend-developer.md
 │       └── backend-architect.md
 ├── review/
-│   └── agents/              # Review agents
-│       ├── architect-reviewer.md
-│       └── senior-code-reviewer.md
+│   └── agents/                    # Code review agents
+│       ├── architect-reviewer.md         # Architectural issues
+│       ├── senior-code-reviewer.md       # Implementation issues
+│       └── false-positive-validator.md   # Validates and filters review findings
+├── test/
+│   └── agents/
+│       └── test-writer.md         # Test generation
 ├── otto/
-│   └── lib/browser/         # Playwright-based browser automation
+│   └── lib/browser/               # Playwright-based browser automation
+├── browser/
+│   └── references/                   # Browser automation reference guides
 ├── summary/
 │   └── scripts/md-to-html.js
 └── ...
@@ -132,8 +204,6 @@ skills/                      # Skill implementations (SKILL.md + support files)
 ## Feedback
 
 Found a bug or have a feature request? [Open an issue](https://github.com/brsbl/ottonomous/issues).
-
-Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License
 

@@ -1,7 +1,7 @@
 ---
 name: test
 description: Runs lint, type check, tests, and visual verification. Auto-detects tools. Use when running tests, linting, type checking, or writing tests.
-argument-hint: <run | write | browser | electron | all> [staged | uncommitted | branch]
+argument-hint: <run | write | browser | electron | all> [staged | branch]
 model: opus
 allowed-tools: Bash(agent-browser *), Bash(npx agent-browser *), Bash(code *), Bash(open *), Bash(npm *), Bash(npx *), Bash(kill *), Bash(sleep *), Bash(curl *), Bash(lsof *), Bash(git *), Bash(mkdir *), Read, Write, Edit, Glob, Grep, Agent
 ---
@@ -22,7 +22,6 @@ allowed-tools: Bash(agent-browser *), Bash(npx agent-browser *), Bash(code *), B
 |-------|---------|
 | `branch` | `git diff main...HEAD --name-only` |
 | `staged` | `git diff --cached --name-only` |
-| `uncommitted` | `git diff --name-only` |
 
 ---
 
@@ -82,22 +81,13 @@ Fix errors, re-run until all pass.
 ```bash
 git diff main...HEAD --name-only  # branch scope
 git diff --cached --name-only     # staged scope
-git diff --name-only              # uncommitted scope
 ```
 
-## 2. Identify Testable Code
+Filter to source files (exclude tests, configs, docs).
 
-Test pure functions only:
-- Input validation, parsing
-- String formatting, transformation
-- Data aggregation, calculation
+## 2. Launch Test Writers
 
-Skip:
-- I/O operations (fetch, fs, db)
-- Pass-through wrappers
-- Config files
-
-## 3. Launch Test Writers
+Hand off files to test-writer subagents. They determine testability and write tests.
 
 | Files | Subagents |
 |-------|-----------|
@@ -113,15 +103,7 @@ Skip:
 }
 ```
 
-## 4. Test Coverage
-
-Each function needs:
-- Happy path
-- Edge cases (empty, null, boundary)
-- Invalid inputs
-- Error handling
-
-## 5. Run Pipeline
+## 3. Run Pipeline
 
 Same as Run Mode step 3.
 

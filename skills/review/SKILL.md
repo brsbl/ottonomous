@@ -1,8 +1,8 @@
 ---
 name: review
-description: Reviews code changes for bugs with P0-P3 prioritized feedback. Uses parallel subagents for thorough analysis, then creates fix plans. Use when reviewing code, finding bugs, checking quality, or before merging. Use /review fix to implement fixes.
-argument-hint: [staged | uncommitted | branch] | fix [P0 | P0-P1 | all]
-model: opus
+description: "Reviews code changes for bugs with P0-P2 prioritized feedback. Uses parallel subagents for thorough analysis, then creates fix plans. Use when reviewing code, finding bugs, checking quality, or before merging. Use /review fix to implement fixes."
+argument-hint: "[staged | branch] | fix [P0 | P0-P1 | all]"
+model: "opus"
 ---
 
 **Arguments:** $ARGUMENTS
@@ -11,7 +11,6 @@ model: opus
 |---------|----------|
 | `/review` | Review branch diff, synthesize findings, create fix plan |
 | `/review staged` | Review staged changes only |
-| `/review uncommitted` | Review uncommitted changes only |
 | `/review fix` | Implement all fixes from saved plan |
 | `/review fix P0` | Implement only P0 (critical) fixes |
 | `/review fix P0-P1` | Implement P0 and P1 fixes |
@@ -20,50 +19,6 @@ model: opus
 |-------|-------------|
 | `branch` (default) | `git diff main...HEAD` |
 | `staged` | `git diff --cached` |
-| `uncommitted` | `git diff` |
-
----
-
-## Review Criteria
-
-Pass this section to all review subagents.
-
-### Priority Levels
-
-- **P0**: Crashes, data loss, security vulnerabilities, breaks core functionality
-- **P1**: Wrong behavior affecting users, but has workarounds
-- **P2**: Edge cases, minor bugs, non-critical issues
-- **P3**: Code smells, maintainability issues, minor improvements
-
-### Detection Rules
-
-A finding must meet ALL of these:
-1. Meaningful impact on correctness, performance, usability, security, or maintainability
-2. Discrete and actionable (specific issue, not general concern)
-3. Introduced in this change (not pre-existing)
-4. Author would fix it if aware (not intentional design choice)
-5. No assumptions about unstated intent
-
-Do NOT flag: trivial style issues, pre-existing problems, hypothetical issues, documentation gaps, or missing tests.
-
-### Finding Format
-
-```
-### [P{N}] {Brief title}
-**Files:** `file/path.ts:123` (primary), `file/path.test.ts` (add test)
-**Problem:** {Why it's a bug, what triggers it, severity}
-**Fix:** {Specific approach, not just "fix the bug"}
-**Done when:** {How to verify the fix worked}
-```
-
-**Example:**
-```
-### [P1] Division by zero when progress is 0%
-**Files:** `src/components/ProgressBar.tsx:34` (primary)
-**Problem:** `100 / progress` throws when progress is 0, which occurs for newly created tasks
-**Fix:** Guard with `progress > 0 ? (100 / progress) : 0`
-**Done when:** ProgressBar renders without error when progress is 0
-```
 
 ---
 
@@ -96,10 +51,12 @@ If a file fits both categories, assign to both reviewers.
 - 5-10 files: 2-3 subagents grouped by directory/component
 - 10+ files: 3-5 subagents grouped by directory/component
 
-**Each subagent receives:**
+**Handoff to reviewer subagents:**
 - File list to review
-- Diff command: `git diff main...HEAD -- <files>` (or `--cached` / no flag for staged/uncommitted)
-- Review Criteria section above (priority levels, detection rules, finding format)
+- Diff command: `git diff main...HEAD -- <files>` (or `--cached` for staged)
+- Scope context (branch or staged)
+
+Subagents return prioritized findings (P0-P2) in consistent format with Files, Problem, Fix, and Done when.
 
 Wait for all subagents to complete.
 
@@ -124,9 +81,38 @@ Wait for all subagents to complete.
 
 **If no findings:** Report "No issues found" and stop.
 
-### Step 4: Resolve and Approve
+### Step 4: Validate Findings
 
-**Resolve ambiguous fixes first.** If any fix contains multiple approaches ("Either...OR", "Option A/B"), use `AskUserQuestion` to pick one before approval:
+Skip this step if there are no findings (verdict is already CORRECT).
+
+Launch `false-positive-validator` with:
+- The full findings list from Step 3
+- Scope context (branch or staged)
+- Diff command used
+
+**Process results:**
+1. **Replace** findings list with validated results (KEPT + DOWNGRADED findings only)
+2. **Re-sort** by priority (P0 first)
+3. **Append** a collapsed details section showing what was removed or changed:
+
+```markdown
+<details>
+<summary>Validation: {N} removed, {M} downgraded</summary>
+
+| Finding | Verdict | Reason |
+|---------|---------|--------|
+| [P1] Title | FALSE POSITIVE | Already handled — `file.ts:32` has null check |
+| [P0 → P2] Title | DOWNGRADED | Context negates severity — `api.ts:15` validates input |
+
+</details>
+```
+
+4. **If all findings removed** → verdict becomes CORRECT, report "No issues found after validation" and stop
+5. Otherwise proceed to Step 5
+
+### Step 5: Resolve Ambiguous Fixes
+
+**If any fix requires a decision** (contains "Either...OR", "Option A/B", or similar patterns), use `AskUserQuestion` to interview the user:
 
 ```
 [P0] Plugin discovery limited to 3 hardcoded paths
@@ -138,9 +124,16 @@ B) Remove dead countCommands/countSkills functions (simpler, less data)
 Which approach?
 ```
 
-Update the fix with the chosen approach.
+**Process multiple ambiguous fixes** in a single interview when possible:
+- Group related decisions together
+- Show context for each choice
+- Update fixes with chosen approaches
 
-**Then ask for approval** using `AskUserQuestion`:
+**If no ambiguous fixes**, skip to Step 6.
+
+### Step 6: Approve Fix Plan
+
+**Ask for approval** using `AskUserQuestion`:
 - "Approve and save plan"
 - "Request changes" — revise based on feedback
 - "Open in editor" — save to `.otto/reviews/fix-plan-draft.md` for editing
@@ -185,27 +178,30 @@ Report: `Fix plan saved. Run /review fix to implement.`
 1. Check `.otto/reviews/fix-plan.json` exists
    - If missing or stale (code changed): run `/review` first
 2. Filter by priority argument:
-   - `fix` or `fix all`: P0-P3
+   - `fix` or `fix all`: P0-P2
    - `fix P0`: P0 only
    - `fix P0-P1`: P0 and P1
 3. If no matching fixes: report "No {priority} issues to fix"
 
-### Step 2: Implement in Waves
+### Step 2: Implement in Batches
 
 **Select unblocked fixes** — where all `depends_on` are done.
 
 **Scale subagents:**
-- 1-2 fixes: 1 subagent
-- 3-5 fixes: 2-3 subagents
-- 6+ fixes: 3-5 subagents
+- 1-3 fixes: 1 subagent
+- 4-7 fixes: 2 subagents
+- 8+ fixes: 3 subagents (max)
+
+Prefer fewer subagents with multiple fixes each. Single-file fixes in the same directory should always share a subagent.
 
 **Each subagent receives:**
 - Fix details (priority, problem, fix approach, files, done_when)
-- Instructions: implement fix, verify done_when, run `git add {files}`, mark status done in fix-plan.json
+- **The current contents of each file to modify** (read files before launching subagents to avoid per-subagent read rounds)
+- Instructions: implement fix, run `git add {files}`, mark status done in fix-plan.json
 
-**After each wave:** re-evaluate unblocked fixes, launch next wave, repeat until done.
+**After each batch:** re-evaluate unblocked fixes, launch next batch, repeat until done.
 
-**Verify:** Run type check and linter, report errors.
+**Verify:** Run type check and linter after all fixes are applied. If errors relate to a fix, correct them directly (do not re-launch subagents). Report results.
 
 ### Step 3: Commit and Cleanup
 
