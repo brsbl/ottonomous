@@ -1,6 +1,6 @@
 ---
 name: verify
-description: Launches a built app and verifies it against spec acceptance criteria using browser/electron automation. Includes fix loop with parallel subagents. Use after implementation to verify the app works as specified.
+description: Launches a built app and verifies it against the spec using browser/electron automation. Includes fix loop. Use after implementation to verify the app works as specified.
 argument-hint: [web | electron]
 model: opus
 allowed-tools: Bash(agent-browser *), Bash(npx agent-browser *), Bash(code *), Bash(open *), Bash(npm *), Bash(npx *), Bash(kill *), Bash(sleep *), Bash(curl *), Bash(lsof *), Bash(mkdir *), Bash(rm *), Bash(git *), Read, Write, Edit, Glob, Grep, Agent
@@ -10,7 +10,7 @@ allowed-tools: Bash(agent-browser *), Bash(npx agent-browser *), Bash(code *), B
 
 | Command | Behavior |
 |---------|----------|
-| (none) | Auto-detect app type, verify all criteria for completed sessions |
+| (none) | Auto-detect app type, verify against spec |
 | `web` | Force web app verification |
 | `electron` | Force Electron/VS Code verification |
 
@@ -27,83 +27,34 @@ Read `package.json`:
 | Dev script (vite/next/webpack) | Web app | `npm run dev` then `agent-browser open localhost:{port}` |
 | None | CLI/Library | Skip visual verification |
 
-## Step 2: Extract Criteria
-
-Read spec from `.otto/specs/{spec_id}.md`.
-Read tasks from `.otto/tasks/{spec_id}.json`.
-
-For each **completed session's tasks**, extract `done_when` conditions that are visually verifiable.
-From the spec, extract:
-- User Story acceptance criteria (behavioral checks)
-- Definition of Done checkboxes (existence checks)
-- Architecture requirements (structural checks)
-
-Write to `.otto/verify/criteria.json`:
-```json
-{
-  "app_type": "vscode-extension",
-  "criteria": [
-    { "id": "v1", "source": "DoD", "description": "Extension activates without errors" },
-    { "id": "v2", "source": "US-2", "description": "Chat panel visible in auxiliary bar" },
-    { "id": "v3", "source": "S1:task-3", "description": "Session rail shows in sidebar" }
-  ]
-}
-```
-
-Only include criteria for features that have been implemented (completed sessions).
-
-## Step 3: Build
+## Step 2: Build
 
 ```bash
 npm run compile  # or npm run build
 ```
 
-If build fails, stop and report build failure.
+If build fails, stop and report.
 
-## Step 4: Launch & Verify
+## Step 3: Launch & Verify
 
-Launch `smoke-tester` subagent with:
-- App type + launch command
-- Criteria list
-- Spec path
+Launch `smoke-tester` subagent with the spec path and app launch command.
 
-The smoke-tester launches the app, connects agent-browser, and checks each criterion.
+The smoke-tester launches the app, connects agent-browser, and checks whether the UI matches the spec.
 
-## Step 5: Fix Loop
+## Step 4: Fix Loop
 
-If any criteria fail, loop up to **3 attempts**:
+If smoke-tester reports failures, loop up to **3 attempts**:
 
-1. **Collect evidence:** smoke-tester returns ARIA snapshot, screenshots, failure descriptions
-2. **Launch fixers:** 1-3 `verify-fixer` subagents based on failure count
-   - 1-2 failures: 1 fixer
-   - 3-4 failures: 2 fixers
-   - 5+ failures: 3 fixers
-   - Each receives: failure evidence, relevant source file contents, spec section
-3. **Rebuild:** `npm run compile`
-4. **Re-verify:** Re-run smoke-tester on **failed criteria only**
-5. All pass: done. Still failing: next attempt.
+1. Launch a `verify-fixer` subagent with failure evidence (ARIA snapshots, screenshots, error descriptions)
+2. Rebuild
+3. Re-run smoke-tester
 
-After 3 attempts: log remaining failures, continue pipeline.
+After 3 attempts, log remaining failures and continue.
 
-## Step 6: Report
-
-```markdown
-## Verification Results
-
-| # | Criterion | Status | Attempts | Evidence |
-|---|-----------|--------|----------|----------|
-| v1 | Extension activates | Pass | 1 | No errors |
-| v2 | Chat panel renders | Pass | 2 | Fixed CSP nonce |
-| v3 | Session rail visible | Pass | 1 | Tree view found |
-| v4 | Streaming works | Fail | 3 | No response after 10s |
-
-Passed: 3/4
-```
-
-## Step 7: Cleanup
+## Step 5: Cleanup
 
 ```bash
 agent-browser close
 kill $APP_PID 2>/dev/null
-rm -rf .otto/verify-screenshots .otto/verify
+rm -rf .otto/verify-screenshots
 ```

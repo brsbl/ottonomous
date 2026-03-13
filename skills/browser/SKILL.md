@@ -160,26 +160,6 @@ agent-browser diff screenshot --baseline baseline.png
 
 ---
 
-## Design Feedback
-
-For collecting user design feedback, inject the overlay:
-
-```bash
-# Inject design feedback overlay
-agent-browser eval --stdin < skills/otto/lib/browser/design-feedback/browser-script.js
-
-# Activate feedback mode
-agent-browser eval "window.__designFeedbackAPI.activate()"
-
-# Check for submitted feedback
-agent-browser eval "JSON.stringify(window.__designFeedbackSubmit || [])"
-
-# Deactivate
-agent-browser eval "window.__designFeedbackAPI.deactivate()"
-```
-
----
-
 ## Cleanup
 
 ```bash
