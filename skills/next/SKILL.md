@@ -38,6 +38,24 @@ Multiple specs have pending work:
 Which spec should I work on?
 ```
 
+### Branch Check (Sections 4, 5, 6 only)
+
+Before proceeding to any implementation section, check the current branch:
+
+```bash
+current_branch=$(git branch --show-current)
+```
+
+**If on `main` or `master`**, use `AskUserQuestion`:
+```
+You're on '{current_branch}'. Create a feature branch or continue here?
+
+1. Create branch: otto/{spec-id} (recommended)
+2. Stay on {current_branch}
+```
+
+If user picks 1, create the branch and continue. If 2, proceed as-is.
+
 ---
 
 ## 2. Select Task
@@ -164,7 +182,8 @@ Launching {n} priority-{p} sessions in parallel:
 **Monitor and complete:**
 - Wait for all subagents to finish
 - Mark sessions as "done"
-- Stage: `git add -A`
+- Stage: `git add -u && git add .otto/`
+- Commit: `git commit -m "otto: {spec-id} batch — {n} sessions at priority {p}"`
 - Report: "Completed {n}/{total} sessions"
 - Suggest: "Run `/next batch` again for next priority level."
 
@@ -213,7 +232,8 @@ Keep the plan concise - it's for your reference and audit trail.
 **After subagent completes:**
 - Update task status to "done"
 - Check if all tasks in session are "done"; if so, mark session "done"
-- Stage: `git add -A`
+- Stage: `git add -u && git add .otto/`
+- Commit: `git commit -m "otto: {spec-id} task {id} — {title}"`
 
 Report: "Task {id} complete."
 
@@ -263,6 +283,7 @@ Keep the plan concise - it's for your reference and audit trail.
 
 **After subagent completes:**
 - Update session status to "done"
-- Stage: `git add -A`
+- Stage: `git add -u && git add .otto/`
+- Commit: `git commit -m "otto: {spec-id} session {id} — {title}"`
 
 Report: "Session {id} complete. {n} tasks done."

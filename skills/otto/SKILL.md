@@ -42,6 +42,8 @@ When a skill asks questions or requests confirmation:
 
 ## Workflow
 
+**Before each phase** (except `init`): verify `git branch --show-current` matches `otto/${session_id}`. If not, `git checkout otto/${session_id}`.
+
 ### Phase: init
 
 **Create session:**
@@ -244,4 +246,5 @@ When `/otto` is invoked, check for existing session:
 1. Check `.otto/otto/sessions/` for state.json with `status: "in_progress"`
 2. Read `current_phase` and `current_session_id`
 3. Offer to resume or start fresh
-4. If resuming, continue from `current_phase`
+4. If resuming, verify branch matches `otto/${session_id}`. If on wrong branch, switch: `git checkout otto/${session_id}`
+5. Continue from `current_phase`
