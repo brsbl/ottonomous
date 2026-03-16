@@ -102,8 +102,8 @@ Write to `.otto/specs/{id}.md`:
 id: {id}
 name: {Name}
 status: draft
-created: {YYYY-MM-DD}
-updated: {YYYY-MM-DD}
+created_date: {YYYY-MM-DD}
+description: {one-line summary of the spec}
 ---
 
 {spec content mapped to template structure}
@@ -276,8 +276,8 @@ Write to `.otto/specs/{id}.md`:
 id: {id}
 name: {Product Idea}
 status: draft
-created: {YYYY-MM-DD}
-updated: {YYYY-MM-DD}
+created_date: {YYYY-MM-DD}
+description: {one-line summary of the spec}
 ---
 
 {spec content}
