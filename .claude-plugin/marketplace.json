@@ -17,7 +17,7 @@
         "./skills/summary",
         "./skills/task",
         "./skills/next",
-        "./skills/qa",
+        "./skills/doc",
         "./skills/verify",
         "./skills/browser",
         "./skills/reset"
@@ -29,9 +29,7 @@
         "./skills/review/agents/senior-code-reviewer.md",
         "./skills/test/agents/test-writer.md",
         "./skills/verify/agents/smoke-tester.md",
-        "./skills/verify/agents/verify-fixer.md",
-        "./skills/qa/agents/checklist-generator.md",
-        "./skills/qa/agents/checklist-validator.md"
+        "./skills/verify/agents/verify-fixer.md"
       ]
     }
   ],
