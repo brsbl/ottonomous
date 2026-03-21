@@ -98,14 +98,14 @@ Update `sessions.total` in state.json.
 
 ### Per-Session Loop
 
-**Invoke `/next status session`**
+**Invoke `/next session status`**
 
 Returns the next session id without implementing.
 
 If no unblocked sessions and all are "done": proceed to Phase: build.
 If no unblocked sessions but some blocked: report "{n} sessions blocked."
 
-**After /next status session returns:**
+**After /next session status returns:**
 - Update `current_session_id` → `{id}`
 - Update `current_phase` → `session:{id}:implement`
 

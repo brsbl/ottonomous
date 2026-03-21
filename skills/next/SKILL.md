@@ -14,13 +14,12 @@ model: opus
 | `batch` | Implement all highest-priority unblocked sessions (Section 4) |
 | `{task-name-or-id}` | Implement the specified task (Section 5) |
 | `{session-name-or-id}` | Implement all tasks in the specified session (Section 6) |
-| `status [task \| session]` | Select and report next task/session without implementing (Section 2 or 3, stop after reporting) |
+| `task status` | Select and report next task without implementing (Section 2, stop after reporting) |
+| `session status` | Select and report next session without implementing (Section 3, stop after reporting) |
 
 ### Argument Resolution
 
-If the argument starts with `status`, parse the remainder (`task` or `session`, default `task`) and run the corresponding Section (2 or 3) in status mode (stop after reporting, do not implement).
-
-When the argument is not a keyword (`task`, `session`, `batch`, `status`):
+When the argument is not a keyword (`task`, `session`, `batch`) or a status variant (`task status`, `session status`):
 
 1. Try exact ID match in task JSON (check both `tasks[].id` and `sessions[].id`)
 2. If no exact match, search `tasks[].title` and `sessions[].title` (case-insensitive substring)
@@ -95,7 +94,7 @@ Priority: {priority}
 Session: {session_id}
 ```
 
-Continue to Section 5 to implement this task. If invoked via `status`, stop here — do NOT implement.
+Continue to Section 5 to implement this task. If invoked with `status` suffix, stop here — do NOT implement.
 
 ---
 
@@ -123,7 +122,7 @@ Priority: {priority}
 Tasks: {task_count}
 ```
 
-Continue to Section 6 to implement this session. If invoked via `status`, stop here — do NOT implement.
+Continue to Section 6 to implement this session. If invoked with `status` suffix, stop here — do NOT implement.
 
 ---
 
