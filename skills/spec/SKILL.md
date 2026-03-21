@@ -65,6 +65,13 @@ Map the provided content to this template structure (mark missing sections as `[
 - **Goals / Non-Goals** - Explicit scope boundaries
 - **User Stories** - User-facing behavior
 
+**UI Design Reference** (if app has a visual interface):
+
+- **Reference image** - Path to reference screenshot if provided
+- **Application Layout (ASCII)** - ASCII art diagram of layout structure
+- **Layout Rules** - Numbered list describing each zone
+- **Visual Style** - Color scheme, backgrounds, text colors, borders, font, icon library
+
 **Technical Design:**
 
 - **Architecture** - System design, component relationships
@@ -229,6 +236,11 @@ Use `AskUserQuestion` to gather requirements. For each decision point:
 - Key architectural decisions
 - Scope boundaries (what's in, what's out)
 - Edge cases
+- **UI design direction** (if app has a visual interface):
+  - Reference apps or screenshots to emulate?
+  - Color scheme preference (light/dark/system)?
+  - Icon library preference?
+  - Layout structure (sidebars, toolbars, panels)?
 
 ### 4. Draft Spec
 
@@ -239,6 +251,15 @@ Write a spec covering:
 - **Overview** - What and why, problem being solved
 - **Goals / Non-Goals** - Explicit scope boundaries
 - **User Stories** - User-facing behavior
+
+**UI Design Reference** (if app has a visual interface):
+
+- **Reference image** - Path to reference screenshot if user provided one (e.g., `/path/to/reference.png`)
+- **Application Layout (ASCII)** - Full ASCII art diagram showing the layout structure: panel positions, toolbar placement, section ordering. Must be detailed enough that an implementer can reproduce the layout without seeing the reference image.
+- **Layout Rules** - Numbered list describing each zone: position, approximate size, content, and behavior
+- **Visual Style** - Color scheme (light/dark), panel backgrounds, text colors, borders, active states, font stack, icon library and size
+
+This section is the source of truth for visual verification. QA and verify workflows extract testable criteria from it. If a reference image exists, implementers and verifiers compare against it. The ASCII layout serves as a text-based fallback that works in any context.
 
 **Technical Design:**
 

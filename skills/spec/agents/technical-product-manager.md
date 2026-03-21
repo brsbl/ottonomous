@@ -50,6 +50,13 @@ Read the spec file to get the full content before reviewing.
 - Undefined behavior for edge cases
 - Missing acceptance criteria
 
+### UI Design Reference (if app has a visual interface)
+- **Missing entirely**: If the spec describes a visual app but has no "UI Design Reference" section, flag as P1 — implementation will lack visual direction and verification will have no design criteria to check against
+- **ASCII layout missing or vague**: The ASCII diagram must be detailed enough to reproduce the layout without the reference image. Flag if it's too abstract or missing key zones.
+- **Layout rules incomplete**: Every zone in the ASCII diagram should have a corresponding layout rule with position, size, content
+- **Visual style underspecified**: Color scheme, icon library, and font should be explicit — vague style guidance ("modern look") leads to inconsistent implementation
+- **Reference image path invalid**: If a reference image path is listed, note that it should be verified to exist
+
 ### Technical Correctness
 - **Data flow clarity**: Can you trace data from input to output? Flag convoluted paths.
 - **Simplicity**: Is this the simplest design that solves the problem? Flag over-engineering.
