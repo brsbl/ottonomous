@@ -11,16 +11,16 @@ model: opus
 |----------|----------|
 | (none) or `task` | Select and implement next task (Section 2 → 5) |
 | `session` | Select and implement next session (Section 3 → 6) |
-| `peek [task \| session]` | Select and report next task/session without implementing (Section 2 or 3, stop after reporting) |
+| `status [task \| session]` | Select and report next task/session without implementing (Section 2 or 3, stop after reporting) |
 | `batch` | Implement all highest-priority unblocked sessions (Section 4) |
 | `{task-name-or-id}` | Implement the specified task (Section 5) |
 | `{session-name-or-id}` | Implement all tasks in the specified session (Section 6) |
 
 ### Argument Resolution
 
-If the argument starts with `peek`, parse the remainder (`task` or `session`, default `task`) and run the corresponding Section (2 or 3) in peek mode (stop after reporting, do not implement).
+If the argument starts with `status`, parse the remainder (`task` or `session`, default `task`) and run the corresponding Section (2 or 3) in status mode (stop after reporting, do not implement).
 
-When the argument is not a keyword (`task`, `session`, `batch`, `peek`):
+When the argument is not a keyword (`task`, `session`, `batch`, `status`):
 
 1. Try exact ID match in task JSON (check both `tasks[].id` and `sessions[].id`)
 2. If no exact match, search `tasks[].title` and `sessions[].title` (case-insensitive substring)
@@ -95,7 +95,7 @@ Priority: {priority}
 Session: {session_id}
 ```
 
-Continue to Section 5 to implement this task. If invoked via `peek`, stop here — do NOT implement.
+Continue to Section 5 to implement this task. If invoked via `status`, stop here — do NOT implement.
 
 ---
 
@@ -123,7 +123,7 @@ Priority: {priority}
 Tasks: {task_count}
 ```
 
-Continue to Section 6 to implement this session. If invoked via `peek`, stop here — do NOT implement.
+Continue to Section 6 to implement this session. If invoked via `status`, stop here — do NOT implement.
 
 ---
 
