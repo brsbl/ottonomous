@@ -37,7 +37,21 @@ npm run compile  # or npm run build
 
 If build fails, stop and report.
 
-## Step 3: Launch & Verify
+## Step 3: Extract Reference Design
+
+Before launching the smoke-tester, check the spec for visual design references:
+
+1. Read the spec file
+2. Look for a "UI Design Reference" section
+3. If found, extract:
+   - **Reference image paths** (e.g., `/Users/.../paper.png`) — verify the file exists
+   - **ASCII layout diagram** — the full ASCII art block
+   - **Layout rules** — numbered rules describing panel positions, sizes, content
+   - **Visual style rules** — colors, fonts, icon specs
+
+Package these as `design_reference` for the smoke-tester handoff.
+
+## Step 4: Launch & Verify
 
 **If `--session` provided without `--qa`:** report error and stop.
 
@@ -51,10 +65,11 @@ If build fails, stop and report.
 - Spec path
 - App launch command
 - Combined criteria list (spec acceptance criteria + normalized QA items, if `--qa` provided)
+- Design reference (reference image paths, ASCII layout, layout rules, visual style) — if extracted in Step 3
 
 The smoke-tester launches the app, connects agent-browser, and checks whether the UI matches all provided criteria.
 
-## Step 4: Fix Loop
+## Step 5: Fix Loop
 
 If smoke-tester reports failures, **keep looping until all criteria pass**:
 
@@ -65,7 +80,7 @@ If smoke-tester reports failures, **keep looping until all criteria pass**:
 
 This is a hard gate — the workflow does not proceed until verification passes.
 
-## Step 5: Cleanup
+## Step 6: Cleanup
 
 ```bash
 agent-browser close

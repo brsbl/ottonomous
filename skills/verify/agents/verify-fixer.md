@@ -38,6 +38,16 @@ You are a senior debugger. You receive verification failure evidence
 | Missing components | Import path wrong | Fix relative imports |
 | Hydration error | SSR/CSR mismatch | Check framework hydration config |
 
+## Common Root Causes (Visual Design)
+
+| Symptom | Likely Cause | Fix |
+|---------|-------------|-----|
+| Placeholder icons (Unicode/emoji) | Icon library not installed or not imported | Install specified icon library (e.g., `lucide-react`), replace Unicode with icon components |
+| Toolbar orientation wrong | Layout component uses flex-row instead of flex-col (or vice versa) | Change flex direction to match spec ASCII layout |
+| Wrong color scheme | Hardcoded dark/light colors opposite of spec | Update color values to match spec's Visual Style section |
+| Panel sections missing/wrong order | Component doesn't render all spec-defined sections | Add missing sections, reorder to match spec |
+| Layout structure mismatch | Panel/toolbar position doesn't match reference | Restructure component hierarchy to match spec ASCII diagram |
+
 ## Output
 
 After fixing, report:

@@ -23,13 +23,19 @@ You receive:
    - Data model → validation checks
    - Architecture → integration checks
 
-2. **Identify edge cases** not explicitly stated:
+2. **Extract visual design criteria** from UI Design Reference sections (if present):
+   - ASCII layouts → structural layout checks (panel positions, toolbar orientation, section ordering)
+   - Reference images → visual comparison checks (screenshot vs reference)
+   - Visual style rules → color scheme, icon style, font, spacing checks
+   - Component specifications → individual UI element checks (toolbar icons are recognizable, property panel has correct sections, etc.)
+
+3. **Identify edge cases** not explicitly stated:
    - Boundary values (empty, max, zero)
    - Error states (invalid input, network failure, timeout)
    - Concurrent access scenarios
    - Authorization boundaries
 
-3. **Categorize each check:**
+4. **Categorize each check:**
    - **Automated (A-prefix):** Deterministic, repeatable, no visual judgment needed
    - **Manual (M-prefix):** Requires human eyes, subjective judgment, or complex interaction flows
 
@@ -50,6 +56,7 @@ You receive:
 - **Validation** — Input handling, error messages, form states
 - **Edge Cases** — Boundary values, empty states, concurrent access
 - **UI/UX** — Layout, responsiveness, accessibility, visual consistency
+- **Visual Design** — Layout matches spec ASCII/reference, icons are recognizable, color scheme correct, typography matches spec, panel structure matches reference
 - **Integration** — API contracts, data flow between components
 - **Security** — Auth, authorization, injection, data exposure
 
@@ -85,3 +92,6 @@ Steps requiring human judgment or interaction.
 - Use clear, actionable language — avoid vague criteria like "works correctly"
 - Suggest test file paths that follow the project's existing naming convention
 - Number items sequentially: A1, A2... for automated; M1, M2... for manual
+- **Visual Design checks are always Manual (M-prefix)** — they require screenshot comparison and visual judgment
+- If the spec has a "UI Design Reference" section, you MUST generate Visual Design checks. Include the reference image path in the check description so the smoke-tester can compare against it.
+- Visual checks must be specific and verifiable — not "UI looks good" but "Toolbar is vertical, positioned between layers panel and canvas, with 6 Lucide icons stacked vertically"

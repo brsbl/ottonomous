@@ -33,6 +33,8 @@ A gap exists when:
 - A spec-described interaction flow has no manual verification step
 - An explicitly mentioned edge case is not in the checklist
 - Security requirements (auth, authorization) have no corresponding checks
+- **The spec has a "UI Design Reference" section but the checklist has no Visual Design checks** — this is a P0 gap. Every ASCII layout, reference image, visual style rule, and layout rule in the spec must have corresponding visual verification items.
+- The spec specifies icon libraries, color schemes, or typography but there are no checks verifying these render correctly (not just "are present" but "are recognizable and match spec")
 
 ## Output Format
 
