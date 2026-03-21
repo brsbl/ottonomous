@@ -1,7 +1,7 @@
 ---
 name: next
 description: Pick or implement the next task or session. Use when continuing work, picking the next task, or implementing tasks from a task list.
-argument-hint: [task | session | batch]
+argument-hint: [task | session | batch | <name-or-id>]
 model: opus
 ---
 
@@ -9,11 +9,24 @@ model: opus
 
 | Argument | Behavior |
 |----------|----------|
-| (none) or `task` | Select and return next task id (Section 2) |
-| `session` | Select and return next session id (Section 3) |
+| (none) or `task` | Select and implement next task (Section 2 → 5) |
+| `session` | Select and implement next session (Section 3 → 6) |
+| `peek [task \| session]` | Select and report next task/session without implementing (Section 2 or 3, stop after reporting) |
 | `batch` | Implement all highest-priority unblocked sessions (Section 4) |
-| `{task-id}` (numeric) | Implement the specified task (Section 5) |
-| `{session-id}` (starts with "S") | Implement all tasks in the specified session (Section 6) |
+| `{task-name-or-id}` | Implement the specified task (Section 5) |
+| `{session-name-or-id}` | Implement all tasks in the specified session (Section 6) |
+
+### Argument Resolution
+
+If the argument starts with `peek`, parse the remainder (`task` or `session`, default `task`) and run the corresponding Section (2 or 3) in peek mode (stop after reporting, do not implement).
+
+When the argument is not a keyword (`task`, `session`, `batch`, `peek`):
+
+1. Try exact ID match in task JSON (check both `tasks[].id` and `sessions[].id`)
+2. If no exact match, search `tasks[].title` and `sessions[].title` (case-insensitive substring)
+3. If exactly one match: route to Section 5 (task) or Section 6 (session)
+4. If multiple matches: use `AskUserQuestion` to disambiguate, showing name and ID for each
+5. If no matches: "No task or session matching '{argument}'. Run `/task list` to see available work."
 
 **Always start with Section 1 (Find Tasks).**
 
@@ -25,15 +38,15 @@ model: opus
 ls .otto/tasks/*.json 2>/dev/null
 ```
 
-Read each file, check for pending sessions/tasks.
+Read each file, check for pending sessions/tasks. For each task file, also read the corresponding spec file frontmatter to get the spec name.
 
-**If no task files:** "No tasks found. Run `/task {spec-id}` to generate."
+**If no task files:** "No tasks found. Run `/task <spec-name>` to generate."
 
 **If multiple specs have pending work**, use `AskUserQuestion`:
 ```
 Multiple specs have pending work:
-1. {spec-id-1}: {n} sessions pending
-2. {spec-id-2}: {n} sessions pending
+1. {spec-name} ({spec-id}): {n} sessions pending
+2. {spec-name} ({spec-id}): {n} sessions pending
 
 Which spec should I work on?
 ```
@@ -82,7 +95,7 @@ Priority: {priority}
 Session: {session_id}
 ```
 
-Stop here — do NOT implement.
+Continue to Section 5 to implement this task. If invoked via `peek`, stop here — do NOT implement.
 
 ---
 
@@ -110,7 +123,7 @@ Priority: {priority}
 Tasks: {task_count}
 ```
 
-Stop here — do NOT implement.
+Continue to Section 6 to implement this session. If invoked via `peek`, stop here — do NOT implement.
 
 ---
 

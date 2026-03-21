@@ -12,6 +12,7 @@ Ottonomous is a Claude Code plugin for structured product development. It operat
 - `/task` - Generate implementation tasks from specs
 - `/next` - Pick up and implement the next pending task
 - `/test` - Run and verify tests
+- `/qa` - Generate manual and automated QA checklists from specs
 - `/review` - Code review with prioritized findings
 - `/summary` - Create project summary
 - `/browser` - Launch Playwright for browser interactions
@@ -137,6 +138,7 @@ skills/                    # Skill implementations
 .otto/                     # Workflow artifacts (git-ignored)
 ├── specs/                 # Product specifications
 ├── tasks/                 # Sessions and tasks
+├── qa/                    # QA checklists
 ├── reviews/               # Review fix plans
 ├── summaries/             # Generated HTML summaries
 └── otto/

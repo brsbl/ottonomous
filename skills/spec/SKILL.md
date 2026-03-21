@@ -19,13 +19,13 @@ model: opus
 If `$ARGUMENTS` is `list`:
 
 1. List `.otto/specs/*.md`
-2. For each spec, read frontmatter (id, name, status, created)
+2. For each spec, read frontmatter (id, name, status, created_date)
 3. Display as table:
 
 ```plaintext
-   | ID | Name | Status | Created |
-   |----|------|--------|---------|
-   | design-skill-a1b2 | Design Skill | approved | 2026-01-28 |
+   | Name | ID | Status | Created |
+   |------|-----|--------|---------|
+   | Design Skill | design-skill-a1b2 | approved | 2026-01-28 |
 ```
 
 4. If no specs found: "No specs found. Run `/spec {idea}` to create one."
@@ -170,7 +170,7 @@ Report: "Spec approved and saved to `.otto/specs/{id}.md`"
 
 Offer task generation:
 
-> "Run `/task {id}` to generate implementation tasks."
+> "Run `/task {name}` to generate implementation tasks."
 
 ---
 
@@ -331,4 +331,4 @@ Report: "Spec approved and saved to `.otto/specs/{id}.md`"
 
 Offer task generation:
 
-> "Run `/task {id}` to generate implementation tasks."
+> "Run `/task {name}` to generate implementation tasks."
