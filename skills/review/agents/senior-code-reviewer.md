@@ -22,6 +22,7 @@ You receive:
 4. **Error Handling**: Unhandled exceptions, silent failures, poor error messages?
 5. **Race Conditions**: Concurrent access, stale data, timing issues?
 6. **Resource Management**: Unclosed connections, missing cleanup?
+7. **Visual Design Compliance**: If a spec exists (check `.otto/specs/`), does the UI implementation match the spec's UI Design Reference section? Check: correct icon library used (not Unicode placeholders), layout structure matches ASCII diagram, color values match spec, component hierarchy follows layout rules.
 
 ## Priority Levels
 

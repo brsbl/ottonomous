@@ -102,6 +102,15 @@ id="${slug}-${hash}"
 mkdir -p .otto/specs
 ```
 
+**If the spec references an image path outside the repo (absolute path or path not under `.otto/`):**
+
+```bash
+mkdir -p .otto/design
+cp "{original_path}" ".otto/design/{filename}"
+```
+
+Update the reference image path in the spec body to `.otto/design/{filename}` before writing. This keeps the reference image portable within the repo.
+
 Write to `.otto/specs/{id}.md`:
 
 ```yaml
@@ -289,6 +298,15 @@ id="${slug}-${hash}"
 
 mkdir -p .otto/specs
 ```
+
+**If the spec references an image path outside the repo (absolute path or path not under `.otto/`):**
+
+```bash
+mkdir -p .otto/design
+cp "{original_path}" ".otto/design/{filename}"
+```
+
+Update the reference image path in the spec body to `.otto/design/{filename}` before writing. This keeps the reference image portable within the repo.
 
 Write to `.otto/specs/{id}.md`:
 

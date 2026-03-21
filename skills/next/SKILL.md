@@ -109,7 +109,7 @@ If invoked with `status` suffix, stop here — do NOT implement.
 **Always plan before implementing.** Simple tasks get simple plans.
 
 ### Phase 1: Plan
-1. Read the spec's Technical Design section at {spec_path}
+1. Read the spec's Technical Design section AND UI Design Reference section at {spec_path}
 2. Explore relevant files to understand existing patterns
 3. Write your implementation plan to `.otto/plans/task-{task_id}.md`:
    - Describe your approach
@@ -185,7 +185,7 @@ If invoked with `status` suffix, stop here — do NOT implement.
 **Always plan before implementing.** Simple tasks get simple plans.
 
 ### Phase 1: Plan
-1. Read the spec's Technical Design section at {spec_path}
+1. Read the spec's Technical Design section AND UI Design Reference section at {spec_path}
 2. Explore relevant files to understand existing patterns
 3. Write your implementation plan to `.otto/plans/{session_id}.md`:
    - List each task you will implement
@@ -252,7 +252,7 @@ Task(description="Implement S3", prompt="...", subagent_type="frontend-developer
 **Always plan before implementing.** Simple tasks get simple plans.
 
 ### Phase 1: Plan
-1. Read the spec's Technical Design section at {spec_path}
+1. Read the spec's Technical Design section AND UI Design Reference section at {spec_path}
 2. Explore relevant files to understand existing patterns
 3. Write your implementation plan to `.otto/plans/{session_id}.md`:
    - List each task you will implement
