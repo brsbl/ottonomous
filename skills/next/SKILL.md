@@ -11,10 +11,10 @@ model: opus
 |----------|----------|
 | (none) or `task` | Select and implement next task (Section 2 → 5) |
 | `session` | Select and implement next session (Section 3 → 6) |
-| `status [task \| session]` | Select and report next task/session without implementing (Section 2 or 3, stop after reporting) |
 | `batch` | Implement all highest-priority unblocked sessions (Section 4) |
 | `{task-name-or-id}` | Implement the specified task (Section 5) |
 | `{session-name-or-id}` | Implement all tasks in the specified session (Section 6) |
+| `status [task \| session]` | Select and report next task/session without implementing (Section 2 or 3, stop after reporting) |
 
 ### Argument Resolution
 
