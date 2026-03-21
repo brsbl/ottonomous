@@ -28,7 +28,7 @@ When a skill asks questions or requests confirmation:
 | `task` | `/task {spec_name_or_id}` | tasks file exists | - |
 | `session:{id}:implement` | `/next session` | session status is done | `frontend-developer`, `backend-architect` per task type |
 | `session:{id}:test` | `/test write staged` | tests pass | - |
-| `session:{id}:qa` | `/qa {spec_id}` | `.otto/qa/{spec_id}.md` exists, status: approved | `checklist-generator`, `checklist-validator` |
+| `session:{id}:qa` | `/qa {spec_id}` | `.otto/qa/{spec_id}.md` exists, status: approved | (managed by `/qa`) |
 | `session:{id}:verify` | `/verify --qa .otto/qa/{spec_id}.md --session {id}` | all criteria + session QA checks pass | `smoke-tester`, `verify-fixer` |
 | `session:{id}:review` | `/review staged` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
 | `session:{id}:fix` | `/review fix P0-P1` | P0/P1 fixed (if any) | - |
@@ -137,7 +137,9 @@ Otherwise:
 
 **Invoke `/qa {spec_id}`**
 
-Auto-approve behavior: accept P0/P1 findings, reject P2 findings (prevents checklist bloat under autonomous operation).
+Auto-approve behavior for `/qa` prompts:
+- Step 5 (findings interview): select "Accept" for P0/P1 findings, select "Reject" for P2 findings (prevents checklist bloat)
+- Step 7 (approval): select "Approve"
 
 **Verify:** `.otto/qa/{spec_id}.md` exists with `status: approved`. If not, retry.
 
@@ -269,5 +271,6 @@ When `/otto` is invoked, check for existing session:
 2. Read `current_phase`, `current_session_id`, and `qa_checklist`
 3. Offer to resume or start fresh
 4. If resuming, verify branch matches `otto/${session_id}`. If on wrong branch, switch: `git checkout otto/${session_id}`
-5. If `current_phase` is a verify phase but `qa_checklist` is null, re-run the `qa` phase first
-6. Continue from `current_phase`
+5. If `current_phase` is `session:{id}:qa`, re-run from that phase
+6. If `current_phase` is a verify phase but `qa_checklist` is null, rewind to the corresponding `session:{id}:qa` phase first
+7. Continue from `current_phase`

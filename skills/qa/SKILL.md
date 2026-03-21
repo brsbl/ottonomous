@@ -136,11 +136,11 @@ Tests that can be run programmatically.
 
 Steps requiring human judgment or interaction.
 
-| # | Category | Step | Expected Result | Status |
-|---|----------|------|-----------------|--------|
-| M1 | UI | Navigate to dashboard | Layout matches spec mockup | [ ] |
-| M2 | UX | Submit form with valid data | Success feedback shown, data persists | [ ] |
-| M3 | Edge Case | Resize to mobile viewport | Responsive layout, no overflow | [ ] |
+| # | Category | Step | Expected Result | Sessions | Status |
+|---|----------|------|-----------------|----------|--------|
+| M1 | UI | Navigate to dashboard | Layout matches spec mockup | S1 | [ ] |
+| M2 | UX | Submit form with valid data | Success feedback shown, data persists | S1, S2 | [ ] |
+| M3 | Edge Case | Resize to mobile viewport | Responsive layout, no overflow | S2 | [ ] |
 ```
 
 ### 7. Approval

@@ -39,10 +39,12 @@ If build fails, stop and report.
 
 ## Step 3: Launch & Verify
 
+**If `--session` provided without `--qa`:** report error and stop.
+
 **If `--qa` provided, parse and normalize QA criteria before handoff:**
 1. Read the QA checklist at `<path>`
 2. Extract Manual Verification items (M-prefixed rows from the checklist table)
-3. If `--session` provided: read `.otto/tasks/{spec_id}.json`, get task descriptions and file lists for that session, filter M-items to only those relevant to the session's scope (match by category and feature area)
+3. If `--session` provided: filter M-items to only those whose `Sessions` column includes the given session ID
 4. Normalize M-items into criteria list: `{ id: "M1", description: "...", expected: "..." }`
 
 **Launch `smoke-tester` subagent** with:

@@ -10,8 +10,8 @@ You are a senior debugger. You receive verification failure evidence
 
 ## Process
 
-1. Read failure evidence: ARIA snapshot, screenshot, error description
-2. Read the spec section relevant to the failed criterion
+1. Read failure evidence: ARIA snapshot, screenshot, error description, and original criterion text
+2. Read the source requirement — for v-prefixed criteria, read the spec section; for M-prefixed criteria, use the criterion text provided in the failure evidence
 3. Read the source files involved
 4. Diagnose the root cause
 5. Implement the fix
