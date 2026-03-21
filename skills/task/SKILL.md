@@ -1,7 +1,7 @@
 ---
 name: task
 description: Generates parallelizable task lists from specs. Breaks specs into atomic, prioritized tasks with dependencies. Use when you have a spec and need tasks, implementation breakdown, or a work plan.
-argument-hint: list | <spec-id>
+argument-hint: list | <spec-name-or-id>
 model: opus
 ---
 
@@ -10,7 +10,7 @@ model: opus
 | Command | Behavior |
 |---------|----------|
 | `/task list` | List all task files with spec, sessions, tasks, progress |
-| `/task {spec-id}` | Generate tasks from approved spec |
+| `/task {spec-name-or-id}` | Generate tasks from approved spec |
 
 ---
 
@@ -20,24 +20,33 @@ If `$ARGUMENTS` is `list`:
 
 1. List `.otto/tasks/*.json`
 2. For each file, read and calculate:
-   - spec_id
+   - spec_id and spec name (read the spec file at `spec_path` to get the name from frontmatter)
    - session count
    - task count
    - progress (done tasks / total tasks)
 3. Display as table:
    ```
-   | Spec ID | Sessions | Tasks | Progress |
-   |---------|----------|-------|----------|
-   | design-skill-a1b2 | 3 | 12 | 4/12 (33%) |
+   | Name | ID | Sessions | Tasks | Progress |
+   |------|-----|----------|-------|----------|
+   | Design Skill | design-skill-a1b2 | 3 | 12 | 4/12 (33%) |
    ```
-4. If no task files found: "No task files found. Run `/task {spec-id}` to generate."
+4. If no task files found: "No task files found. Run `/task <spec-name>` to generate."
 5. Stop here — do not continue to task generation workflow.
 
 ---
 
 ## Generate Mode
 
-**Usage:** `/task <spec-id>`
+**Usage:** `/task <spec-name-or-id>`
+
+### Resolve Spec Argument
+
+1. Try reading `.otto/specs/$ARGUMENTS.md` (exact ID match)
+2. If not found, list `.otto/specs/*.md` and read frontmatter of each:
+   - Match `name` field (case-insensitive substring)
+3. If exactly one match: use that spec
+4. If multiple matches: use `AskUserQuestion` to disambiguate, showing name and ID for each
+5. If no matches: "No spec matching '{argument}'. Run `/spec list` to see available specs."
 
 ## Task Design Principles
 
@@ -53,9 +62,9 @@ Each task should be an **atomic unit of work**:
 
 ### 1. Read Spec
 
-Read the spec from `.otto/specs/$ARGUMENTS.md`
+Resolve the spec argument (see Resolve Spec Argument above), then read the spec file.
 
-If not found, list available specs:
+If not found after resolution, list available specs:
 ```bash
 ls .otto/specs/*.md 2>/dev/null
 ```
@@ -198,4 +207,4 @@ Report: "Created {n} tasks in {m} sessions for {spec-name}"
 ### 7. Next Steps
 
 Offer to start:
-> "Run `/next session` to see the first session, or `/next batch` to run all unblocked sessions in parallel."
+> "Run `/next` to implement the first session, or `/next batch` to run all unblocked sessions in parallel."

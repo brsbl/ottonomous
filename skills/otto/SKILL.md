@@ -25,8 +25,8 @@ When a skill asks questions or requests confirmation:
 |-------|--------|--------|--------|
 | `init` | Create session, branch | state.json exists | - |
 | `spec` | `/spec {product_idea}` | spec file exists | - |
-| `task` | `/task {spec_id}` | tasks file exists | - |
-| `session:{id}:implement` | `/next {id}` | session status is done | `frontend-developer`, `backend-architect` per task type |
+| `task` | `/task {spec_name_or_id}` | tasks file exists | - |
+| `session:{id}:implement` | `/next session` | session status is done | `frontend-developer`, `backend-architect` per task type |
 | `session:{id}:test` | `/test write staged` | tests pass | - |
 | `session:{id}:verify` | `/verify` | all criteria pass | `smoke-tester`, `verify-fixer` |
 | `session:{id}:review` | `/review staged` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
@@ -88,7 +88,7 @@ Update `current_phase` → `spec`
 
 ### Phase: task
 
-**Invoke `/task {spec_id}`**
+**Invoke `/task {spec_name_or_id}`**
 
 **Verify:** `.otto/tasks/{spec_id}.json` exists with sessions array. If not, retry.
 
@@ -98,17 +98,20 @@ Update `sessions.total` in state.json.
 
 ### Per-Session Loop
 
-**Invoke `/next session`** (no other arguments)
+**Invoke `/next session status`**
 
 Returns the next session id without implementing.
 
-**After /next session returns:**
+If no unblocked sessions and all are "done": proceed to Phase: build.
+If no unblocked sessions but some blocked: report "{n} sessions blocked."
+
+**After /next session status returns:**
 - Update `current_session_id` → `{id}`
 - Update `current_phase` → `session:{id}:implement`
 
 #### Phase: session:{id}:implement
 
-**Invoke `/next {session-id}`**
+**Invoke `/next session`**
 
 Subagent implements tasks using specialized agents:
 - Frontend tasks → `frontend-developer`
