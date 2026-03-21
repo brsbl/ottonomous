@@ -26,9 +26,9 @@ When a skill asks questions or requests confirmation:
 | `init` | Create session, branch | state.json exists | - |
 | `spec` | `/spec {product_idea}` | spec file exists | - |
 | `task` | `/task {spec_name_or_id}` | tasks file exists | - |
-| `qa` | `/qa {spec_id}` | `.otto/qa/{spec_id}.md` exists, status: approved | `checklist-generator`, `checklist-validator` |
 | `session:{id}:implement` | `/next session` | session status is done | `frontend-developer`, `backend-architect` per task type |
 | `session:{id}:test` | `/test write staged` | tests pass | - |
+| `session:{id}:qa` | `/qa {spec_id}` | `.otto/qa/{spec_id}.md` exists, status: approved | `checklist-generator`, `checklist-validator` |
 | `session:{id}:verify` | `/verify --qa .otto/qa/{spec_id}.md --session {id}` | all criteria + session QA checks pass | `smoke-tester`, `verify-fixer` |
 | `session:{id}:review` | `/review staged` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
 | `session:{id}:fix` | `/review fix P0-P1` | P0/P1 fixed (if any) | - |
@@ -96,21 +96,6 @@ Update `current_phase` → `spec`
 
 Update `sessions.total` in state.json.
 
-Update `current_phase` → `qa`
-
----
-
-### Phase: qa
-
-**Invoke `/qa {spec_id}`**
-
-Auto-approve behavior for `/qa` findings: accept P0/P1 findings, reject P2 findings (prevents checklist bloat under autonomous operation).
-
-**Verify:** `.otto/qa/{spec_id}.md` exists with `status: approved`. If not, retry.
-
-**After verification:**
-- Update `qa_checklist` → `.otto/qa/{spec_id}.md` in state.json
-
 ---
 
 ### Per-Session Loop
@@ -141,6 +126,22 @@ Update `current_phase` → `session:{id}:test`
 #### Phase: session:{id}:test
 
 **Invoke `/test write staged`**
+
+Update `current_phase` → `session:{id}:qa`
+
+#### Phase: session:{id}:qa
+
+If `.otto/qa/{spec_id}.md` already exists with `status: approved`, skip to `session:{id}:verify`.
+
+Otherwise:
+
+**Invoke `/qa {spec_id}`**
+
+Auto-approve behavior: accept P0/P1 findings, reject P2 findings (prevents checklist bloat under autonomous operation).
+
+**Verify:** `.otto/qa/{spec_id}.md` exists with `status: approved`. If not, retry.
+
+Update `qa_checklist` → `.otto/qa/{spec_id}.md` in state.json.
 
 Update `current_phase` → `session:{id}:verify`
 
