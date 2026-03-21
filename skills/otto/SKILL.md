@@ -26,7 +26,7 @@ When a skill asks questions or requests confirmation:
 | `init` | Create session, branch | state.json exists | - |
 | `spec` | `/spec {product_idea}` | spec file exists | - |
 | `task` | `/task {spec_name_or_id}` | tasks file exists | - |
-| `session:{id}:implement` | `/next {session_name_or_id}` | session status is done | `frontend-developer`, `backend-architect` per task type |
+| `session:{id}:implement` | `/next session` | session status is done | `frontend-developer`, `backend-architect` per task type |
 | `session:{id}:test` | `/test write staged` | tests pass | - |
 | `session:{id}:verify` | `/verify` | all criteria pass | `smoke-tester`, `verify-fixer` |
 | `session:{id}:review` | `/review staged` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
@@ -111,7 +111,7 @@ If no unblocked sessions but some blocked: report "{n} sessions blocked."
 
 #### Phase: session:{id}:implement
 
-**Invoke `/next {session_name_or_id}`**
+**Invoke `/next session`**
 
 Subagent implements tasks using specialized agents:
 - Frontend tasks → `frontend-developer`

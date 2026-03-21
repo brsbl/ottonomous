@@ -1,7 +1,7 @@
 ---
 name: next
 description: Pick or implement the next task or session. Use when continuing work, picking the next task, or implementing tasks from a task list.
-argument-hint: [task | session | batch | <name-or-id>]
+argument-hint: [task | session | batch]
 model: opus
 ---
 
@@ -9,23 +9,11 @@ model: opus
 
 | Argument | Behavior |
 |----------|----------|
-| (none) or `task` | Select and implement next task (Section 2 → 5) |
-| `session` | Select and implement next session (Section 3 → 6) |
+| (none) or `task` | Select and implement next task (Section 2) |
+| `session` | Select and implement next session (Section 3) |
 | `batch` | Implement all highest-priority unblocked sessions (Section 4) |
-| `{task-name-or-id}` | Implement the specified task (Section 5) |
-| `{session-name-or-id}` | Implement all tasks in the specified session (Section 6) |
-| `task status` | Select and report next task without implementing (Section 2, stop after reporting) |
-| `session status` | Select and report next session without implementing (Section 3, stop after reporting) |
-
-### Argument Resolution
-
-When the argument is not a keyword (`task`, `session`, `batch`) or a status variant (`task status`, `session status`):
-
-1. Try exact ID match in task JSON (check both `tasks[].id` and `sessions[].id`)
-2. If no exact match, search `tasks[].title` and `sessions[].title` (case-insensitive substring)
-3. If exactly one match: route to Section 5 (task) or Section 6 (session)
-4. If multiple matches: use `AskUserQuestion` to disambiguate, showing name and ID for each
-5. If no matches: "No task or session matching '{argument}'. Run `/task list` to see available work."
+| `task status` | Select and report next task without implementing (Section 2, stop before implementation) |
+| `session status` | Select and report next session without implementing (Section 3, stop before implementation) |
 
 **Always start with Section 1 (Find Tasks).**
 
@@ -50,7 +38,7 @@ Multiple specs have pending work:
 Which spec should I work on?
 ```
 
-### Branch Check (Sections 4, 5, 6 only)
+### Branch Check (Sections 2, 3, 4)
 
 Before proceeding to any implementation section, check the current branch:
 
@@ -94,7 +82,54 @@ Priority: {priority}
 Session: {session_id}
 ```
 
-Continue to Section 5 to implement this task. If invoked with `status` suffix, stop here — do NOT implement.
+If invoked with `status` suffix, stop here — do NOT implement.
+
+### Implement Task
+
+1. Update task status to "in_progress"
+2. Report: "Starting task {id}: {title}"
+
+**Launch subagent using Task tool:**
+- `subagent_type`: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks)
+- Include in prompt: task context + planning workflow (see below)
+- Wait for subagent to complete
+
+**Subagent prompt must include:**
+
+```markdown
+## Task Context
+- **Task:** {task title}
+- **Description:** {task description}
+- **Files:** {file list}
+- **Done when:** {done condition}
+- **Spec path:** {spec_path from task file}
+
+## Required Workflow
+
+**Always plan before implementing.** Simple tasks get simple plans.
+
+### Phase 1: Plan
+1. Read the spec's Technical Design section at {spec_path}
+2. Explore relevant files to understand existing patterns
+3. Write your implementation plan to `.otto/plans/task-{task_id}.md`:
+   - Describe your approach
+   - List files to modify and key changes
+   - Note any spec decisions that affect implementation
+
+### Phase 2: Implement
+4. Implement according to your plan
+5. Verify the done condition is met
+
+Keep the plan concise - it's for your reference and audit trail.
+```
+
+**After subagent completes:**
+- Update task status to "done"
+- Check if all tasks in session are "done"; if so, mark session "done"
+- Stage: `git add -u && git add .otto/`
+- Commit: `git commit -m "otto: {spec-id} task {id} — {title}"`
+
+Report: "Task {id} complete."
 
 ---
 
@@ -122,7 +157,55 @@ Priority: {priority}
 Tasks: {task_count}
 ```
 
-Continue to Section 6 to implement this session. If invoked with `status` suffix, stop here — do NOT implement.
+If invoked with `status` suffix, stop here — do NOT implement.
+
+### Implement Session
+
+1. Update session status to "in_progress"
+2. Report: "Starting session {id}: {title} ({n} tasks)"
+
+**Launch subagent using Task tool:**
+- `subagent_type`: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks)
+- Include in prompt: session context + planning workflow (see below)
+- Subagent implements tasks sequentially, marking each "done" as completed
+- Wait for subagent to complete
+
+**Subagent prompt must include:**
+
+```markdown
+## Session Context
+- **Session:** {session title}
+- **Tasks:** {task titles with descriptions}
+- **Files:** {file lists from all tasks}
+- **Done when:** {done conditions for each task}
+- **Spec path:** {spec_path from task file}
+
+## Required Workflow
+
+**Always plan before implementing.** Simple tasks get simple plans.
+
+### Phase 1: Plan
+1. Read the spec's Technical Design section at {spec_path}
+2. Explore relevant files to understand existing patterns
+3. Write your implementation plan to `.otto/plans/{session_id}.md`:
+   - List each task you will implement
+   - For each task, describe: approach, files to modify, key changes
+   - Note any spec decisions that affect implementation
+
+### Phase 2: Implement
+4. Implement each task according to your plan
+5. After each task: verify the done condition is met
+6. Mark each task "done" as completed
+
+Keep the plan concise - it's for your reference and audit trail.
+```
+
+**After subagent completes:**
+- Update session status to "done"
+- Stage: `git add -u && git add .otto/`
+- Commit: `git commit -m "otto: {spec-id} session {id} — {title}"`
+
+Report: "Session {id} complete. {n} tasks done."
 
 ---
 
@@ -136,7 +219,7 @@ Select sessions to implement:
 
 **If no unblocked sessions:** Show same messages as Section 3.
 
-**If only 1 session:** Continue to Section 6 with that session.
+**If only 1 session:** Continue to Section 3's "Implement Session" subsection with that session.
 
 **If multiple sessions:** Launch parallel subagents.
 
@@ -199,103 +282,3 @@ Launching {n} priority-{p} sessions in parallel:
 - Report: "Completed {n}/{total} sessions"
 - Suggest: "Run `/next batch` again for next priority level."
 
----
-
-## 5. Implement Task
-
-1. Read the task from tasks.json
-2. Update task status to "in_progress"
-3. Report: "Starting task {id}: {title}"
-
-**Launch subagent using Task tool:**
-- `subagent_type`: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks)
-- Include in prompt: task context + planning workflow (see below)
-- Wait for subagent to complete
-
-**Subagent prompt must include:**
-
-```markdown
-## Task Context
-- **Task:** {task title}
-- **Description:** {task description}
-- **Files:** {file list}
-- **Done when:** {done condition}
-- **Spec path:** {spec_path from task file}
-
-## Required Workflow
-
-**Always plan before implementing.** Simple tasks get simple plans.
-
-### Phase 1: Plan
-1. Read the spec's Technical Design section at {spec_path}
-2. Explore relevant files to understand existing patterns
-3. Write your implementation plan to `.otto/plans/task-{task_id}.md`:
-   - Describe your approach
-   - List files to modify and key changes
-   - Note any spec decisions that affect implementation
-
-### Phase 2: Implement
-4. Implement according to your plan
-5. Verify the done condition is met
-
-Keep the plan concise - it's for your reference and audit trail.
-```
-
-**After subagent completes:**
-- Update task status to "done"
-- Check if all tasks in session are "done"; if so, mark session "done"
-- Stage: `git add -u && git add .otto/`
-- Commit: `git commit -m "otto: {spec-id} task {id} — {title}"`
-
-Report: "Task {id} complete."
-
----
-
-## 6. Implement Session
-
-1. Read the session and its tasks from tasks.json
-2. Update session status to "in_progress"
-3. Report: "Starting session {id}: {title} ({n} tasks)"
-
-**Launch subagent using Task tool:**
-- `subagent_type`: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks)
-- Include in prompt: session context + planning workflow (see below)
-- Subagent implements tasks sequentially, marking each "done" as completed
-- Wait for subagent to complete
-
-**Subagent prompt must include:**
-
-```markdown
-## Session Context
-- **Session:** {session title}
-- **Tasks:** {task titles with descriptions}
-- **Files:** {file lists from all tasks}
-- **Done when:** {done conditions for each task}
-- **Spec path:** {spec_path from task file}
-
-## Required Workflow
-
-**Always plan before implementing.** Simple tasks get simple plans.
-
-### Phase 1: Plan
-1. Read the spec's Technical Design section at {spec_path}
-2. Explore relevant files to understand existing patterns
-3. Write your implementation plan to `.otto/plans/{session_id}.md`:
-   - List each task you will implement
-   - For each task, describe: approach, files to modify, key changes
-   - Note any spec decisions that affect implementation
-
-### Phase 2: Implement
-4. Implement each task according to your plan
-5. After each task: verify the done condition is met
-6. Mark each task "done" as completed
-
-Keep the plan concise - it's for your reference and audit trail.
-```
-
-**After subagent completes:**
-- Update session status to "done"
-- Stage: `git add -u && git add .otto/`
-- Commit: `git commit -m "otto: {spec-id} session {id} — {title}"`
-
-Report: "Session {id} complete. {n} tasks done."
