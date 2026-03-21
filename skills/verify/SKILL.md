@@ -13,6 +13,8 @@ allowed-tools: Bash(agent-browser *), Bash(npx agent-browser *), Bash(code *), B
 | (none) | Auto-detect app type, verify against spec |
 | `web` | Force web app verification |
 | `electron` | Force Electron/VS Code verification |
+| `--qa <path>` | Also verify against QA checklist manual items (combinable with above) |
+| `--session <id>` | Scope QA checks to items relevant to this session's tasks (requires `--qa`) |
 
 ---
 
@@ -37,15 +39,24 @@ If build fails, stop and report.
 
 ## Step 3: Launch & Verify
 
-Launch `smoke-tester` subagent with the spec path and app launch command.
+**If `--qa` provided, parse and normalize QA criteria before handoff:**
+1. Read the QA checklist at `<path>`
+2. Extract Manual Verification items (M-prefixed rows from the checklist table)
+3. If `--session` provided: read `.otto/tasks/{spec_id}.json`, get task descriptions and file lists for that session, filter M-items to only those relevant to the session's scope (match by category and feature area)
+4. Normalize M-items into criteria list: `{ id: "M1", description: "...", expected: "..." }`
 
-The smoke-tester launches the app, connects agent-browser, and checks whether the UI matches the spec.
+**Launch `smoke-tester` subagent** with:
+- Spec path
+- App launch command
+- Combined criteria list (spec acceptance criteria + normalized QA items, if `--qa` provided)
+
+The smoke-tester launches the app, connects agent-browser, and checks whether the UI matches all provided criteria.
 
 ## Step 4: Fix Loop
 
 If smoke-tester reports failures, **keep looping until all criteria pass**:
 
-1. Launch a `verify-fixer` subagent with failure evidence (ARIA snapshots, screenshots, error descriptions)
+1. Launch a `verify-fixer` subagent with failure evidence (ARIA snapshots, screenshots, error descriptions, and the original criterion text for each failure so the fixer can trace back to source requirements)
 2. Rebuild
 3. Re-run smoke-tester
 4. If failures remain, loop again

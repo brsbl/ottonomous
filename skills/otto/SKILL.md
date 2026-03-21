@@ -26,14 +26,15 @@ When a skill asks questions or requests confirmation:
 | `init` | Create session, branch | state.json exists | - |
 | `spec` | `/spec {product_idea}` | spec file exists | - |
 | `task` | `/task {spec_name_or_id}` | tasks file exists | - |
+| `qa` | `/qa {spec_id}` | `.otto/qa/{spec_id}.md` exists, status: approved | `checklist-generator`, `checklist-validator` |
 | `session:{id}:implement` | `/next session` | session status is done | `frontend-developer`, `backend-architect` per task type |
 | `session:{id}:test` | `/test write staged` | tests pass | - |
-| `session:{id}:verify` | `/verify` | all criteria pass | `smoke-tester`, `verify-fixer` |
+| `session:{id}:verify` | `/verify --qa .otto/qa/{spec_id}.md --session {id}` | all criteria + session QA checks pass | `smoke-tester`, `verify-fixer` |
 | `session:{id}:review` | `/review staged` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
 | `session:{id}:fix` | `/review fix P0-P1` | P0/P1 fixed (if any) | - |
 | `build` | `npm run build` | exit 0 | - |
 | `test` | `/test all` | tests pass | - |
-| `verify` | `/verify` | all criteria pass | `smoke-tester`, `verify-fixer` |
+| `verify` | `/verify --qa .otto/qa/{spec_id}.md` | all criteria + all QA checks pass | `smoke-tester`, `verify-fixer` |
 | `review` | `/review branch` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
 | `review:fix` | `/review fix P0-P1` | P0/P1 fixed (if any) | - |
 | `summary` | `/summary` | HTML created | - |
@@ -59,6 +60,7 @@ mkdir -p .otto/otto/sessions/${session_id}
   "status": "in_progress",
   "product_idea": "{product_idea}",
   "spec_id": null,
+  "qa_checklist": null,
   "current_phase": "init",
   "current_session_id": null,
   "sessions": { "total": 0, "completed": 0 }
@@ -93,6 +95,21 @@ Update `current_phase` → `spec`
 **Verify:** `.otto/tasks/{spec_id}.json` exists with sessions array. If not, retry.
 
 Update `sessions.total` in state.json.
+
+Update `current_phase` → `qa`
+
+---
+
+### Phase: qa
+
+**Invoke `/qa {spec_id}`**
+
+Auto-approve behavior for `/qa` findings: accept P0/P1 findings, reject P2 findings (prevents checklist bloat under autonomous operation).
+
+**Verify:** `.otto/qa/{spec_id}.md` exists with `status: approved`. If not, retry.
+
+**After verification:**
+- Update `qa_checklist` → `.otto/qa/{spec_id}.md` in state.json
 
 ---
 
@@ -129,9 +146,10 @@ Update `current_phase` → `session:{id}:verify`
 
 #### Phase: session:{id}:verify
 
-**Invoke `/verify`**
+**Invoke `/verify --qa .otto/qa/{spec_id}.md --session {id}`**
 
-Launches the built app and verifies against spec criteria for this session.
+Launches the built app and verifies against spec criteria AND session-scoped QA checklist items.
+The `--session` flag scopes QA checks to items relevant to the current session's tasks (prevents failures for unimplemented features).
 Hard gate — loops (diagnose → fix → rebuild → re-verify) until all criteria pass.
 
 Update `current_phase` → `session:{id}:review`
@@ -188,9 +206,9 @@ Update `current_phase` → `verify`
 
 ### Phase: verify
 
-**Invoke `/verify`**
+**Invoke `/verify --qa .otto/qa/{spec_id}.md`**
 
-Final verification against all spec criteria. Hard gate — loops until all pass.
+Final verification against all spec criteria AND all QA checklist items. No `--session` flag — checks everything against the fully-built app. Hard gate — loops until all pass.
 
 Update `current_phase` → `review`
 
@@ -247,7 +265,8 @@ Session complete!
 When `/otto` is invoked, check for existing session:
 
 1. Check `.otto/otto/sessions/` for state.json with `status: "in_progress"`
-2. Read `current_phase` and `current_session_id`
+2. Read `current_phase`, `current_session_id`, and `qa_checklist`
 3. Offer to resume or start fresh
 4. If resuming, verify branch matches `otto/${session_id}`. If on wrong branch, switch: `git checkout otto/${session_id}`
-5. Continue from `current_phase`
+5. If `current_phase` is a verify phase but `qa_checklist` is null, re-run the `qa` phase first
+6. Continue from `current_phase`
