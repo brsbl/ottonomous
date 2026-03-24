@@ -158,8 +158,33 @@ On approval, update `status: draft` to `status: approved` in the file.
 
 Report: "QA checklist approved and saved to `.otto/qa/{spec-id}.md`"
 
-### 8. Next Steps
+### 8. Run Automated Tests
 
-> "Run `/test run` to execute automated checks. For manual verification, work through the Manual Checklist above."
+Run `/test` to execute the automated checks from the checklist (A-prefixed items).
 
-**Note:** This checklist validates spec coverage — are all user stories and edge cases accounted for? For implementation correctness verification, use `/verify` and `/test`.
+Report results: how many automated checks passed/failed. If failures, note which items failed.
+
+### 9. Run Verification
+
+**Use `AskUserQuestion`** with options:
+- "Run /verify" — Launch the app and verify manual checks via browser/Electron automation
+- "Skip verification" — Manual QA only, no automated verification
+
+If user chooses to verify:
+
+1. Read the approved QA checklist at `.otto/qa/{spec-id}.md`
+2. Extract the Manual Verification items (M-prefixed)
+3. Launch `/verify` with the spec, passing the manual checklist items as verification criteria
+
+The `/verify` skill launches the app (web or Electron), connects browser automation, and checks the manual items that can be verified programmatically (UI layout, element presence, interaction flows). Items requiring subjective human judgment (visual aesthetics, "feels smooth") are flagged for manual follow-up.
+
+4. Update the QA checklist: mark verified items with `[x]`, note any failures
+
+### 10. Summary
+
+Report:
+- Automated checks: {passed}/{total}
+- Verified via app: {verified}/{total manual items}
+- Remaining manual checks: {count} (require human verification)
+
+> "For remaining manual checks, work through the unchecked items in `.otto/qa/{spec-id}.md`."
