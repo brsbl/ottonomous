@@ -127,10 +127,10 @@ status: draft
 
 Tests that can be run programmatically.
 
-| # | Category | Check | Expected Result | Test Command/File |
-|---|----------|-------|-----------------|-------------------|
-| A1 | API | POST /users returns 201 | User created with valid fields | `test/api/users.test.ts` |
-| A2 | Validation | Empty name rejected | 400 with error message | `test/api/users.test.ts` |
+| # | Category | Check | Expected Result | Test Command/File | Status |
+|---|----------|-------|-----------------|-------------------|--------|
+| A1 | API | POST /users returns 201 | User created with valid fields | `test/api/users.test.ts` | [ ] |
+| A2 | Validation | Empty name rejected | 400 with error message | `test/api/users.test.ts` | [ ] |
 
 ## Manual Verification
 
@@ -142,6 +142,8 @@ Steps requiring human judgment or interaction.
 | M2 | UX | Submit form with valid data | Success feedback shown, data persists | [ ] |
 | M3 | Edge Case | Resize to mobile viewport | Responsive layout, no overflow | [ ] |
 ```
+
+**Status column:** Every item starts as `[ ]`. As each check is verified (by `/test`, `/verify`, or manual inspection), update to `[x]` for pass or `[!]` for fail. The checklist file is the single source of truth for verification progress.
 
 ### 7. Approval
 
@@ -162,7 +164,11 @@ Report: "QA checklist approved and saved to `.otto/qa/{spec-id}.md`"
 
 Run `/test` to execute the automated checks from the checklist (A-prefixed items).
 
-Report results: how many automated checks passed/failed. If failures, note which items failed.
+**After each test suite completes**, update the checklist file at `.otto/qa/{spec-id}.md`:
+- Mark passing items `[x]`
+- Mark failing items `[!]` and append the failure reason in parentheses
+
+Report results: how many automated checks passed/failed.
 
 ### 9. Run Verification
 
@@ -178,7 +184,10 @@ If user chooses to verify:
 
 The `/verify` skill launches the app (web or Electron), connects browser automation, and checks the manual items that can be verified programmatically (UI layout, element presence, interaction flows). Items requiring subjective human judgment (visual aesthetics, "feels smooth") are flagged for manual follow-up.
 
-4. Update the QA checklist: mark verified items with `[x]`, note any failures
+4. **After each manual item is verified**, update the checklist file at `.otto/qa/{spec-id}.md`:
+   - Mark passing items `[x]`
+   - Mark failing items `[!]` and append the failure reason
+   - Leave items that cannot be automated as `[ ]` for human follow-up
 
 ### 10. Summary
 
