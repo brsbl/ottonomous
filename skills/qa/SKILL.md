@@ -143,7 +143,7 @@ Steps requiring human judgment or interaction.
 | M3 | Edge Case | Resize to mobile viewport | Responsive layout, no overflow | [ ] |
 ```
 
-**Status column:** Every item starts as `[ ]`. As each check is verified (by `/test`, `/verify`, or manual inspection), update to `[x]` for pass or `[!]` for fail. The checklist file is the single source of truth for verification progress.
+**Status column:** Every item starts as `[ ]`. Update to `[x]` when verified passing. Failed items stay `[ ]` with the failure reason appended (e.g., `[ ] FAIL: timeout on click`). The checklist file is the single source of truth for verification progress.
 
 ### 7. Approval
 
@@ -166,7 +166,7 @@ Run `/test` to execute the automated checks from the checklist (A-prefixed items
 
 **After each test suite completes**, update the checklist file at `.otto/qa/{spec-id}.md`:
 - Mark passing items `[x]`
-- Mark failing items `[!]` and append the failure reason in parentheses
+- Mark failing items `[ ] FAIL:` and append the failure reason
 
 Report results: how many automated checks passed/failed.
 
@@ -186,7 +186,7 @@ The `/verify` skill launches the app (web or Electron), connects browser automat
 
 4. **After each manual item is verified**, update the checklist file at `.otto/qa/{spec-id}.md`:
    - Mark passing items `[x]`
-   - Mark failing items `[!]` and append the failure reason
+   - Mark failing items `[ ] FAIL:` and append the failure reason
    - Leave items that cannot be automated as `[ ]` for human follow-up
 
 ### 10. Summary
