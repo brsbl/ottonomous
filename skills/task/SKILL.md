@@ -1,6 +1,6 @@
 ---
 name: task
-description: Generates parallelizable task lists from specs. Breaks specs into atomic, prioritized tasks with dependencies. Use when you have a spec and need tasks, implementation breakdown, or a work plan.
+description: "Generates parallelizable task lists from specs. Reads an approved spec, breaks it into atomic prioritized tasks grouped into sessions with dependencies, and launches a principal-engineer subagent to review the breakdown. Use when the user has a spec and needs task decomposition, an implementation breakdown, sprint planning, a work plan, backlog creation, or project planning from requirements."
 argument-hint: list | <spec-name-or-id>
 model: opus
 ---
@@ -50,13 +50,7 @@ If `$ARGUMENTS` is `list`:
 
 ## Task Design Principles
 
-Each task should be an **atomic unit of work**:
-
-- **One deliverable**: Clear output that indicates completion
-- **Verifiable**: Specific "done" condition
-- **Atomic scope**: Completable in one agent session
-- **File limit**: Ideally ≤3 files modified (split larger tasks)
-- **Minimal dependencies**: Only add `depends_on` when task truly cannot start without another
+Each task must be atomic, verifiable, completable in one agent session, and ideally modify ≤3 files. Only add `depends_on` when a task truly cannot start without another.
 
 ## Workflow
 

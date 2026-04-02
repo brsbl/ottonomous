@@ -1,6 +1,6 @@
 ---
 name: qa
-description: Generates manual and automated verification checklists from specs. Creates structured QA plans with human and test verification steps. Use when preparing for QA, creating test plans, or validating completeness.
+description: "Generates manual and automated verification checklists from specs. Reads the spec and codebase, launches checklist-generator and checklist-validator subagents, and produces structured QA plans with human and test verification steps. Use when preparing for quality assurance, creating test cases, building acceptance criteria, generating a testing checklist, writing a sign-off checklist, or validating spec coverage before release."
 argument-hint: list | <spec-name-or-id>
 model: opus
 ---
@@ -63,7 +63,7 @@ Resolve the spec argument (see above), then:
 
 ### 3. Generate Checklist
 
-Launch `checklist-generator` subagent with Task tool:
+Launch `checklist-generator` subagent with Task tool (`subagent_type: checklist-generator`, defined at `skills/qa/agents/checklist-generator.md`):
 
 **Handoff to checklist-generator:**
 - Full spec content
@@ -77,7 +77,7 @@ Wait for subagent to complete.
 
 ### 4. Validate Checklist
 
-Launch `checklist-validator` subagent with Task tool:
+Launch `checklist-validator` subagent with Task tool (`subagent_type: checklist-validator`, defined at `skills/qa/agents/checklist-validator.md`):
 
 **Handoff to checklist-validator:**
 - Generated checklist from step 3

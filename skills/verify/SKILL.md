@@ -1,6 +1,6 @@
 ---
 name: verify
-description: Launches a built app and verifies it against the spec using browser/electron automation. Includes fix loop. Use after implementation to verify the app works as specified.
+description: "Builds and launches the app, then runs smoke-tester and verify-fixer subagents to click through UI flows, capture screenshots, and compare behavior against spec acceptance criteria. Loops fixes until all checks pass. Use when testing the app end-to-end, running a smoke test, doing QA verification, checking if the app works, or validating against the spec after implementation."
 argument-hint: [web | electron]
 model: opus
 allowed-tools: Bash(agent-browser *), Bash(npx agent-browser *), Bash(code *), Bash(open *), Bash(npm *), Bash(npx *), Bash(kill *), Bash(sleep *), Bash(curl *), Bash(lsof *), Bash(mkdir *), Bash(rm *), Bash(git *), Read, Write, Edit, Glob, Grep, Agent
@@ -37,18 +37,26 @@ If build fails, stop and report.
 
 ## Step 3: Launch & Verify
 
-Launch `smoke-tester` subagent with the spec path and app launch command.
+**Launch `smoke-tester` subagent using the Task tool:**
+- `subagent_type`: `smoke-tester`
+- Prompt includes: spec path, app launch command, list of acceptance criteria from the spec
+- The subagent launches the app, connects via `agent-browser`, navigates key flows, captures ARIA snapshots and screenshots, and checks whether the UI matches spec criteria
+- Wait for subagent to complete
 
-The smoke-tester launches the app, connects agent-browser, and checks whether the UI matches the spec.
+**Subagent returns:** pass/fail per criterion with evidence (ARIA snapshots, screenshots, error descriptions).
 
 ## Step 4: Fix Loop
 
 If smoke-tester reports failures, **keep looping until all criteria pass**:
 
-1. Launch a `verify-fixer` subagent with failure evidence (ARIA snapshots, screenshots, error descriptions)
-2. Rebuild
-3. Re-run smoke-tester
-4. If failures remain, loop again
+1. **Launch `verify-fixer` subagent using the Task tool:**
+   - `subagent_type`: `verify-fixer`
+   - Prompt includes: failing criteria, ARIA snapshots, screenshots, error descriptions, relevant source file paths
+   - The subagent reads the failure evidence, identifies root causes, and applies fixes to the source code
+   - Wait for subagent to complete
+2. Rebuild (`npm run compile` or `npm run build`)
+3. Re-launch `smoke-tester` subagent with the same criteria
+4. If failures remain, loop again (max 5 iterations — report and stop if still failing)
 
 This is a hard gate — the workflow does not proceed until verification passes.
 

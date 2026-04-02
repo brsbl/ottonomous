@@ -1,6 +1,6 @@
 ---
 name: otto
-description: Autonomous product development. Takes an idea and builds it end-to-end with subagents. Write a product spec, generate tasks from spec, implement each task while testing/reviewing changes, with final verification. Use when you want to build something from scratch.
+description: "Autonomous product development pipeline. Takes an idea and builds it end-to-end: writes a product spec, generates prioritized tasks, implements each session with specialized subagents, runs tests, verifies against the spec, and reviews code — all automatically. Use when the user wants to build a complete product from scratch, create an app from an idea, prototype an MVP, scaffold a full application, or automate the full development loop."
 argument-hint: [product idea]
 model: opus
 ---
