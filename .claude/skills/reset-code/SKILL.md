@@ -60,15 +60,7 @@ deps  -> node_modules/, package-lock.json, yarn.lock, pnpm-lock.yaml
 all   -> everything except allowlist
 ```
 
-### 2. Kill Active Processes (if otto or all targeted)
-
-```bash
-for pid_file in .otto/sessions/*/browser.pid .otto/otto/sessions/*/browser.pid; do
-  [ -f "$pid_file" ] && kill $(cat "$pid_file") 2>/dev/null || true
-done
-```
-
-### 3. Preview Removal
+### 2. Preview Removal
 
 **For selective targets**, show targeted paths:
 ```bash
@@ -92,13 +84,13 @@ if [[ ${#to_remove[@]} -gt 0 ]]; then
 fi
 ```
 
-### 4. Confirm
+### 3. Confirm
 
 Use `AskUserQuestion`:
 > "This will delete [target description]. Continue?"
 > Options: "Yes, reset" / "Cancel"
 
-### 5. Remove
+### 4. Remove
 
 **For selective targets**:
 ```bash

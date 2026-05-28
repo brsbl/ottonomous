@@ -15,7 +15,6 @@ Ottonomous is a Claude Code plugin for structured product development. It operat
 - `/qa` - Generate manual and automated QA checklists from specs
 - `/review` - Code review with prioritized findings
 - `/summary` - Create project summary
-- `/browser` - Launch Playwright for browser interactions
 - `/reset` - Clear workflow artifacts
 
 ## Core Philosophy

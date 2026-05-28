@@ -212,7 +212,7 @@ Use `WebSearch` to find and `WebFetch` to read:
 
 **For visual research** (competitor products, reference implementations):
 
-- Use browser automation (`skills/otto/lib/browser`) to navigate sites and capture screenshots
+- Use the host environment's available browser automation tool directly to navigate sites and capture screenshots
 - Save screenshots to `.otto/research/`
 
 ### 3. Interview

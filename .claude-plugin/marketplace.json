@@ -18,8 +18,6 @@
         "./skills/task",
         "./skills/next",
         "./skills/doc",
-        "./skills/verify",
-        "./skills/browser",
         "./skills/reset"
       ],
       "agents": [
@@ -27,9 +25,7 @@
         "./skills/next/agents/backend-architect.md",
         "./skills/review/agents/architect-reviewer.md",
         "./skills/review/agents/senior-code-reviewer.md",
-        "./skills/test/agents/test-writer.md",
-        "./skills/verify/agents/smoke-tester.md",
-        "./skills/verify/agents/verify-fixer.md"
+        "./skills/test/agents/test-writer.md"
       ]
     }
   ],

@@ -154,12 +154,7 @@ Use `/clear` between steps to reset context.
 
 ### Utilities
 
-| Skill | Description |
-|-------|-------------|
-| `/browser <url>` | Navigate to URL, capture screenshot and ARIA snapshot. |
-| `/browser explore` | Interactive browser exploration. |
-| `/browser verify` | Verify specific UI behavior or state. |
-| `/browser extract` | Extract specific data from the frontend. |
+For browser or UI automation, use `/test browser`, `/test electron`, or the host environment's available browser automation tool directly.
 
 
 ## Architecture
@@ -192,10 +187,6 @@ skills/                      # Skill implementations (SKILL.md + support files)
 ├── test/
 │   └── agents/
 │       └── test-writer.md         # Test generation
-├── otto/
-│   └── lib/browser/               # Playwright-based browser automation
-├── browser/
-│   └── references/                   # Browser automation reference guides
 ├── summary/
 │   └── scripts/md-to-html.js
 └── ...
