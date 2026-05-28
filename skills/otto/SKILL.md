@@ -28,12 +28,12 @@ When a skill asks questions or requests confirmation:
 | `task` | `/task {spec_name_or_id}` | tasks file exists | - |
 | `session:{id}:implement` | `/next session` | session status is done | `frontend-developer`, `backend-architect` per task type |
 | `session:{id}:test` | `/test write staged` | tests pass | - |
-| `session:{id}:verify` | `/verify` | all criteria pass | `smoke-tester`, `verify-fixer` |
+| `session:{id}:verify` | `/test all` plus project-specific harness | objective criteria pass or are marked `HUMAN` | project-specific validators |
 | `session:{id}:review` | `/review staged` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
 | `session:{id}:fix` | `/review fix P0-P1` | P0/P1 fixed (if any) | - |
 | `build` | `npm run build` | exit 0 | - |
 | `test` | `/test all` | tests pass | - |
-| `verify` | `/verify` | all criteria pass | `smoke-tester`, `verify-fixer` |
+| `verify` | `/test all` plus project-specific harness | objective criteria pass or are marked `HUMAN` | project-specific validators |
 | `review` | `/review branch` | review complete | `architect-reviewer`, `senior-code-reviewer` per change type |
 | `review:fix` | `/review fix P0-P1` | P0/P1 fixed (if any) | - |
 | `summary` | `/summary` | HTML created | - |
@@ -129,10 +129,10 @@ Update `current_phase` → `session:{id}:verify`
 
 #### Phase: session:{id}:verify
 
-**Invoke `/verify`**
+**Run `/test all`, then execute automatable checks using the project-specific harness.**
 
-Launches the built app and verifies against spec criteria for this session.
-Hard gate — loops (diagnose → fix → rebuild → re-verify) until all criteria pass.
+The legacy standalone verification skill has been removed. Use `/test browser`, `/test electron`, the host environment's available browser automation tool, or the app's own validation harness. For Moss desktop UI, use the repo-local `moss-ui` workflow skill. Mark subjective or non-automatable checks as `HUMAN` with a reason.
+Hard gate for objective automated checks — loops (diagnose → fix → rebuild → re-check) until failures pass.
 
 Update `current_phase` → `session:{id}:review`
 
@@ -188,9 +188,9 @@ Update `current_phase` → `verify`
 
 ### Phase: verify
 
-**Invoke `/verify`**
+**Run `/test all`, then execute automatable checks using the project-specific harness.**
 
-Final verification against all spec criteria. Hard gate — loops until all pass.
+The legacy standalone verification skill has been removed. Use `/test browser`, `/test electron`, the host environment's available browser automation tool, or the app's own validation harness. For Moss desktop UI, use the repo-local `moss-ui` workflow skill. Objective automated failures are hard gates; subjective/non-automatable checks must be marked `HUMAN` for manual QA.
 
 Update `current_phase` → `review`
 

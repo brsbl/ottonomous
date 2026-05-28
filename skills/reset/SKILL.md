@@ -53,15 +53,7 @@ all      -> tasks + specs + sessions (NOT docs)
 
 If no arguments or `all` specified, target tasks, specs, and sessions. Docs are always preserved.
 
-### 3. Kill Active Processes (if sessions targeted or all)
-
-```bash
-for pid_file in .otto/sessions/*/browser.pid .otto/otto/sessions/*/browser.pid; do
-  [ -f "$pid_file" ] && kill $(cat "$pid_file") 2>/dev/null || true
-done
-```
-
-### 4. Preview Removal
+### 3. Preview Removal
 
 Show what will be removed with sizes:
 ```bash
@@ -75,13 +67,13 @@ Will remove:
   .otto/specs/ (8K)
 ```
 
-### 5. Confirm
+### 4. Confirm
 
 Use `AskUserQuestion`:
 > "This will delete the selected workflow data. Continue?"
 > Options: "Yes, reset" / "Cancel"
 
-### 6. Remove
+### 5. Remove
 
 After confirmation, remove only the targeted directories:
 ```bash

@@ -3,7 +3,7 @@ name: test
 description: Runs lint, type check, tests, and visual verification. Auto-detects tools. Use when running tests, linting, type checking, or writing tests.
 argument-hint: <run | write | browser | electron | all> [staged | branch]
 model: opus
-allowed-tools: Bash(agent-browser *), Bash(npx agent-browser *), Bash(code *), Bash(open *), Bash(npm *), Bash(npx *), Bash(kill *), Bash(sleep *), Bash(curl *), Bash(lsof *), Bash(git *), Bash(mkdir *), Read, Write, Edit, Glob, Grep, Agent
+allowed-tools: Bash(code *), Bash(open *), Bash(npm *), Bash(npx *), Bash(kill *), Bash(sleep *), Bash(curl *), Bash(lsof *), Bash(git *), Bash(mkdir *), Read, Write, Edit, Glob, Grep, Agent
 ---
 
 **Arguments:** $ARGUMENTS
@@ -111,57 +111,24 @@ Same as Run Mode step 3.
 
 # Browser Mode
 
-Visual verification using agent-browser CLI. See [/browser skill](../browser/SKILL.md) for full API.
+Visual verification for web apps. The legacy standalone UI automation workflow has been removed; use the host environment's available browser automation tool directly.
 
-```bash
-# Determine dev server URL from package.json or running processes
-agent-browser open {url}  # e.g., http://localhost:5173
-agent-browser wait 3000
-agent-browser screenshot .otto/test-screenshots/page.png
-agent-browser snapshot -i
-
-# Interact and verify
-agent-browser click @e3
-agent-browser snapshot -i
-
-agent-browser close
-rm -rf .otto/test-screenshots
-```
+1. Detect dev server URL from package.json or running processes
+2. Open the URL, capture an accessibility/DOM snapshot, interact through semantic selectors, and take screenshots
+3. Screenshots go to `.otto/test-screenshots/`
+4. Cleanup any browser session/tool process and remove `.otto/test-screenshots` when no longer needed
 
 ---
 
 # Electron Mode
 
-Visual verification for Electron/VS Code apps via CDP.
+Visual verification for Electron/VS Code apps. The legacy standalone UI automation workflow has been removed; use the app's project-specific harness first when available, otherwise use the host environment's available browser automation tool directly.
 
-```bash
-# Detect: engines.vscode in package.json → VS Code extension
-# Detect: electron in dependencies → Electron app
-
-# Build first
-npm run compile
-
-# Launch (VS Code extension example)
-code --extensionDevelopmentPath=./ --disable-extensions \
-     --remote-debugging-port=9333 . &
-APP_PID=$!
-sleep 8
-
-# Connect and verify
-agent-browser connect 9333
-agent-browser snapshot -i
-agent-browser screenshot .otto/test-screenshots/electron.png
-
-# Check webviews if applicable
-agent-browser tab
-agent-browser tab 1
-agent-browser snapshot -i
-
-# Cleanup
-agent-browser close
-kill $APP_PID
-rm -rf .otto/test-screenshots
-```
+1. Detect app type: `engines.vscode` in package.json → VS Code extension, `electron` in dependencies → Electron app
+2. Build first: `npm run compile`
+3. Launch with CDP/automation hooks, connect, inspect snapshots/webviews, interact through semantic selectors, and take screenshots
+4. Screenshots go to `.otto/test-screenshots/`
+5. Cleanup browser/app processes and remove `.otto/test-screenshots` when no longer needed
 
 ---
 
