@@ -9,11 +9,11 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "marked": "^15.0.0",
-    "marked-highlight": "^2.2.0",
+    "marked": "^18.0.5",
+    "marked-highlight": "^2.2.4",
     "highlight.js": "^11.10.0"
   },
   "devDependencies": {
-    "vitest": "^3.0.0"
+    "vitest": "^4.1.8"
   }
 }
