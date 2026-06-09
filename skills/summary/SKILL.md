@@ -94,7 +94,7 @@ Parse to get `{org}/{repo}` for GitHub links.
 ## Files Changed
 
 <details>
-<summary>{count} files<summary>
+<summary>{count} files</summary>
 
 | File | Summary |
 |------|---------|
@@ -127,7 +127,7 @@ mkdir -p .otto/summaries
 
 **Convert to HTML** using the md-to-html script:
 ```bash
-node skillssummary/scripts/md-to-html.js .otto/summaries/{branch}-{date}.md .otto/summaries/{branch}-{date}.html
+node skills/summary/scripts/md-to-html.js .otto/summaries/{branch}-{date}.md .otto/summaries/{branch}-{date}.html
 ```
 
 **Open in browser:**

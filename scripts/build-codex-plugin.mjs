@@ -11,7 +11,7 @@
 // generated openai.yaml files. This script only produces the Codex-specific layer.
 
 import { cpSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -135,7 +135,7 @@ function main() {
     const dest = join(pkgSkills, skill);
     cpSync(src, dest, {
       recursive: true,
-      filter: (s) => !EXCLUDE.has(s.split("/").pop()),
+      filter: (s) => !EXCLUDE.has(basename(s)),
     });
     writeOpenaiYaml(skill, dest);
   }

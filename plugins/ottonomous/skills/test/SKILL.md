@@ -85,7 +85,7 @@ Filter to source files (exclude tests, configs, docs).
 
 ## 2. Launch Test Writers
 
-Delegate files to the `test-writer` subagent (persona in `agentstest-writer.md`). It determines testability and writes tests.
+Delegate files to the `test-writer` subagent (persona in `agents/test-writer.md`). It determines testability and writes tests.
 
 | Files | Subagents |
 |-------|-----------|
@@ -109,8 +109,8 @@ Visual verification for web apps. The legacy standalone UI automation workflow h
 
 1. Detect dev server URL from package.json or running processes
 2. Open the URL, capture an accessibility/DOM snapshot, interact through semantic selectors, and take screenshots
-3. Screenshots go to `.ottotest-screenshots/`
-4. Cleanup any browser session/tool process and remove `.ottotest-screenshots` when no longer needed
+3. Screenshots go to `.otto/test-screenshots/`
+4. Cleanup any browser session/tool process and remove `.otto/test-screenshots` when no longer needed
 
 ---
 
@@ -121,8 +121,8 @@ Visual verification for Electron/VS Code apps. The legacy standalone UI automati
 1. Detect app type: `engines.vscode` in package.json → VS Code extension, `electron` in dependencies → Electron app
 2. Build first: `npm run compile`
 3. Launch with CDP/automation hooks, connect, inspect snapshots/webviews, interact through semantic selectors, and take screenshots
-4. Screenshots go to `.ottotest-screenshots/`
-5. Cleanup browser/app processes and remove `.ottotest-screenshots` when no longer needed
+4. Screenshots go to `.otto/test-screenshots/`
+5. Cleanup browser/app processes and remove `.otto/test-screenshots` when no longer needed
 
 ---
 

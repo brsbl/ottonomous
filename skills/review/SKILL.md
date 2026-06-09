@@ -98,7 +98,7 @@ Delegate to a subagent with role `false-positive-validator` (persona in `agents/
 
 ```markdown
 <details>
-<summary>Validation: {N} removed, {M} downgraded<summary>
+<summary>Validation: {N} removed, {M} downgraded</summary>
 
 | Finding | Verdict | Reason |
 |---------|---------|--------|

@@ -110,7 +110,7 @@ If invoked with `status` suffix, stop here — do NOT implement.
 ### Phase 1: Plan
 1. Read the spec's Technical Design section at {spec_path}
 2. Explore relevant files to understand existing patterns
-3. Write your implementation plan to `.otto/planstask-{task_id}.md`:
+3. Write your implementation plan to `.otto/plans/task-{task_id}.md`:
    - Describe your approach
    - List files to modify and key changes
    - Note any spec decisions that affect implementation
