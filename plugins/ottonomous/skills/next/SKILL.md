@@ -89,7 +89,7 @@ If invoked with `status` suffix, stop here — do NOT implement.
 2. Report: "Starting task {id}: {title}"
 
 **Delegate to a subagent:**
-- subagent role: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks), personas defined in `agents/`
+- subagent role: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks), personas defined in `$SKILL_DIR/agents/`
 - Include in prompt: task context + planning workflow (see below)
 - Wait for subagent to complete
 
@@ -164,7 +164,7 @@ If invoked with `status` suffix, stop here — do NOT implement.
 2. Report: "Starting session {id}: {title} ({n} tasks)"
 
 **Delegate to a subagent:**
-- subagent role: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks), personas defined in `agents/`
+- subagent role: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks), personas defined in `$SKILL_DIR/agents/`
 - Include in prompt: session context + planning workflow (see below)
 - Subagent implements tasks sequentially, marking each "done" as completed
 - Wait for subagent to complete
@@ -225,7 +225,7 @@ Select sessions to implement:
 Mark all sessions as "in_progress" before launching.
 
 **Launch all sessions in parallel as background subagents** (one per session, each in an isolated/forked context):
-- subagent role: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks), personas defined in `agents/`
+- subagent role: `frontend-developer` (frontend tasks) or `backend-architect` (backend tasks), personas defined in `$SKILL_DIR/agents/`
 - Include in prompt: session context + planning workflow (see below)
 - Subagent implements tasks sequentially, marking each "done" as completed
 

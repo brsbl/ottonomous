@@ -27,14 +27,14 @@ argument-hint: "[staged | branch] | fix [P0 | P0-P1 | all]"
 
 Get the diff and categorize files by change type:
 
-**Architectural changes** → assign to subagent role `architect-reviewer` (persona in `agents/architect-reviewer.md`):
+**Architectural changes** → assign to subagent role `architect-reviewer` (persona in `$SKILL_DIR/agents/architect-reviewer.md`):
 - API routes, endpoints, controllers
 - Database schemas, migrations
 - Service interfaces, dependency injection
 - Configuration files (docker, CI/CD)
 - Directory structure changes
 
-**Implementation changes** → assign to subagent role `senior-code-reviewer` (persona in `agents/senior-code-reviewer.md`):
+**Implementation changes** → assign to subagent role `senior-code-reviewer` (persona in `$SKILL_DIR/agents/senior-code-reviewer.md`):
 - UI components, styling
 - Business logic within existing patterns
 - Bug fixes, refactoring
@@ -50,7 +50,7 @@ If a file fits both categories, assign to both reviewers.
 - 5-10 files: 2-3 subagents grouped by directory/component
 - 10+ files: 3-5 subagents grouped by directory/component
 
-Each subagent runs in its own forked, isolated context with the persona for its assigned role (`agents/architect-reviewer.md` or `agents/senior-code-reviewer.md`).
+Each subagent runs in its own forked, isolated context with the persona for its assigned role (`$SKILL_DIR/agents/architect-reviewer.md` or `$SKILL_DIR/agents/senior-code-reviewer.md`).
 
 **Handoff to reviewer subagents:**
 - File list to review
@@ -86,7 +86,7 @@ Wait for all subagents to complete.
 
 Skip this step if there are no findings (verdict is already CORRECT).
 
-Delegate to a subagent with role `false-positive-validator` (persona in `agents/false-positive-validator.md`), passing:
+Delegate to a subagent with role `false-positive-validator` (persona in `$SKILL_DIR/agents/false-positive-validator.md`), passing:
 - The full findings list from Step 3
 - Scope context (branch or staged)
 - Diff command used

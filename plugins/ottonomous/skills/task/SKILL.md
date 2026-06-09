@@ -134,7 +134,7 @@ Write to `.otto/tasks/{spec-id}.json`:
 
 ### 4. Review Task List
 
-Delegate to the `principal-engineer` subagent (persona in `agents/principal-engineer.md`), in a forked/isolated context:
+Delegate to the `principal-engineer` subagent (persona in `$SKILL_DIR/agents/principal-engineer.md`), in a forked/isolated context:
 - Prompt includes: task list JSON, full spec content, review criteria below
 - Subagent has no access to conversation - all context in prompt
 
