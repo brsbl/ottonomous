@@ -1,0 +1,23 @@
+# Dependabot is scoped to the real, hand-maintained npm manifests only.
+# It intentionally does NOT watch generated output under plugins/ottonomous/
+# (that package is rebuilt from skills/ by scripts/build-codex-plugin.mjs).
+# Updates are grouped so each manifest produces a single batched PR.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "npm"
+    directory: "/skills/summary"
+    schedule:
+      interval: "weekly"
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
