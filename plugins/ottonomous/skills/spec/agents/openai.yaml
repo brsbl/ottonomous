@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spec"
+  short_description: "Write a product spec through a collaborative interview with research"
+  default_prompt: "Use $spec to write a product specification for this idea through a collaborative interview."

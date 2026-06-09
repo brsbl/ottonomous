@@ -1,0 +1,36 @@
+{
+  "name": "ottonomous",
+  "displayName": "Ottonomous",
+  "version": "1.0.0",
+  "description": "Provider-agnostic skills for autonomous product development: spec, task, implement, test, review, and summarize changes.",
+  "author": {
+    "name": "Bersabel Tadesse"
+  },
+  "repository": "https://github.com/brsbl/ottonomous",
+  "homepage": "https://github.com/brsbl/ottonomous",
+  "license": "MIT",
+  "keywords": [
+    "ottonomous",
+    "product-development",
+    "spec",
+    "tasks",
+    "code-review",
+    "testing",
+    "subagents",
+    "autonomous",
+    "claude-code",
+    "codex",
+    "plugin"
+  ],
+  "skills": "./skills",
+  "agents": [
+    "./skills/spec/agents/technical-product-manager.md",
+    "./skills/task/agents/principal-engineer.md",
+    "./skills/next/agents/frontend-developer.md",
+    "./skills/next/agents/backend-architect.md",
+    "./skills/review/agents/architect-reviewer.md",
+    "./skills/review/agents/senior-code-reviewer.md",
+    "./skills/review/agents/false-positive-validator.md",
+    "./skills/test/agents/test-writer.md"
+  ]
+}

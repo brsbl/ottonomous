@@ -1,0 +1,4 @@
+interface:
+  display_name: "Test"
+  short_description: "Lint, type check, run tests, and visually verify changes"
+  default_prompt: "Use $test to lint, type check, and run the tests for these changes."

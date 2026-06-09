@@ -1,0 +1,4 @@
+interface:
+  display_name: "Change Summary"
+  short_description: "Synthesize changes into a user-facing HTML summary"
+  default_prompt: "Use $summary to generate a semantic HTML summary of the current changes."

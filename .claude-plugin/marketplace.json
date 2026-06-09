@@ -1,5 +1,6 @@
 {
   "name": "ottonomous",
+  "description": "Provider-agnostic skills for autonomous product development.",
   "owner": {
     "name": "brsbl",
     "email": "brsbl@users.noreply.github.com"
@@ -8,24 +9,26 @@
     {
       "name": "ottonomous",
       "source": "./",
-      "description": "Skills for autonomous product development",
-      "skills": [
-        "./skills/otto",
-        "./skills/test",
-        "./skills/spec",
-        "./skills/review",
-        "./skills/summary",
-        "./skills/task",
-        "./skills/next",
-        "./skills/doc",
-        "./skills/reset"
-      ],
-      "agents": [
-        "./skills/next/agents/frontend-developer.md",
-        "./skills/next/agents/backend-architect.md",
-        "./skills/review/agents/architect-reviewer.md",
-        "./skills/review/agents/senior-code-reviewer.md",
-        "./skills/test/agents/test-writer.md"
+      "description": "Skills for autonomous product development: spec, task, implement, test, review, summary, and the otto autopilot.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Bersabel Tadesse"
+      },
+      "repository": "https://github.com/brsbl/ottonomous",
+      "homepage": "https://github.com/brsbl/ottonomous",
+      "license": "MIT",
+      "keywords": [
+        "ottonomous",
+        "product-development",
+        "spec",
+        "tasks",
+        "code-review",
+        "testing",
+        "subagents",
+        "autonomous",
+        "claude-code",
+        "codex",
+        "plugin"
       ]
     }
   ],

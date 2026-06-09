@@ -1,0 +1,4 @@
+interface:
+  display_name: "Otto Autopilot"
+  short_description: "Autonomously build an idea end-to-end: spec, tasks, implement, verify"
+  default_prompt: "Use $otto to autonomously build this idea end-to-end."

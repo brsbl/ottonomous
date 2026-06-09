@@ -1,0 +1,20 @@
+{
+  "name": "ottonomous",
+  "interface": {
+    "displayName": "Ottonomous"
+  },
+  "plugins": [
+    {
+      "name": "ottonomous",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ottonomous"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

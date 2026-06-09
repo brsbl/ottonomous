@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implement Next"
+  short_description: "Pick up and implement the next pending task or session"
+  default_prompt: "Use $next to plan and implement the next pending task or session."

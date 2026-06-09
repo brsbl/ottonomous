@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Review"
+  short_description: "Multi-agent code review with P0-P2 prioritized findings"
+  default_prompt: "Use $review to run a multi-agent code review of the current changes."

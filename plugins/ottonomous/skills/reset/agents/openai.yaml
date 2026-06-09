@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reset Workspace"
+  short_description: "Clear .otto workflow artifacts (specs, tasks, sessions)"
+  default_prompt: "Use $reset to clear the .otto workflow artifacts."

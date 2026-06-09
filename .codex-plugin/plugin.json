@@ -1,0 +1,37 @@
+{
+  "name": "ottonomous",
+  "version": "1.0.0",
+  "description": "Compatibility manifest for the Ottonomous Codex app plugin package.",
+  "author": {
+    "name": "Bersabel Tadesse"
+  },
+  "homepage": "https://github.com/brsbl/ottonomous",
+  "repository": "https://github.com/brsbl/ottonomous",
+  "license": "MIT",
+  "keywords": [
+    "ottonomous",
+    "product-development",
+    "spec",
+    "tasks",
+    "code-review",
+    "testing",
+    "subagents",
+    "autonomous",
+    "codex",
+    "plugin"
+  ],
+  "skills": "./plugins/ottonomous/skills/",
+  "interface": {
+    "displayName": "Ottonomous",
+    "shortDescription": "Skills for autonomous product development",
+    "longDescription": "Compatibility manifest for direct root installs. The Codex app package lives at ./plugins/ottonomous and includes the Ottonomous product-development skills (spec, task, next, test, review, summary, otto, reset).",
+    "developerName": "Bersabel Tadesse",
+    "category": "Productivity",
+    "websiteURL": "https://github.com/brsbl/ottonomous",
+    "defaultPrompt": [
+      "Use $spec to write a product specification for this idea, then $task to break it into work sessions.",
+      "Use $review to run a multi-agent code review of my current changes and propose prioritized fixes.",
+      "Use $otto to autonomously build this small idea end-to-end with spec, tasks, implementation, and verification."
+    ]
+  }
+}

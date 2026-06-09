@@ -1,0 +1,4 @@
+interface:
+  display_name: "Task Breakdown"
+  short_description: "Break a spec into atomic, prioritized, parallelizable tasks"
+  default_prompt: "Use $task to break this spec into atomic tasks grouped into work sessions."

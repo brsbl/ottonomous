@@ -1,21 +1,23 @@
-# Ottonomous - Claude Code Plugin for Product Development
+# Ottonomous - Provider-Agnostic Skills for Product Development
 
 ## Project Overview
 
-Ottonomous is a Claude Code plugin for structured product development. It operates in two modes:
+Ottonomous is a **provider-agnostic** plugin for structured product development. The same skills install into **both Claude Code and OpenAI Codex**. It operates in two modes:
 
-1. **Independent Skills** - Use individual skills (/spec, /task, /review, etc.) for specific tasks
-2. **Autonomous Workflow** - Use /otto to run the full development loop automatically
+1. **Independent Skills** - Use individual skills (`spec`, `task`, `review`, etc.) for specific tasks
+2. **Autonomous Workflow** - Use `otto` to run the full development loop automatically
+
+> Invocation differs per provider: Claude Code uses `/spec`, Codex uses `$spec`. Skills are referred to by bare name below.
 
 ### Core Skills
-- `/spec` - Create product specifications
-- `/task` - Generate implementation tasks from specs
-- `/next` - Pick up and implement the next pending task
-- `/test` - Run and verify tests
-- `/qa` - Generate manual and automated QA checklists from specs
-- `/review` - Code review with prioritized findings
-- `/summary` - Create project summary
-- `/reset` - Clear workflow artifacts
+- `spec` - Create product specifications
+- `task` - Generate implementation tasks from specs
+- `next` - Pick up and implement the next pending task
+- `test` - Run and verify tests (lint, type check, tests, visual `browser` mode)
+- `review` - Code review with prioritized findings
+- `summary` - Create a user-facing change summary
+- `reset` - Clear workflow artifacts
+- `otto` - Autopilot that chains the full loop end-to-end
 
 ## Core Philosophy
 
@@ -33,16 +35,16 @@ Skills and subagents have distinct responsibilities:
 - **Skills** define *what* to hand off (file list, diff command, scope, context) and are instructions for the Orchestrator agent
 - **Subagents** define *how* to process what's handed off (criteria, detection rules, output format)
 
-This keeps subagents self-contained and reusable while skills orchestrate the workflow.
+This keeps subagents self-contained and reusable while skills orchestrate the workflow. Delegation is described in tool-neutral prose so the same source runs on either provider — the runtime decides the model and delegation mechanics.
 
 ### Swarm Orchestration
 
-Skills coordinate multiple subagents working in parallel using `run_in_background: true`:
+Skills coordinate multiple subagents working in parallel using **background subagents** — spawning concurrent work and waiting on the results:
 
 **Coordination patterns:**
-- **Fan-out/Fan-in** — Spawn N agents, wait for all, synthesize results. Used by `/review`.
-- **Batches** — Complete batch N before starting N+1 (for dependent work). Used by `/review fix`.
-- **Pipeline** — Sequential handoff between specialists. Used by `/otto`.
+- **Fan-out/Fan-in** — Spawn N agents, wait for all, synthesize results. Used by `review`.
+- **Batches** — Complete batch N before starting N+1 (for dependent work). Used by `review fix`.
+- **Pipeline** — Sequential handoff between specialists. Used by `otto`.
 
 **Scaling:** 1-4 items = 1 agent, 5-10 = 2-3 agents, 11+ = 3-5 agents. Group by directory or component type.
 
@@ -54,6 +56,17 @@ Every phase has explicit verification:
 - **Implementation**: code → code review → fix → commit
 - **Verification criteria**: Each step defines "Done when..."
 - **Prioritized findings**: P0-P2 across all skills (P0 = critical, P1 = important, P2 = minor)
+
+## Provider-agnostic structure & build
+
+`skills/` is the **neutral single source of truth**. Each `SKILL.md` carries only `name` / `description` / `argument-hint` frontmatter (no `model:`, no `allowed-tools:`), and agent personas carry only `name` / `description` (no `model`, no `color`). Subagent delegation is written in tool-neutral prose. The agent/runtime decides the model and delegation mechanics at run time.
+
+- **Claude Code** reads `skills/` directly via `.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json`, ignoring the generated `openai.yaml` files.
+- **Codex** reads the generated package at `plugins/ottonomous/` via `.codex-plugin/plugin.json` (root compat manifest) and `.agents/plugins/marketplace.json` (which points to `./plugins/ottonomous`).
+
+**Build:** `npm run build` (`scripts/build-codex-plugin.mjs`) regenerates the Codex package under `plugins/ottonomous/` from `skills/` — copying the skills and emitting a per-skill `agents/openai.yaml` Codex interface file.
+
+**Never hand-edit `plugins/ottonomous/`** — it is generated. Edit `skills/`, then rebuild. This one-source-regenerate-the-mirror flow is the anti-drift mechanism, mirroring the moss-skills approach.
 
 ## Claude Code Plugin Development
 
@@ -75,9 +88,10 @@ Essential documentation for plugin development:
 name: skill-name           # lowercase with hyphens
 description: ...           # when to use, what it does
 argument-hint: [arg]       # autocomplete hint
-model: opus               # optional: opus, sonnet, haiku
 ---
 ```
+
+Keep frontmatter neutral: no `model:` and no `allowed-tools:`. The runtime selects the model.
 
 ### Skill Content Pattern
 
@@ -105,10 +119,10 @@ model: opus               # optional: opus, sonnet, haiku
 ---
 name: agent-name
 description: When to use this agent (include "PROACTIVELY" for auto-use)
-model: opus
-color: green              # optional: visual distinction
 ---
 ```
+
+Keep persona frontmatter neutral: no `model` and no `color`. Describe delegation in tool-neutral prose so the source works on both providers.
 
 ### Content Pattern
 
@@ -127,17 +141,21 @@ color: green              # optional: visual distinction
 ## Project Structure
 
 ```
-skills/                    # Skill implementations
+skills/                    # Neutral source of truth (edit here)
 ├── {skill}/
 │   ├── SKILL.md          # Main skill file (required)
-│   ├── agents/           # Subagents (optional)
+│   ├── agents/           # Subagent personas (optional)
 │   │   └── *.md
 │   ├── scripts/          # Support scripts (optional)
 │   └── lib/              # Libraries (optional)
+plugins/ottonomous/        # GENERATED Codex package (do not hand-edit)
+scripts/                   # build-codex-plugin.mjs (npm run build)
+.claude-plugin/            # Claude Code manifests (plugin.json, marketplace.json)
+.codex-plugin/             # Codex root compat manifest
+.agents/plugins/           # Codex marketplace.json → ./plugins/ottonomous
 .otto/                     # Workflow artifacts (git-ignored)
 ├── specs/                 # Product specifications
 ├── tasks/                 # Sessions and tasks
-├── qa/                    # QA checklists
 ├── reviews/               # Review fix plans
 ├── summaries/             # Generated HTML summaries
 └── otto/
@@ -147,6 +165,7 @@ skills/                    # Skill implementations
 ## Development Commands
 
 ```bash
+npm run build      # Regenerate Codex package (plugins/ottonomous/) from skills/
 npm test           # Run tests
 npm run lint       # Check linting
 npm run lint:fix   # Fix linting issues
