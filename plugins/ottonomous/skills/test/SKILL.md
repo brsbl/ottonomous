@@ -85,7 +85,7 @@ Filter to source files (exclude tests, configs, docs).
 
 ## 2. Launch Test Writers
 
-Delegate files to the `test-writer` subagent (persona in `agents/test-writer.md`). It determines testability and writes tests.
+Delegate files to the `test-writer` subagent (persona in `$SKILL_DIR/agents/test-writer.md`). It determines testability and writes tests.
 
 | Files | Subagents |
 |-------|-----------|

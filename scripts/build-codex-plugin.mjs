@@ -10,7 +10,15 @@
 // Claude Code reads ../skills/ directly via ../.claude-plugin; it ignores the
 // generated openai.yaml files. This script only produces the Codex-specific layer.
 
-import { cpSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -143,6 +151,21 @@ function writeOpenaiYaml(skill, dest) {
   writeFileSync(join(agentsDir, "openai.yaml"), yaml);
 }
 
+// Codex resolves skill-bundled files relative to $SKILL_DIR, not the project
+// working directory. Rewrite the neutral `agents/<persona>.md` references in the
+// copied SKILL.md to `$SKILL_DIR/agents/...` so a Codex agent can locate the
+// persona file. Claude needs no rewrite: it invokes each persona as a registered
+// subagent by name, so the source keeps the plain relative reference.
+function rewritePersonaPaths(dest) {
+  const skillFile = join(dest, "SKILL.md");
+  if (!existsSync(skillFile)) return;
+  const body = readFileSync(skillFile, "utf8");
+  const rewritten = body.replaceAll("`agents/", "`$SKILL_DIR/agents/");
+  if (rewritten !== body) {
+    writeFileSync(skillFile, rewritten);
+  }
+}
+
 function main() {
   const skills = listSkills();
 
@@ -158,6 +181,7 @@ function main() {
       filter: (s) => !EXCLUDE.has(basename(s)),
     });
     writeOpenaiYaml(skill, dest);
+    rewritePersonaPaths(dest);
   }
 
   // Codex package manifest.

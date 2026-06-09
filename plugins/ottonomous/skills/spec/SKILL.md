@@ -122,7 +122,7 @@ Skip this step if the spec is complete with no `[TBD]` markers.
 
 ### 5. Review Spec
 
-Delegate to the `technical-product-manager` subagent (persona in `agents/technical-product-manager.md`):
+Delegate to the `technical-product-manager` subagent (persona in `$SKILL_DIR/agents/technical-product-manager.md`):
 
 **Handoff to technical-product-manager:**
 
@@ -284,7 +284,7 @@ description: {one-line summary of the spec}
 
 ### 6. Review Spec
 
-Delegate to the `technical-product-manager` subagent (persona in `agents/technical-product-manager.md`):
+Delegate to the `technical-product-manager` subagent (persona in `$SKILL_DIR/agents/technical-product-manager.md`):
 
 **Handoff to technical-product-manager:**
 
