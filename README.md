@@ -9,8 +9,8 @@ Claude Code and OpenAI Codex:
   caller-approved fixes.
 - `build` implements a caller-supplied spec through bounded subagent work,
   integration, and verification loops.
-- `summary` explains a code change in a Moss note with an embedded, interactive
-  HTML change map.
+- `summary` explains a code change in a decision-focused Moss Markdown note for
+  reviewers who care about outcomes and platform implications, not code tours.
 
 Ottonomous is a skill collection, not a workflow engine. Callers choose the
 spec references, working locations, output destinations, and delivery boundary
@@ -63,7 +63,7 @@ Invocation differs by provider: Claude Code uses `/spec`, while Codex uses
 | `spec` | Idea or existing draft/spec reference, output destination, and optional working location and format | Researched and independently reviewed spec written to the caller's destination, followed by a link |
 | `review` | Diff, branch, staged changes, pull request, or file set; optional output destination | Parallel P0-P2 review filtered by a false-positive validator; optional fix plan or approved fixes |
 | `build` | Spec reference, working location, and delivery constraints | Integrated implementation with focused and final verification, repeated until the spec is complete or genuinely blocked |
-| `summary` | Change target, working location, output Moss note, and optional audience emphasis | Reader-first semantic change summary with a self-contained, filterable `moss-html` change map |
+| `summary` | Change target, working location, output Moss note, and optional audience emphasis | Decision-focused Moss brief covering problem alignment, outcomes, trade-offs, and platform implications |
 
 ### `spec`
 
@@ -154,17 +154,19 @@ the result native to Moss:
 - It resolves the caller's exact pull request, branch, commit range, staged
   diff, or file set rather than assuming a fixed base branch.
 - It reads the complete diff and relevant source context, then explains product
-  outcome, architecture, behavior, risk, compatibility, and verification.
+  outcome, documented friction, trade-offs, platform implications,
+  compatibility, and verification.
 - It writes one Moss Markdown note using the bundled
   `templates/moss-summary.md` file.
-- Native Markdown carries the narrative, reviewer focus, migration guidance,
-  validation, and complete file inventory. A self-contained `moss-html` block
-  provides a filterable change map for outcome, architecture, risk, and
-  evidence.
-- The embedded map resolves the Endless Color bb theme's light-mode tokens to
-  literal values, preserving its cool silver surfaces, stair-blue accent,
-  semantic status colors, typography, radius, and shadows inside Moss's
-  isolated HTML runtime.
+- Native Moss Markdown leads with the problem statement and alignment check,
+  then records the outcome, documented implementation issues, trade-offs,
+  platform implications, migration, validation, and complete change inventory.
+- The platform assessment always covers performance, security, privacy,
+  extensibility/future-proofing, and maintainability, including neutral or
+  unverified conclusions.
+- HTML is optional and scoped to a relationship or interaction that native
+  Markdown, tables, callouts, tabs, charts, or compact ASCII cannot communicate
+  clearly. It is never decorative or required by the template.
 - It creates no separate browser page, hidden directory, duplicate artifact,
   or Moss-owned sidecar.
 

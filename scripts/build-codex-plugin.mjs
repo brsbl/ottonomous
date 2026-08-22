@@ -80,9 +80,9 @@ const INTERFACE = {
   summary: {
     display_name: "Moss Summary",
     short_description:
-      "Explain a code change in a Moss note with an interactive change map",
+      "Align on a change's problem, outcomes, trade-offs, and implications",
     default_prompt:
-      "Use $summary with this change target, working location, and output destination to write a Moss change summary.",
+      "Use $summary with this change target, working location, and output destination to write a decision-focused Moss change summary.",
   },
 };
 
@@ -187,7 +187,7 @@ function main() {
         "Use $spec with this idea, working location, and output destination to write a product specification.",
         "Use $review with this target to run a validated P0-P2 code review.",
         "Use $build with this spec reference and working location to implement and verify it to completion.",
-        "Use $summary with this change target, working location, and output destination to write a Moss change summary.",
+        "Use $summary with this change target, working location, and output destination to write a decision-focused Moss change summary.",
       ],
     },
   };

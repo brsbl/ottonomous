@@ -10,8 +10,8 @@ Ottonomous publishes exactly four provider-agnostic skills:
   implement caller-approved fixes.
 - `build` implements a caller-supplied spec through bounded delegation,
   integration, and repeated verification.
-- `summary` creates a reader-first Moss change summary with a self-contained,
-  interactive `moss-html` change map.
+- `summary` creates a decision-focused Moss Markdown change summary led by the
+  problem statement, outcomes, trade-offs, and platform implications.
 
 Each skill is independently invocable. Do not introduce a required sequence,
 fixed working directory, implicit artifact location, resumable workflow state,
@@ -85,12 +85,13 @@ high-leverage review areas and subtle risks, make breaking changes prominent,
 record validation accurately, and account for every changed file.
 
 Write one Moss Markdown note to the exact caller-selected destination. Start
-from `templates/moss-summary.md`: native Markdown owns the reader-first
-narrative and evidence, while one self-contained `moss-html` block provides the
-interactive outcome, architecture, risk, and evidence map. Its fixed palette
-uses resolved Endless Color light-mode bb tokens because Moss HTML cannot
-inherit bb custom properties. Do not create separate HTML, hidden state,
-duplicate artifacts, or app-owned Moss sidecars.
+from `templates/moss-summary.md`: native Moss Markdown owns problem alignment,
+outcome, documented issues, trade-offs, platform implications, migration,
+validation, and evidence. Always assess performance, security, privacy,
+extensibility/future-proofing, and maintainability. Use `moss-html` only for a
+focused relationship or interaction that native Moss nodes cannot communicate
+clearly. Do not create separate HTML, hidden state, duplicate artifacts, or
+app-owned Moss sidecars.
 
 ## Provider-agnostic source and generated package
 
