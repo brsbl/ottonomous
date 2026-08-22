@@ -23,16 +23,21 @@
   * { box-sizing: border-box; }
   :root {
     color-scheme: light;
-    --surface: rgb(249 247 242);
-    --panel: rgb(255 253 249);
-    --ink: rgb(49 53 48);
-    --muted: rgb(100 104 96);
-    --line: rgb(218 216 207);
-    --accent: rgb(49 108 74);
-    --accent-soft: rgb(226 238 228);
-    --risk: rgb(151 76 54);
-    --risk-soft: rgb(248 232 224);
-    --shadow: 0 14px 38px rgb(72 67 57 / 0.09);
+    /* Resolved from the Endless Color bb theme's light-mode tokens. Moss HTML
+       is isolated, so these values cannot inherit the active bb variables. */
+    --surface: #f1f2f4; /* --canvas */
+    --panel: #fdfdff; /* --card */
+    --ink: #0a0a0a; /* --ink */
+    --muted: #3a3a3a; /* --muted-foreground */
+    --line: rgba(90, 80, 48, 0.30); /* --border */
+    --control-line: rgba(90, 80, 48, 0.55); /* --input */
+    --accent: #2e6f95; /* --primary */
+    --accent-soft: rgba(121, 173, 214, 0.30); /* --surface-selected */
+    --risk: #872a14; /* --destructive-text */
+    --risk-soft: rgba(40, 44, 60, 0.05); /* --surface-recessed */
+    --radius: 12px; /* --radius */
+    --shadow-sm: 0 0 0 1px rgba(90, 80, 48, 0.10), 0 2px 8px -1px rgba(70, 80, 130, 0.22), 0 1px 3px 0 rgba(46, 111, 149, 0.10); /* --shadow-sm */
+    --shadow: 0 0 0 1px rgba(90, 80, 48, 0.10), 0 2px 8px -1px rgba(70, 80, 130, 0.22), 0 1px 3px 0 rgba(46, 111, 149, 0.10); /* --shadow */
   }
   html { min-height: 760px; background: var(--surface); }
   body {
@@ -42,7 +47,7 @@
     margin: 0 auto;
     background: var(--surface);
     color: var(--ink);
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: "Helvetica Neue", Helvetica, "Inter Variable", Inter, sans-serif;
   }
   button { font: inherit; }
   .artifact { min-height: 760px; padding: 32px; }
@@ -53,7 +58,7 @@
     align-items: end;
     padding: 26px;
     border: 1px solid var(--line);
-    border-radius: 22px;
+    border-radius: var(--radius);
     background: var(--panel);
     box-shadow: var(--shadow);
   }
@@ -68,31 +73,31 @@
   h1 { max-width: 760px; margin: 0; font-size: 36px; line-height: 1.1; letter-spacing: -0.03em; }
   .lede { max-width: 760px; margin: 14px 0 0; color: var(--muted); font-size: 18px; line-height: 1.55; }
   .metrics { display: grid; grid-template-columns: repeat(2, 112px); gap: 10px; }
-  .metric { padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+  .metric { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
   .metric strong { display: block; font-size: 28px; line-height: 1; }
   .metric span { display: block; margin-top: 7px; color: var(--muted); font-size: 12px; }
   .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 14px; }
   .filter {
     min-height: 40px;
     padding: 9px 14px;
-    border: 1px solid var(--line);
+    border: 1px solid var(--control-line);
     border-radius: 999px;
     background: var(--panel);
     color: var(--ink);
     cursor: pointer;
   }
   .filter:hover { border-color: var(--accent); }
-  .filter:focus-visible { outline: 3px solid rgb(49 108 74 / 0.25); outline-offset: 2px; }
-  .filter[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+  .filter:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .filter[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); font-weight: 700; }
   .filter span { margin-left: 5px; color: var(--muted); font-size: 12px; }
   .result-count { min-height: 20px; margin: 0 0 16px; color: var(--muted); font-size: 13px; }
   .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-  .card { padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); box-shadow: 0 8px 24px rgb(72 67 57 / 0.06); }
+  .card { padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow-sm); }
   .card[hidden] { display: none; }
   .card-top { display: flex; justify-content: space-between; gap: 14px; align-items: start; }
-  .kind { display: inline-flex; padding: 5px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 760; letter-spacing: 0.06em; text-transform: uppercase; }
+  .kind { display: inline-flex; padding: 5px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); font-size: 11px; font-weight: 760; letter-spacing: 0.06em; text-transform: uppercase; }
   .card[data-kind="risk"] .kind { background: var(--risk-soft); color: var(--risk); }
-  .scope { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  .scope { color: var(--muted); font-family: "Courier Prime", "Courier New", Courier, "American Typewriter", monospace; font-size: 12px; }
   .card h2 { margin: 14px 0 8px; font-size: 20px; line-height: 1.25; }
   .card p { margin: 0; color: var(--muted); line-height: 1.55; }
   .card footer { margin-top: 17px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--ink); font-size: 13px; line-height: 1.45; }

@@ -161,6 +161,10 @@ the result native to Moss:
   validation, and complete file inventory. A self-contained `moss-html` block
   provides a filterable change map for outcome, architecture, risk, and
   evidence.
+- The embedded map resolves the Endless Color bb theme's light-mode tokens to
+  literal values, preserving its cool silver surfaces, stair-blue accent,
+  semantic status colors, typography, radius, and shadows inside Moss's
+  isolated HTML runtime.
 - It creates no separate browser page, hidden directory, duplicate artifact,
   or Moss-owned sidecar.
 

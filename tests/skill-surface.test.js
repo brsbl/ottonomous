@@ -90,6 +90,30 @@ describe("standalone contracts", () => {
     expect(template).toMatch(/data-filter="risk"/);
     expect(template).toMatch(/data-filter="evidence"/);
     expect(template).toMatch(/DOMContentLoaded/);
+    expect(template).toContain(
+      "Resolved from the Endless Color bb theme's light-mode tokens",
+    );
+    for (const resolvedThemeToken of [
+      "--surface: #f1f2f4; /* --canvas */",
+      "--panel: #fdfdff; /* --card */",
+      "--ink: #0a0a0a; /* --ink */",
+      "--muted: #3a3a3a; /* --muted-foreground */",
+      "--line: rgba(90, 80, 48, 0.30); /* --border */",
+      "--control-line: rgba(90, 80, 48, 0.55); /* --input */",
+      "--accent: #2e6f95; /* --primary */",
+      "--accent-soft: rgba(121, 173, 214, 0.30); /* --surface-selected */",
+      "--risk: #872a14; /* --destructive-text */",
+      "--risk-soft: rgba(40, 44, 60, 0.05); /* --surface-recessed */",
+      "--radius: 12px; /* --radius */",
+    ]) {
+      expect(template).toContain(resolvedThemeToken);
+    }
+    expect(template).toContain(
+      'font-family: "Helvetica Neue", Helvetica, "Inter Variable", Inter, sans-serif;',
+    );
+    expect(template).toMatch(
+      /\.filter\[aria-pressed="true"\].*color: var\(--ink\)/,
+    );
     expect(template).not.toMatch(/<script\s+src=|(?:src|href)="https?:/);
   });
 });

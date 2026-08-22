@@ -87,11 +87,13 @@ when it has no cards instead of displaying an empty category. Keep the all-cards
 first frame complete and useful without JavaScript.
 
 Preserve the template's `moss-html` document shell, version metadata,
-self-contained CSS and JavaScript, fixed theme-neutral palette, native buttons,
-and accessible pressed-state behavior. Do not add remote images, fonts,
-scripts, fetches, local file URLs, Moss internals, or dependencies on browser
-storage. Escape inserted HTML text and attributes so source code and file names
-cannot break the embedded document.
+self-contained CSS and JavaScript, fixed Endless Color light-mode palette,
+native buttons, and accessible pressed-state behavior. The palette contains
+resolved literal values from the bb theme because an isolated Moss HTML node
+cannot inherit bb custom properties. Do not add remote images, fonts, scripts,
+fetches, local file URLs, Moss internals, or dependencies on browser storage.
+Escape inserted HTML text and attributes so source code and file names cannot
+break the embedded document.
 
 Remove all unused optional sections, example cards, example rows, instructional
 comments, and placeholder tokens. Keep exactly one Markdown H1. Do not create

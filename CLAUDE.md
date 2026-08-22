@@ -87,9 +87,10 @@ record validation accurately, and account for every changed file.
 Write one Moss Markdown note to the exact caller-selected destination. Start
 from `templates/moss-summary.md`: native Markdown owns the reader-first
 narrative and evidence, while one self-contained `moss-html` block provides the
-interactive outcome, architecture, risk, and evidence map. Do not
-create separate HTML, hidden state, duplicate artifacts, or app-owned Moss
-sidecars.
+interactive outcome, architecture, risk, and evidence map. Its fixed palette
+uses resolved Endless Color light-mode bb tokens because Moss HTML cannot
+inherit bb custom properties. Do not create separate HTML, hidden state,
+duplicate artifacts, or app-owned Moss sidecars.
 
 ## Provider-agnostic source and generated package
 
