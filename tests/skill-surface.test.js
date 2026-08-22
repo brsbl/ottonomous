@@ -12,9 +12,14 @@ const repoRoot = join(here, "..");
 
 const readSkill = (name) =>
   readFileSync(join(repoRoot, "skills", name, "SKILL.md"), "utf8");
+const readSummaryTemplate = () =>
+  readFileSync(
+    join(repoRoot, "skills", "summary", "templates", "moss-summary.md"),
+    "utf8",
+  );
 
 describe("published skill surface", () => {
-  it("contains exactly spec, review, and build in source and generated output", () => {
+  it("contains exactly spec, review, build, and summary in source and generated output", () => {
     const source = readdirSync(join(repoRoot, "skills")).sort();
     const generated = readdirSync(
       join(repoRoot, "plugins", "ottonomous", "skills"),
@@ -65,5 +70,26 @@ describe("standalone contracts", () => {
     expect(build).toMatch(/Integrate and verify the slice/);
     expect(build).toMatch(/Reconcile with the spec and repeat/);
     expect(build).toMatch(/genuine blocker/i);
+  });
+
+  it("writes a semantic Moss summary from the bundled interactive template", () => {
+    const summary = readSkill("summary");
+    const template = readSummaryTemplate();
+
+    expect(summary).toMatch(/what it means/i);
+    expect(summary).toMatch(/templates\/moss-summary\.md/);
+    expect(summary).toMatch(/caller-selected Moss Markdown file/);
+    expect(summary).toMatch(/every changed file/i);
+    expect(summary).not.toMatch(/\.otto(?:\/|\b)/);
+
+    expect(template).toMatch(/^# \{\{TITLE\}\}/);
+    expect(template).toMatch(/```moss-html\n<!DOCTYPE html>/);
+    expect(template).toMatch(/<meta name="moss-html-version" content="v1">/);
+    expect(template).toMatch(/data-filter="outcome"/);
+    expect(template).toMatch(/data-filter="architecture"/);
+    expect(template).toMatch(/data-filter="risk"/);
+    expect(template).toMatch(/data-filter="evidence"/);
+    expect(template).toMatch(/DOMContentLoaded/);
+    expect(template).not.toMatch(/<script\s+src=|(?:src|href)="https?:/);
   });
 });

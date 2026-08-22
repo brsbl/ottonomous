@@ -1,6 +1,6 @@
 # Ottonomous 🚌💨
 
-Three independently invocable product-development skills that work in both
+Four independently invocable product-development skills that work in both
 Claude Code and OpenAI Codex:
 
 - `spec` turns an idea or draft into a reviewed, implementation-ready product
@@ -9,6 +9,8 @@ Claude Code and OpenAI Codex:
   caller-approved fixes.
 - `build` implements a caller-supplied spec through bounded subagent work,
   integration, and verification loops.
+- `summary` explains a code change in a Moss note with an embedded, interactive
+  HTML change map.
 
 Ottonomous is a skill collection, not a workflow engine. Callers choose the
 spec references, working locations, output destinations, and delivery boundary
@@ -22,13 +24,16 @@ Version 2 intentionally replaces the old prescribed workflow:
   caller-supplied spec directly, delegates bounded implementation slices,
   integrates them, verifies the result, and repeats until complete or genuinely
   blocked.
-- `task`, `test`, `summary`, `otto`, and `reset` are removed.
+- `summary` remains available, but now writes a caller-selected Moss note from
+  a bundled template instead of creating separate `.otto/` Markdown and HTML
+  artifacts.
+- `task`, `test`, `otto`, and `reset` are removed.
 - The `.otto/` storage convention is removed. No remaining skill reads or
   writes implicit workflow state, work lists, sessions, plans, review files, or
   generated artifacts there.
-- Storage is caller-controlled. `spec` writes to the caller-supplied destination
-  and ends with its link; the other skills return results inline unless the
-  caller supplies a destination.
+- Storage is caller-controlled. `spec` and `summary` write to caller-supplied
+  destinations; `review` and `build` return results inline unless the caller
+  supplies a destination.
 
 Existing automation must replace the old invocations explicitly. There is no
 hidden replacement state system.
@@ -58,6 +63,7 @@ Invocation differs by provider: Claude Code uses `/spec`, while Codex uses
 | `spec` | Idea or existing draft/spec reference, output destination, and optional working location and format | Researched and independently reviewed spec written to the caller's destination, followed by a link |
 | `review` | Diff, branch, staged changes, pull request, or file set; optional output destination | Parallel P0-P2 review filtered by a false-positive validator; optional fix plan or approved fixes |
 | `build` | Spec reference, working location, and delivery constraints | Integrated implementation with focused and final verification, repeated until the spec is complete or genuinely blocked |
+| `summary` | Change target, working location, output Moss note, and optional audience emphasis | Reader-first semantic change summary with a self-contained, filterable `moss-html` change map |
 
 ### `spec`
 
@@ -140,18 +146,43 @@ build the spec at /docs/offline-export.md in /repo/dashboard; stop after
 verified local implementation
 ```
 
+### `summary`
+
+`summary` preserves the original emphasis on why a change matters while making
+the result native to Moss:
+
+- It resolves the caller's exact pull request, branch, commit range, staged
+  diff, or file set rather than assuming a fixed base branch.
+- It reads the complete diff and relevant source context, then explains product
+  outcome, architecture, behavior, risk, compatibility, and verification.
+- It writes one Moss Markdown note using the bundled
+  `templates/moss-summary.md` file.
+- Native Markdown carries the narrative, reviewer focus, migration guidance,
+  validation, and complete file inventory. A self-contained `moss-html` block
+  provides a filterable change map for outcome, architecture, risk, and
+  evidence.
+- It creates no separate browser page, hidden directory, duplicate artifact,
+  or Moss-owned sidecar.
+
+Example:
+
+```text
+summary pull request #68 in /repo/ottonomous; write the Moss note to
+~/Moss/Notes/Ottonomous PR 68/Ottonomous PR 68.md
+```
+
 ## Design principles
 
 ### Independent invocation
 
-Each skill resolves its own caller-supplied inputs and can run without either
-of the other skills. There is no required sequence or implicit handoff.
+Each skill resolves its own caller-supplied inputs and can run without any of
+the other skills. There is no required sequence or implicit handoff.
 
 ### Caller-controlled storage
 
-`spec` requires a caller-selected destination because its final handoff is a
-link to the written artifact. Other skills return results inline by default. A
-skill writes only to a caller-provided destination and never creates a hidden
+`spec` and `summary` require caller-selected destinations because their final
+outputs are written artifacts. Other skills return results inline by default.
+A skill writes only to a caller-provided destination and never creates a hidden
 registry, duplicate copy, symlink, or resumable workflow store.
 
 ### Bounded delegation
@@ -175,22 +206,26 @@ skills/                              # Neutral source of truth
 │       ├── architect-reviewer.md
 │       ├── false-positive-validator.md
 │       └── senior-code-reviewer.md
-└── spec/
+├── spec/
+│   ├── SKILL.md
+│   └── agents/
+│       └── technical-product-manager.md
+└── summary/
     ├── SKILL.md
-    └── agents/
-        └── technical-product-manager.md
+    └── templates/
+        └── moss-summary.md
 
 plugins/ottonomous/                  # Generated Codex package
 scripts/build-codex-plugin.mjs       # Package generator
-scripts/validate-skills.mjs          # Three-skill contract validator
+scripts/validate-skills.mjs          # Four-skill contract validator
 .claude-plugin/                      # Claude Code manifests
 .codex-plugin/                       # Codex root compatibility manifest
 .agents/plugins/                     # Codex marketplace entry
 ```
 
 `skills/` is the provider-agnostic source. `npm run build` regenerates
-`plugins/ottonomous/`, including each skill's Codex `agents/openai.yaml`.
-Never hand-edit the generated package.
+`plugins/ottonomous/`, including each skill's Codex `agents/openai.yaml` and
+bundled templates. Never hand-edit the generated package.
 
 ## Development
 
@@ -199,7 +234,7 @@ Requires Node.js 18+ and Git.
 ```bash
 npm ci
 npm run build       # Regenerate the Codex package
-npm run validate    # Validate the exact three-skill surface and manifests
+npm run validate    # Validate the exact four-skill surface and manifests
 npm test            # Run focused contract tests
 npm run lint        # Check repository formatting and lint rules
 ```

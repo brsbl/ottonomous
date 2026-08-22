@@ -2,7 +2,7 @@
   "name": "ottonomous",
   "displayName": "Ottonomous",
   "version": "2.0.0",
-  "description": "Three independent, provider-agnostic skills for product specification, code review, and spec-driven implementation.",
+  "description": "Four independent, provider-agnostic skills for product specification, code review, spec-driven implementation, and Moss change summaries.",
   "author": {
     "name": "Bersabel Tadesse"
   },
@@ -15,6 +15,8 @@
     "spec",
     "build",
     "code-review",
+    "change-summary",
+    "moss",
     "subagents",
     "claude-code",
     "codex",

@@ -1,6 +1,6 @@
 {
   "name": "ottonomous",
-  "description": "Independent, provider-agnostic specification, review, and build skills.",
+  "description": "Independent, provider-agnostic specification, review, build, and Moss summary skills.",
   "owner": {
     "name": "brsbl",
     "email": "brsbl@users.noreply.github.com"
@@ -9,7 +9,7 @@
     {
       "name": "ottonomous",
       "source": "./",
-      "description": "Three independently invocable skills: spec, review, and spec-driven build.",
+      "description": "Four independently invocable skills: spec, review, spec-driven build, and Moss change summary.",
       "version": "2.0.0",
       "author": {
         "name": "Bersabel Tadesse"
@@ -23,6 +23,8 @@
         "spec",
         "build",
         "code-review",
+        "change-summary",
+        "moss",
         "subagents",
         "claude-code",
         "codex",

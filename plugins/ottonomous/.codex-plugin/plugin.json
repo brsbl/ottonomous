@@ -1,7 +1,7 @@
 {
   "name": "ottonomous",
   "version": "2.0.0",
-  "description": "Three independent, provider-agnostic skills for product specification, code review, and spec-driven implementation.",
+  "description": "Four independent, provider-agnostic skills for product specification, code review, spec-driven implementation, and Moss change summaries.",
   "author": {
     "name": "Bersabel Tadesse"
   },
@@ -14,6 +14,8 @@
     "spec",
     "build",
     "code-review",
+    "change-summary",
+    "moss",
     "subagents",
     "claude-code",
     "codex",
@@ -22,8 +24,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Ottonomous",
-    "shortDescription": "Independent spec, review, and build skills",
-    "longDescription": "Codex app package for three independent Ottonomous skills: spec, review, and build. Callers supply references, working locations, and output destinations; the skills require no prescribed workflow or hidden state.",
+    "shortDescription": "Independent spec, review, build, and summary skills",
+    "longDescription": "Codex app package for four independent Ottonomous skills: spec, review, build, and Moss change summary. Callers supply references, working locations, and output destinations; the skills require no prescribed workflow or hidden state.",
     "developerName": "Bersabel Tadesse",
     "category": "Productivity",
     "capabilities": [
@@ -34,7 +36,8 @@
     "defaultPrompt": [
       "Use $spec with this idea, working location, and output destination to write a product specification.",
       "Use $review with this target to run a validated P0-P2 code review.",
-      "Use $build with this spec reference and working location to implement and verify it to completion."
+      "Use $build with this spec reference and working location to implement and verify it to completion.",
+      "Use $summary with this change target, working location, and output destination to write a Moss change summary."
     ]
   }
 }
