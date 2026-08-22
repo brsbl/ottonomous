@@ -1,226 +1,167 @@
 ---
 name: review
-description: "Reviews code changes for bugs with P0-P2 prioritized feedback. Uses parallel subagents for thorough analysis, then creates fix plans. Use when reviewing code, finding bugs, checking quality, or before merging. Use review fix to implement fixes."
-argument-hint: "[staged | branch] | fix [P0 | P0-P1 | all]"
+description: "Reviews code changes for concrete bugs with P0-P2 prioritized findings. Uses parallel architectural and implementation reviewers, then validates findings to remove false positives. Use when reviewing a caller-supplied diff, branch, staged changes, file set, or pull request, and use fix mode with caller-supplied findings to implement approved fixes. Results and output destinations are caller-controlled; no persistent workflow state is required."
+argument-hint: "[target or scope] [output destination] | fix [findings reference] [P0 | P0-P1 | all]"
 ---
 
-**Arguments:** $ARGUMENTS
+**Input:** $ARGUMENTS
 
-| Command | Behavior |
-|---------|----------|
-| `review` | Review branch diff, synthesize findings, create fix plan |
-| `review staged` | Review staged changes only |
-| `review fix` | Implement all fixes from saved plan |
-| `review fix P0` | Implement only P0 (critical) fixes |
-| `review fix P0-P1` | Implement P0 and P1 fixes |
+Review the caller's target or implement fixes from caller-supplied findings.
+Return results inline unless the caller provides an output destination.
 
-| Scope | Git Command |
-|-------|-------------|
-| `branch` (default) | `git diff main...HEAD` |
-| `staged` | `git diff --cached` |
+## Resolve the invocation
 
----
+Identify:
 
-## Review Mode
+- **Working location:** repository or worktree to inspect
+- **Target:** explicit diff command, refs/range, pull request, file set, staged
+  changes, or branch changes
+- **Mode:** review or fix
+- **Output destination:** optional caller-selected location
+- **Fix selection:** all findings, P0 only, or P0-P1
 
-### Step 1: Categorize Changes
+An explicit caller target always wins. When invoked without a target in a Git
+repository, review the current branch against its merge base with the default
+branch. `staged` means `git diff --cached`. State the exact scope and command
+used so the review is reproducible.
 
-Get the diff and categorize files by change type:
+Do not invent a review registry, fixed plan path, or hidden persistence. In fix
+mode, use findings supplied inline, by exact reference, or from the current
+conversation. If none are available, ask the caller for them.
 
-**Architectural changes** → assign to subagent role `architect-reviewer` (persona in `agents/architect-reviewer.md`):
-- API routes, endpoints, controllers
-- Database schemas, migrations
-- Service interfaces, dependency injection
-- Configuration files (docker, CI/CD)
-- Directory structure changes
+## Review mode
 
-**Implementation changes** → assign to subagent role `senior-code-reviewer` (persona in `agents/senior-code-reviewer.md`):
-- UI components, styling
-- Business logic within existing patterns
-- Bug fixes, refactoring
-- Test files
-- Utility functions
+### 1. Inspect and categorize the change
 
-If a file fits both categories, assign to both reviewers.
+Read the complete diff, list changed and untracked files in scope, and inspect
+the full source context needed to understand each change.
 
-### Step 2: Delegate to Review Subagents
+Assign architectural changes to the `architect-reviewer` persona in
+`agents/architect-reviewer.md`:
 
-**Scale based on change size, delegating to subagents in parallel:**
-- 1-4 files: 1 subagent
-- 5-10 files: 2-3 subagents grouped by directory/component
-- 10+ files: 3-5 subagents grouped by directory/component
+- APIs, schemas, migrations, services, dependency boundaries, configuration,
+  directory structure, and public contracts
 
-Each subagent runs in its own forked, isolated context with the persona for its assigned role (`agents/architect-reviewer.md` or `agents/senior-code-reviewer.md`).
+Assign implementation changes to the `senior-code-reviewer` persona in
+`agents/senior-code-reviewer.md`:
 
-**Handoff to reviewer subagents:**
-- File list to review
-- Diff command: `git diff main...HEAD -- <files>` (or `--cached` for staged)
-- Scope context (branch or staged)
+- UI, business logic, bug fixes, refactors, tests, and utilities
 
-Subagents return prioritized findings (P0-P2) in consistent format with Files, Problem, Fix, and Done when.
+Assign a file to both when both lenses materially apply.
 
-Wait for all subagents to complete.
+### 2. Delegate independent review
 
-### Step 3: Synthesize Findings
+Scale to the change rather than a fixed ceremony:
 
-1. **Collect** all findings from subagents
-2. **Deduplicate** overlapping findings
-3. **Sort** by priority (P0 first)
-4. **Present** findings table for review:
+- Small, cohesive diff: one reviewer with the appropriate persona
+- Several independent components: one reviewer per meaningful component
+- Large cross-cutting diff: multiple reviewers with explicit, non-overlapping scopes
+
+Run independent scopes in parallel when the runtime supports it. Give every
+reviewer:
+
+- Exact working location and file list
+- Exact diff command or target reference
+- Relevant product/spec context supplied by the caller
+- Instruction to read full surrounding source, not only the patch
+
+Reviewers return only concrete P0-P2 findings in the documented format. Wait
+for every delegated review before synthesis.
+
+### 3. Synthesize findings
+
+Collect, deduplicate, and sort findings by priority. Keep one discrete issue per
+finding and preserve evidence and done conditions.
 
 ```markdown
 ## Code Review Findings
 
-| P | Problem | Fix Approach | Files | Done When |
-|---|---------|--------------|-------|-----------|
-| P0 | Null pointer in user lookup | Add early return with 404 | `users.ts:47` | Returns 404 for missing user |
-| P1 | Race condition in cache | Use mutex lock | `cache.ts:23` | Concurrent requests don't corrupt |
-| ... | ... | ... | ... | ... |
+| P | Problem | Fix approach | Files | Done when |
+| --- | --- | --- | --- | --- |
+| P0 | Null pointer in user lookup | Add an early 404 return | `users.ts:47` | Missing user returns 404 |
 
 **Verdict: CORRECT | NEEDS FIXES**
 ```
 
-**If no findings:** Report "No issues found" and stop.
+If no findings remain, report `CORRECT` and stop review mode.
 
-### Step 4: Validate Findings
+### 4. Validate false positives
 
-Skip this step if there are no findings (verdict is already CORRECT).
+Delegate the synthesized list to `false-positive-validator` using the persona
+in `agents/false-positive-validator.md`. Provide the exact target and working
+location. The validator may keep, downgrade, or remove findings but may not add
+new ones.
 
-Delegate to a subagent with role `false-positive-validator` (persona in `agents/false-positive-validator.md`), passing:
-- The full findings list from Step 3
-- Scope context (branch or staged)
-- Diff command used
+Replace the list with kept and downgraded findings, then report removed or
+changed findings in a collapsed validation section with evidence. If all
+findings are removed, report `CORRECT`.
 
-**Process results:**
-1. **Replace** findings list with validated results (KEPT + DOWNGRADED findings only)
-2. **Re-sort** by priority (P0 first)
-3. **Append** a collapsed details section showing what was removed or changed:
+### 5. Resolve ambiguity and produce the fix plan
+
+For each valid finding whose fix requires a real product or architecture
+choice, present the options and ask the caller to decide. Do not silently choose
+a breaking contract or high-impact behavior.
+
+Return a self-contained fix plan containing:
+
+- Target identity and reviewed revision/range
+- Priority, title, problem, fix, files, and done condition for each finding
+- Dependencies between fixes only where ordering is genuinely required
+- Validation removals and downgrades
+- Final verdict
+
+If the caller supplied an output destination, write the plan there after
+showing it. Otherwise keep the full plan inline. Do not require approval merely
+to report review findings; approval is required before entering fix mode.
+
+## Fix mode
+
+### 1. Load and validate the supplied findings
+
+Read the inline findings or exact caller-supplied reference. Confirm the target
+still matches the reviewed code; if it materially changed, explain the stale
+scope and ask whether to continue or obtain a new review.
+
+Filter by the requested priority:
+
+- `fix` or `fix all`: P0-P2
+- `fix P0`: P0 only
+- `fix P0-P1`: P0 and P1
+
+If no finding matches, report that and stop.
+
+### 2. Implement approved fixes in bounded batches
+
+Use only findings the caller approved. Select fixes whose dependencies are
+satisfied, group nearby or overlapping files under one owner, and parallelize
+only disjoint file scopes.
+
+Each subagent receives:
+
+- Complete finding details and done condition
+- Current contents of the files it may modify
+- Exact working location and ownership boundary
+- Required focused verification
+
+After each batch, inspect and integrate the diffs, run the focused checks, then
+continue with newly unblocked fixes. Do not let subagents stage, commit, publish,
+or mutate a shared plan file unless the caller explicitly asks for that action.
+
+### 3. Verify and report
+
+Run the repository's relevant type checks, lint, tests, and product verification
+after all selected fixes. Correct integration failures within the approved
+scope; do not run another deliberate code review unless the caller requests it.
+
+Return:
 
 ```markdown
-<details>
-<summary>Validation: {N} removed, {M} downgraded</summary>
+## Fix results
 
-| Finding | Verdict | Reason |
-|---------|---------|--------|
-| [P1] Title | FALSE POSITIVE | Already handled — `file.ts:32` has null check |
-| [P0 → P2] Title | DOWNGRADED | Context negates severity — `api.ts:15` validates input |
-
-</details>
+| Finding | Status | Evidence |
+| --- | --- | --- |
+| [P0] Null reference | Fixed | Focused regression test passes |
 ```
 
-4. **If all findings removed** → verdict becomes CORRECT, report "No issues found after validation" and stop
-5. Otherwise proceed to Step 5
-
-### Step 5: Resolve Ambiguous Fixes
-
-**If any fix requires a decision** (contains "Either...OR", "Option A/B", or similar patterns), interview the user to choose:
-
-```
-[P0] Plugin discovery limited to 3 hardcoded paths
-
-The fix has multiple options:
-A) Restore two-pass file fetching (more complete, adds complexity)
-B) Remove dead countCommands/countSkills functions (simpler, less data)
-
-Which approach?
-```
-
-**Process multiple ambiguous fixes** in a single interview when possible:
-- Group related decisions together
-- Show context for each choice
-- Update fixes with chosen approaches
-
-**If no ambiguous fixes**, skip to Step 6.
-
-### Step 6: Approve Fix Plan
-
-**Ask for approval:**
-- "Approve and save plan"
-- "Request changes" — revise based on feedback
-- "Open in editor" — save to `.otto/reviews/fix-plan-draft.md` for editing
-
-**On approval**, write fix plan to `.otto/reviews/fix-plan.json`:
-```json
-{
-  "version": 1,
-  "created": "{timestamp}",
-  "scope": "{scope}",
-  "branch": "{branch}",
-  "commit_sha": "{HEAD}",
-  "summary": { "p0": 0, "p1": 0, "p2": 0, "p3": 0 },
-  "verdict": "NEEDS FIXES",
-  "fixes": [
-    {
-      "id": "f1",
-      "priority": "P0",
-      "title": "Null pointer dereference in user lookup",
-      "problem": "user.profile accessed without null check",
-      "fix": "Add early return with 404 when user is null",
-      "files": [
-        { "path": "src/auth/users.ts", "line": 47, "role": "primary" },
-        { "path": "src/auth/users.test.ts", "role": "add test" }
-      ],
-      "done_when": "Returns 404 for missing user; test covers case",
-      "status": "pending",
-      "depends_on": []
-    }
-  ]
-}
-```
-
-Report: `Fix plan saved. Run review fix to implement.`
-
----
-
-## Fix Mode
-
-### Step 1: Load and Filter
-
-1. Check `.otto/reviews/fix-plan.json` exists
-   - If missing or stale (code changed): run `review` first
-2. Filter by priority argument:
-   - `fix` or `fix all`: P0-P2
-   - `fix P0`: P0 only
-   - `fix P0-P1`: P0 and P1
-3. If no matching fixes: report "No {priority} issues to fix"
-
-### Step 2: Implement in Batches
-
-**Select unblocked fixes** — where all `depends_on` are done.
-
-**Scale subagents, delegating in parallel:**
-- 1-3 fixes: 1 subagent
-- 4-7 fixes: 2 subagents
-- 8+ fixes: 3 subagents (max)
-
-Prefer fewer subagents with multiple fixes each. Single-file fixes in the same directory should always share a subagent.
-
-**Each subagent receives:**
-- Fix details (priority, problem, fix approach, files, done_when)
-- **The current contents of each file to modify** (read files before delegating to subagents to avoid per-subagent read rounds)
-- Instructions: implement fix, run `git add {files}`, mark status done in fix-plan.json
-
-**After each batch:** re-evaluate unblocked fixes, delegate the next batch, repeat until done.
-
-**Verify:** Run type check and linter after all fixes are applied. If errors relate to a fix, correct them directly (do not re-delegate to subagents). Report results.
-
-### Step 3: Commit and Cleanup
-
-1. Create commit:
-   ```
-   Fix review issues P{highest}-P{lowest}
-
-   - [P{N}] Brief description
-   - [P{N}] Brief description
-   ```
-2. Remove `.otto/reviews/fix-plan.json`
-3. Report results:
-   ```
-   ## Fix Results
-   | Issue | Status |
-   |-------|--------|
-   | [P0] Null reference | ✓ Fixed |
-   | [P1] Race condition | ✓ Fixed |
-
-   Commit: {hash}
-   ```
+If the caller supplied an output destination, update that exact destination.
+Do not create commits or delivery artifacts unless separately requested.

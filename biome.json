@@ -20,7 +20,6 @@
     "includes": [
       "**",
       "!**/node_modules",
-      "!**/.otto",
       "!**/.local",
       "!**/plugins/ottonomous"
     ]

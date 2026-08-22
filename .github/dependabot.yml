@@ -12,12 +12,3 @@ updates:
       npm-dependencies:
         patterns:
           - "*"
-
-  - package-ecosystem: "npm"
-    directory: "/skills/summary"
-    schedule:
-      interval: "weekly"
-    groups:
-      npm-dependencies:
-        patterns:
-          - "*"

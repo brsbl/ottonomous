@@ -27,12 +27,13 @@ const repoRoot = join(here, "..");
 const sourceSkills = join(repoRoot, "skills");
 const pkgRoot = join(repoRoot, "plugins", "ottonomous");
 const pkgSkills = join(pkgRoot, "skills");
+const PUBLISHED_SKILLS = ["build", "review", "spec"];
 
 const PLUGIN = {
   name: "ottonomous",
-  version: "1.0.0",
+  version: "2.0.0",
   description:
-    "Provider-agnostic skills for autonomous product development: spec, task, implement, test, review, and summarize changes.",
+    "Three independent, provider-agnostic skills for product specification, code review, and spec-driven implementation.",
   author: { name: "Bersabel Tadesse" },
   homepage: "https://github.com/brsbl/ottonomous",
   repository: "https://github.com/brsbl/ottonomous",
@@ -41,11 +42,9 @@ const PLUGIN = {
     "ottonomous",
     "product-development",
     "spec",
-    "tasks",
+    "build",
     "code-review",
-    "testing",
     "subagents",
-    "autonomous",
     "claude-code",
     "codex",
     "plugin",
@@ -60,52 +59,21 @@ const INTERFACE = {
     short_description:
       "Write a product spec through a collaborative interview with research",
     default_prompt:
-      "Use $spec to write a product specification for this idea through a collaborative interview.",
+      "Use $spec with this idea, working location, and output destination to write an independently reviewable product specification.",
   },
-  task: {
-    display_name: "Task Breakdown",
+  build: {
+    display_name: "Build",
     short_description:
-      "Break a spec into atomic, prioritized, parallelizable tasks",
+      "Build a supplied spec through bounded delegation and verification",
     default_prompt:
-      "Use $task to break this spec into atomic tasks grouped into work sessions.",
-  },
-  next: {
-    display_name: "Implement Next",
-    short_description: "Pick up and implement the next pending task or session",
-    default_prompt:
-      "Use $next to plan and implement the next pending task or session.",
-  },
-  test: {
-    display_name: "Test",
-    short_description:
-      "Lint, type check, run tests, and visually verify changes",
-    default_prompt:
-      "Use $test to lint, type check, and run the tests for these changes.",
+      "Use $build with this spec reference and working location to implement and verify it to completion.",
   },
   review: {
     display_name: "Code Review",
     short_description:
       "Multi-agent code review with P0-P2 prioritized findings",
     default_prompt:
-      "Use $review to run a multi-agent code review of the current changes.",
-  },
-  summary: {
-    display_name: "Change Summary",
-    short_description: "Synthesize changes into a user-facing HTML summary",
-    default_prompt:
-      "Use $summary to generate a semantic HTML summary of the current changes.",
-  },
-  otto: {
-    display_name: "Otto Autopilot",
-    short_description:
-      "Autonomously build an idea end-to-end: spec, tasks, implement, verify",
-    default_prompt: "Use $otto to autonomously build this idea end-to-end.",
-  },
-  reset: {
-    display_name: "Reset Workspace",
-    short_description:
-      "Clear .otto workflow artifacts (specs, tasks, sessions)",
-    default_prompt: "Use $reset to clear the .otto workflow artifacts.",
+      "Use $review with this target and output destination to run a validated P0-P2 code review.",
   },
 };
 
@@ -122,10 +90,18 @@ const EXCLUDE = new Set([
 ]);
 
 function listSkills() {
-  return readdirSync(sourceSkills, { withFileTypes: true })
+  const discovered = readdirSync(sourceSkills, { withFileTypes: true })
     .filter((d) => d.isDirectory() && !EXCLUDE.has(d.name))
     .map((d) => d.name)
     .sort();
+
+  if (JSON.stringify(discovered) !== JSON.stringify(PUBLISHED_SKILLS)) {
+    throw new Error(
+      `Expected exactly these source skills: ${PUBLISHED_SKILLS.join(", ")}. Found: ${discovered.join(", ") || "none"}`,
+    );
+  }
+
+  return discovered;
 }
 
 function yamlString(s) {
@@ -190,17 +166,17 @@ function main() {
     skills: "./skills/",
     interface: {
       displayName: "Ottonomous",
-      shortDescription: "Skills for autonomous product development",
+      shortDescription: "Independent spec, review, and build skills",
       longDescription:
-        "Codex app package for the Ottonomous product-development skills (spec, task, next, test, review, summary, otto, reset). Generated from the provider-agnostic skills in this repository.",
+        "Codex app package for three independent Ottonomous skills: spec, review, and build. Callers supply references, working locations, and output destinations; the skills require no prescribed workflow or hidden state.",
       developerName: "Bersabel Tadesse",
       category: "Productivity",
       capabilities: ["Read", "Write"],
       websiteURL: "https://github.com/brsbl/ottonomous",
       defaultPrompt: [
-        "Use $spec to write a product specification for this idea, then $task to break it into work sessions.",
-        "Use $review to run a multi-agent code review of my current changes and propose prioritized fixes.",
-        "Use $otto to autonomously build this small idea end-to-end with spec, tasks, implementation, and verification.",
+        "Use $spec with this idea, working location, and output destination to write a product specification.",
+        "Use $review with this target to run a validated P0-P2 code review.",
+        "Use $build with this spec reference and working location to implement and verify it to completion.",
       ],
     },
   };

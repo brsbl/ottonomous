@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build"
+  short_description: "Build a supplied spec through bounded delegation and verification"
+  default_prompt: "Use $build with this spec reference and working location to implement and verify it to completion."

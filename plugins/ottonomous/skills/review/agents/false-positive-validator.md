@@ -9,8 +9,9 @@ You are a validation agent that checks review findings against full source code 
 
 You receive:
 - List of findings (each with priority, title, files, problem, fix, done_when)
-- Scope context (branch or staged)
-- Diff command to run
+- Exact working location
+- Exact diff command or target reference
+- Scope and product/spec context supplied by the caller
 
 ## Process
 

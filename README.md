@@ -1,8 +1,36 @@
 # Ottonomous 🚌💨
 
-Skills for every stage of product development — spec writing, task prioritization, implementation, testing, code review, and summaries — that work in **both Claude Code and OpenAI Codex**.
+Three independently invocable product-development skills that work in both
+Claude Code and OpenAI Codex:
 
-<img width="3072" height="1428" alt="image 1 (1)" src="https://github.com/user-attachments/assets/2e8b420b-8b85-43af-9db7-764f6d4dc269" />
+- `spec` turns an idea or draft into an approved, implementation-ready product
+  specification.
+- `review` produces validated P0-P2 code-review findings and can implement
+  caller-approved fixes.
+- `build` implements a caller-supplied spec through bounded subagent work,
+  integration, and verification loops.
+
+Ottonomous is a skill collection, not a workflow engine. Callers choose the
+spec references, working locations, output destinations, and delivery boundary
+for each invocation.
+
+## Breaking migration to v2
+
+Version 2 intentionally replaces the old prescribed workflow:
+
+- `next` becomes `build`. There is no compatibility alias. `build` reads a
+  caller-supplied spec directly, delegates bounded implementation slices,
+  integrates them, verifies the result, and repeats until complete or genuinely
+  blocked.
+- `task`, `test`, `summary`, `otto`, and `reset` are removed.
+- The `.otto/` storage convention is removed. No remaining skill reads or
+  writes implicit workflow state, work lists, sessions, plans, review files, or
+  generated artifacts there.
+- Storage is caller-controlled. Supply an output destination when you want an
+  artifact saved; otherwise the skills return their result inline.
+
+Existing automation must replace the old invocations explicitly. There is no
+hidden replacement state system.
 
 ## Install
 
@@ -19,203 +47,160 @@ Skills for every stage of product development — spec writing, task prioritizat
 codex plugin marketplace add brsbl/ottonomous
 ```
 
-## Dependencies
-
-- [Claude Code](https://claude.ai/claude-code) **or** [Codex](https://openai.com/codex)
-- Node.js 18+
-- Git
-
-## Philosophy
-
-> Invocation differs per provider: Claude Code uses `/spec`, Codex uses `$spec`. Throughout these docs skills are referred to by bare name (e.g. the `spec` skill).
-
-### Subagents for Context Isolation
-
-Use subagents to isolate concerns and prevent context pollution:
-
-- **Context isolation**: Each subagent gets only what it needs, nothing more. The orchestrator agent delegates to and manages subagents
-- **Specialization**: Different expertise per agent (frontend-developer vs backend-architect, senior-code-reviewer vs architect-reviewer, test-writer, etc)
-
-### Skill/Subagent Separation
-
-Skills and subagents have distinct responsibilities:
-
-- **Skills** define *what* to hand off (file list, diff command, scope, context) and are instructions for the orchestrator agent
-- **Subagents** define *how* to process what's handed off (criteria, detection rules, output format)
-
-This keeps subagents self-contained and reusable while skills orchestrate the workflow. Skills describe delegation in tool-neutral prose so the same source runs on either provider — the runtime decides the actual model and delegation mechanics.
-
-### Swarm Orchestration
-
-Skills coordinate multiple subagents working in parallel using **background subagents** — spawning concurrent work and waiting on the results:
-
-**Coordination patterns:**
-- **Fan-out/Fan-in** — Spawn N agents, wait for all, synthesize results. Used by `review`.
-- **Batches** — Complete batch N before starting N+1 (for dependent work). Used by `review fix`.
-- **Pipeline** — Sequential handoff between specialists. Used by `otto`.
-
-**Scaling:** 1-4 items = 1 agent, 5-10 = 2-3 agents, 11+ = 3-5 agents. Group by directory or component type.
-
-### Iterative Review for Verification
-
-Every phase has explicit verification:
-
-- **Planning**: spec → spec review → user approval
-- **Implementation**: code → code review → fix → commit
-- **Verification criteria**: Each step defines "Done when..."
-- **Prioritized findings**: P0-P2 across all skills (P0 = critical, P1 = important, P2 = minor)
-
-## Recommended Workflow
-
-> Invoke skills with `/x` in Claude Code or `$x` in Codex (e.g. `/spec` or `$spec`).
-
-```
-spec                      # define requirements via interview
-  │
-  ▼
-task                      # break spec into sessions & tasks
-  │
-  ▼
-┌───────────────────┐
-│                   │
-▼                   │
-next batch          │     # implement sessions of tasks in parallel then stage results
-│                   │
-▼                   │
-test write staged   │     # generate tests, then lint/typecheck/run all
-│                   │
-▼                   │
-review staged       │     # multi-agent code review
-│                   │
-▼                   │
-review fix staged   │     # fix P0-P2 issues
-│                   │
-▼                   │
-commit ─────────────┘     # loop if more sessions/tasks
-  │
-  ▼
-summary                   # generate semantic overview of changes, opened in browser
-  │
-  ▼
- PR
-```
-
-Reset context between steps (e.g. `/clear` in Claude Code).
+Invocation differs by provider: Claude Code uses `/spec`, while Codex uses
+`$spec`. The examples below use bare skill names.
 
 ## Skills
 
-The 8 skills: `spec`, `task`, `next`, `test`, `review`, `summary`, `otto`, `reset`.
+| Skill | Caller supplies | Result |
+| --- | --- | --- |
+| `spec` | Idea or existing draft/spec reference; optional working location, format, and output destination | Researched, reviewed, user-approved spec, written only to the caller's destination or returned inline |
+| `review` | Diff, branch, staged changes, pull request, or file set; optional output destination | Parallel P0-P2 review filtered by a false-positive validator; optional fix plan or approved fixes |
+| `build` | Spec reference, working location, and delivery constraints | Integrated implementation with focused and final verification, repeated until the spec is complete or genuinely blocked |
 
-### Specification & Planning
+### `spec`
 
-| Skill | Description |
-|-------|-------------|
-| `spec [idea]` | Researches best practices, interviews you to define requirements and design. `technical-product-manager` validates completeness, consistency, feasibility, and technical correctness. |
-| `spec revise {spec}` | Saves a comprehensive spec and goes straight to review with codebase exploration, skipping the interview. |
-| `spec list` | Lists all specs with id, name, status, and created date. |
-| `task <spec-id>` | Creates atomic tasks grouped into agent sessions. `principal-engineer` reviews work breakdown, dependencies, and completeness. |
-| `task list` | Lists all tasks and their spec, sessions, status etc. |
+`spec` preserves the original quality loop without prescribing storage:
 
-### Implementation
+1. Inspect the supplied codebase or product context.
+2. Research current primary sources when external evidence matters.
+3. Interview the caller about consequential requirements and tradeoffs.
+4. Draft one canonical, decision-led spec with observable acceptance criteria.
+5. Run an independent technical-product-manager review.
+6. Resolve findings with the caller, get approval, and deliver to the supplied
+   destination or inline.
 
-| Skill | Description |
-|-------|-------------|
-| `next` | Returns next task id. |
-| `next session` | Returns next session id. |
-| `next <id>` | Launches a subagent to implement a task or session. Plans first, then implements. |
-| `next batch` | Implements all highest-priority unblocked sessions in parallel. |
+Example:
 
-### Testing
-
-| Skill | Description |
-|-------|-------------|
-| `test run` | Lint, type check, run tests. |
-| `test write` | `test-writer` generates tests for pure functions with edge cases, then runs pipeline. |
-| `test browser` | Visual verification with browser automation (a mode of the `test` skill). |
-| `test all` | Run + browser combined. |
-
-**Scope:** `staged`, `branch` (default)
-
-### Code Review
-
-| Skill | Description |
-|-------|-------------|
-| `review` | Multi-agent code review. `architect-reviewer` checks system structure and boundaries; `senior-code-reviewer` checks correctness, security, performance; `false-positive-validator` filters out invalid findings. |
-| `review fix` | Implements all fixes from plan in parallel batches. |
-| `review fix P0` | Implements only P0 (critical) fixes. |
-| `review fix P0-P1` | Implements P0 and P1 fixes. |
-
-**Scope:** `staged`, `branch` (default)
-
-### Summary
-
-| Skill | Description |
-|-------|-------------|
-| `summary` | Synthesizes code docs into a semantic HTML summary explaining what changed and why. Primarily a resource to complement or replace code review. |
-
-**Scope:** `staged`, `branch` (default)
-
-### Automation
-
-| Skill | Description |
-|-------|-------------|
-| `otto <idea>` | Autonomous spec → tasks → [next/test/review] per session → summary. Best for greenfield explorations, prototyping, scoped migrations, and simple applications. **Not recommended for building complex apps end-to-end.** |
-| `reset [targets]` | Resets workflow data. Targets: `tasks`, `specs`, `sessions`, `all` (default). |
-
-## Architecture
-
+```text
+spec: Design offline export for the dashboard. Work in /repo/dashboard.
+Write the approved spec to /docs/offline-export.md.
 ```
-skills/                      # Single source of truth — neutral SKILL.md + agent personas
-├── spec/
+
+If the destination is a Moss note or another specialized format, the skill
+uses that destination's authoring conventions. It does not assume every spec is
+a Moss note or require frontmatter.
+
+### `review`
+
+`review` preserves the existing review semantics:
+
+- Architectural and implementation reviewers inspect independent scopes in
+  parallel where useful.
+- Findings are discrete, actionable, introduced by the reviewed change, and
+  prioritized P0-P2.
+- A false-positive validator reads the full source context and keeps,
+  downgrades, or removes findings without inventing new ones.
+- Fix mode operates only on caller-supplied, caller-approved findings. It
+  integrates and verifies fixes without implicitly staging or committing them.
+
+Examples:
+
+```text
+review the current branch against its merge base
+review staged; save the findings to /tmp/review.md
+review fix using /tmp/review.md, P0-P1 only
+```
+
+### `build`
+
+`build` is a lightweight implementation loop rather than a work-list runner:
+
+```text
+caller-supplied spec
+        │
+        ▼
+choose a bounded slice
+        │
+        ▼
+delegate to a scoped subagent
+        │
+        ▼
+inspect and integrate the diff
+        │
+        ▼
+run focused verification
+        │
+        └──── repeat against unmet spec criteria
+        │
+        ▼
+final repository and product verification
+```
+
+The orchestrator keeps the completion checklist in active context. It does not
+create state, planning, work, or session files unless the caller explicitly
+provides an output destination. Branches, commits, pull requests, publishing,
+and releases are outside the skill's authority unless separately requested.
+
+Example:
+
+```text
+build the spec at /docs/offline-export.md in /repo/dashboard; stop after
+verified local implementation
+```
+
+## Design principles
+
+### Independent invocation
+
+Each skill resolves its own caller-supplied inputs and can run without either
+of the other skills. There is no required sequence or implicit handoff.
+
+### Caller-controlled storage
+
+Returning a result inline is the default. A skill writes only to a destination
+provided by the caller and never creates a hidden registry, duplicate copy,
+symlink, or resumable workflow store.
+
+### Bounded delegation
+
+Skills use subagents for context isolation and independent judgment. Every
+handoff names the exact reference, working location, ownership boundary, done
+condition, and verification. The orchestrator owns integration and does not
+treat a subagent success report as proof.
+
+## Repository architecture
+
+```text
+skills/                              # Neutral source of truth
+├── build/
 │   ├── SKILL.md
 │   └── agents/
-│       └── technical-product-manager.md  # Spec validation (completeness, feasibility)
-├── task/
-│   ├── SKILL.md
-│   └── agents/
-│       └── principal-engineer.md         # Task decomposition review
-├── next/
-│   ├── SKILL.md
-│   └── agents/                           # Implementation agents
-│       ├── frontend-developer.md
-│       └── backend-architect.md
-├── test/
-│   ├── SKILL.md
-│   └── agents/
-│       └── test-writer.md                # Test generation
+│       └── implementation-worker.md
 ├── review/
 │   ├── SKILL.md
-│   └── agents/                           # Code review agents
-│       ├── architect-reviewer.md         # Architectural issues
-│       ├── senior-code-reviewer.md       # Implementation issues
-│       └── false-positive-validator.md   # Validates and filters review findings
-├── summary/
-│   ├── SKILL.md
-│   └── scripts/md-to-html.js
-├── otto/
-│   └── SKILL.md
-└── reset/
-    └── SKILL.md
+│   └── agents/
+│       ├── architect-reviewer.md
+│       ├── false-positive-validator.md
+│       └── senior-code-reviewer.md
+└── spec/
+    ├── SKILL.md
+    └── agents/
+        └── technical-product-manager.md
 
-.otto/                       # Workflow artifacts (git-ignored)
-├── specs/                   # Specification documents (.md)
-├── tasks/                   # Sessions and tasks (.json)
-├── reviews/                 # Review fix plans (.json)
-├── summaries/               # Generated HTML summaries
-└── otto/
-    └── sessions/            # Otto session state (state.json)
+plugins/ottonomous/                  # Generated Codex package
+scripts/build-codex-plugin.mjs       # Package generator
+scripts/validate-skills.mjs          # Three-skill contract validator
+.claude-plugin/                      # Claude Code manifests
+.codex-plugin/                       # Codex root compatibility manifest
+.agents/plugins/                     # Codex marketplace entry
 ```
 
-### Provider-agnostic layout
+`skills/` is the provider-agnostic source. `npm run build` regenerates
+`plugins/ottonomous/`, including each skill's Codex `agents/openai.yaml`.
+Never hand-edit the generated package.
 
-`skills/` is the **single source of truth**: each `SKILL.md` is neutral (no `model:` or `allowed-tools:`), and agent personas describe delegation in tool-neutral prose. From this one source, both providers are wired up:
+## Development
 
-- **`skills/`** — neutral source skills and agent personas, read directly by Claude Code.
-- **`scripts/build-codex-plugin.mjs`** (`npm run build`) — generates the Codex app package at **`plugins/ottonomous/`** by copying the skills and emitting a per-skill `agents/openai.yaml` Codex interface file.
-- **`.claude-plugin/`** — Claude Code manifests (`plugin.json` points `skills` at `./skills` and lists the agent dirs; `marketplace.json`). Claude Code ignores the generated `openai.yaml` files.
-- **`.codex-plugin/`** + **`.agents/plugins/`** — Codex manifests. The root `.codex-plugin/plugin.json` is a compatibility manifest, and `.agents/plugins/marketplace.json` points at `./plugins/ottonomous`.
+Requires Node.js 18+ and Git.
 
-The Codex package under `plugins/ottonomous/` is **generated, never hand-edited** — regenerate it with `npm run build` whenever `skills/` changes. This one-source-regenerate-the-mirror approach (modeled on the moss-skills repo) is the anti-drift mechanism.
+```bash
+npm ci
+npm run build       # Regenerate the Codex package
+npm run validate    # Validate the exact three-skill surface and manifests
+npm test            # Run focused contract tests
+npm run lint        # Check repository formatting and lint rules
+```
 
 ## Feedback
 
