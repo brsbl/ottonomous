@@ -82,7 +82,7 @@ const INTERFACE = {
     short_description:
       "Align on a change's problem, outcomes, trade-offs, and implications",
     default_prompt:
-      "Use $summary with this change target, working location, and output destination to write a decision-focused Moss change summary.",
+      "Use $summary to summarize the current pull request or branch as a decision-focused Moss review brief.",
   },
 };
 
@@ -178,7 +178,7 @@ function main() {
       displayName: "Ottonomous",
       shortDescription: "Independent spec, review, build, and summary skills",
       longDescription:
-        "Codex app package for four independent Ottonomous skills: spec, review, build, and Moss change summary. Callers supply references, working locations, and output destinations; the skills require no prescribed workflow or hidden state.",
+        "Codex app package for four independent Ottonomous skills: spec, review, build, and Moss change summary. Skills use explicit caller context or the active repository context without requiring a prescribed workflow or hidden state.",
       developerName: "Bersabel Tadesse",
       category: "Productivity",
       capabilities: ["Read", "Write"],
@@ -187,7 +187,7 @@ function main() {
         "Use $spec with this idea, working location, and output destination to write a product specification.",
         "Use $review with this target to run a validated P0-P2 code review.",
         "Use $build with this spec reference and working location to implement and verify it to completion.",
-        "Use $summary with this change target, working location, and output destination to write a decision-focused Moss change summary.",
+        "Use $summary to summarize the current pull request or branch as a decision-focused Moss review brief.",
       ],
     },
   };

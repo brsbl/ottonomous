@@ -12,9 +12,9 @@ Claude Code and OpenAI Codex:
 - `summary` explains a code change in a decision-focused Moss Markdown note for
   reviewers who care about outcomes and platform implications, not code tours.
 
-Ottonomous is a skill collection, not a workflow engine. Callers choose the
-spec references, working locations, output destinations, and delivery boundary
-for each invocation.
+Ottonomous is a skill collection, not a workflow engine. Each skill uses
+explicit caller context when provided and otherwise works from the active
+repository or conversation without imposing a shared sequence or state store.
 
 ## Breaking migration to v2
 
@@ -63,7 +63,7 @@ Invocation differs by provider: Claude Code uses `/spec`, while Codex uses
 | `spec` | Idea or existing draft/spec reference, output destination, and optional working location and format | Researched and independently reviewed spec written to the caller's destination, followed by a link |
 | `review` | Diff, branch, staged changes, pull request, or file set; optional output destination | Parallel P0-P2 review filtered by a false-positive validator; optional fix plan or approved fixes |
 | `build` | Spec reference, working location, and delivery constraints | Integrated implementation with focused and final verification, repeated until the spec is complete or genuinely blocked |
-| `summary` | Change target, working location, output Moss note, and optional audience emphasis | Decision-focused Moss brief covering problem alignment, outcomes, trade-offs, and platform implications |
+| `summary` | Current or explicit change target; optional problem context and review lens | Inline Moss brief covering problem alignment, outcomes, trade-offs, and platform implications; optional caller-selected note |
 
 ### `spec`
 
@@ -151,13 +151,15 @@ verified local implementation
 `summary` preserves the original emphasis on why a change matters while making
 the result native to Moss:
 
-- It resolves the caller's exact pull request, branch, commit range, staged
-  diff, or file set rather than assuming a fixed base branch.
+- It uses an explicit pull request, branch, commit range, diff, or file set when
+  provided; otherwise it infers the current pull request or branch and resolves
+  the real merge base.
 - It reads the complete diff and relevant source context, then explains product
   outcome, documented friction, trade-offs, platform implications,
   compatibility, and verification.
-- It writes one Moss Markdown note using the bundled
-  `templates/moss-summary.md` file.
+- It returns the complete Moss Markdown summary inline by default. When the
+  caller explicitly supplies a Markdown path, it writes one note there using
+  the bundled `templates/moss-summary.md` file.
 - Native Moss Markdown leads with the problem statement and alignment check,
   then records the outcome, documented implementation issues, trade-offs,
   platform implications, migration, validation, and complete change inventory.
@@ -173,8 +175,7 @@ the result native to Moss:
 Example:
 
 ```text
-summary pull request #68 in /repo/ottonomous; write the Moss note to
-~/Moss/Notes/Ottonomous PR 68/Ottonomous PR 68.md
+summarize this PR for product review
 ```
 
 ## Design principles
@@ -186,10 +187,11 @@ the other skills. There is no required sequence or implicit handoff.
 
 ### Caller-controlled storage
 
-`spec` and `summary` require caller-selected destinations because their final
-outputs are written artifacts. Other skills return results inline by default.
-A skill writes only to a caller-provided destination and never creates a hidden
-registry, duplicate copy, symlink, or resumable workflow store.
+`spec` requires a caller-selected destination because its final output is a
+written artifact. `review`, `build`, and `summary` return results inline by
+default. When a caller asks one of them to write a file, the skill uses only the
+supplied destination and never creates a hidden registry, duplicate copy,
+symlink, or resumable workflow store.
 
 ### Bounded delegation
 

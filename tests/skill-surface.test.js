@@ -92,7 +92,14 @@ describe("standalone contracts", () => {
 
     expect(summary).toMatch(/align on the problem first/i);
     expect(summary).toMatch(/templates\/moss-summary\.md/);
-    expect(summary).toMatch(/caller-selected Moss Markdown file/);
+    expect(summary).toMatch(
+      /return the complete Moss Markdown summary inline by default/i,
+    );
+    expect(summary).toMatch(
+      /pull request attached to the current bb thread or branch/i,
+    );
+    expect(summary).not.toMatch(/\*\*Working location:\*\*/);
+    expect(summary).not.toMatch(/\*\*Output destination:\*\*/);
     expect(summary).toMatch(/every changed file/i);
     expect(summary).toMatch(/problem the change claims to solve/i);
     expect(summary).toMatch(/performance, security, privacy/i);

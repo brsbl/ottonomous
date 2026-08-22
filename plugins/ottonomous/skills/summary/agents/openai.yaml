@@ -1,4 +1,4 @@
 interface:
   display_name: "Moss Summary"
   short_description: "Align on a change's problem, outcomes, trade-offs, and implications"
-  default_prompt: "Use $summary with this change target, working location, and output destination to write a decision-focused Moss change summary."
+  default_prompt: "Use $summary to summarize the current pull request or branch as a decision-focused Moss review brief."

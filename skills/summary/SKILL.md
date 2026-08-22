@@ -1,7 +1,7 @@
 ---
 name: summary
-description: "Creates a decision-focused Moss change summary for reviewers who care about the problem, outcomes, trade-offs, and platform implications more than code structure. Use for pull-request summaries, release notes, branch or diff overviews, implementation handoffs, and explanations of what changed and why it matters. Accepts a caller-supplied change target, working location, and output destination; it does not require a repository layout or persistent workflow state."
-argument-hint: "[change target] [working location] [output destination]"
+description: "Creates a decision-focused Moss change summary for reviewers who care about the problem, outcomes, trade-offs, and platform implications more than code structure. Use for pull-request summaries, release notes, branch or diff overviews, implementation handoffs, and explanations of what changed and why it matters. Inspect an explicit change target or infer the current pull request or branch context, then return Moss Markdown inline unless the caller asks for a file."
+argument-hint: "[PR, branch, range, or diff] [optional issue/spec context]"
 ---
 
 # Summary
@@ -10,22 +10,35 @@ Turn a code change into a durable Moss decision brief that lets a reviewer
 align on the problem first, then judge the outcome, trade-offs, platform
 implications, and evidence without reading the code.
 
-## 1. Resolve the caller's inputs
+## 1. Resolve the change and its evidence
 
-Identify:
+Use an explicit pull request, branch, commit range, supplied diff, or file set
+when the caller names one. Otherwise infer the review target from the active
+context in this order:
 
-- **Change target:** pull request, branch and merge base, commit range, staged
-  changes, supplied diff, or explicit file set
-- **Working location:** repository or other source context to inspect
-- **Output destination:** exact caller-selected Moss Markdown file
-- **Audience and emphasis:** optional reviewer, product, release, or handoff
-  focus
+1. the pull request attached to the current bb thread or branch;
+2. the current branch against its repository-resolved merge base;
+3. staged or unstaged changes only when the request clearly refers to the
+   current uncommitted work.
 
-Ask only for inputs that block accurate work. Never assume `main` is the merge
-base when repository or pull-request metadata can identify it. If the output
-destination is missing, ask for it before drafting.
+Do not ask the caller for a repository path when the active working directory,
+thread, or pull-request metadata already identifies the source. Ask a concise
+question only when there is no inspectable change or more than one plausible
+target. Never assume `main` is the merge base when repository or pull-request
+metadata can identify it.
 
-Use exactly the destination the caller supplies. Do not create a summary
+Identify the evidence that frames the review:
+
+- **Problem evidence:** pull-request description, linked issue or spec, commit
+  intent, user report, or explicit caller context
+- **Review lens:** optional product, release, risk, or handoff emphasis
+- **Delivery:** return the complete Moss Markdown summary inline by default; if
+  the caller supplies an exact Markdown path or explicitly asks for a note,
+  write there and return a link
+
+Lack of an authoritative problem statement is not a reason to ask for storage
+or workflow setup. Infer the most defensible problem from the available
+evidence and label it as inferred. Never invent an output path, summary
 registry, fixed directory, hidden state, duplicate HTML file, sidecar, symlink,
 or resumable workflow record.
 
@@ -92,9 +105,10 @@ editable, and commentable without activating an HTML node.
 
 ## 4. Populate the Moss template
 
-Read the complete bundled `templates/moss-summary.md` file before writing. Copy
-its structure into the caller's destination and replace every `{{TOKEN}}` with
-evidence from the inspected change. Duplicate or remove table rows as needed.
+Read the complete bundled `templates/moss-summary.md` file before writing. Use
+its structure for the inline response or caller-selected note and replace every
+`{{TOKEN}}` with evidence from the inspected change. Duplicate or remove table
+rows as needed.
 
 The platform-implications table is mandatory and always keeps these five rows:
 performance, security, privacy, extensibility/future-proofing, and
@@ -118,9 +132,9 @@ Remove all unused optional sections, example rows, instructional comments, and
 placeholder tokens. Keep exactly one Markdown H1. Do not create
 or edit Moss-owned `meta.json`, `.folder.json`, `layout.json`, or other sidecars.
 
-## 5. Verify the written note
+## 5. Verify the summary
 
-Read the destination back and confirm:
+Read the completed summary back and confirm:
 
 - it has one H1 followed by a problem-alignment callout before implementation
   or background detail;
@@ -140,6 +154,7 @@ and evidence checks; do not launch a Moss app merely to verify note content.
 
 ## 6. Hand off the summary
 
-Return a clickable link to the caller-selected Moss note plus one short clause
-for any material evidence limitation. Do not open a browser, create a separate
-HTML artifact, or start another workflow unless the caller separately asks.
+When delivery is inline, return the complete Moss Markdown summary. When the
+caller selected a note path, return a clickable link plus one short clause for
+any material evidence limitation. Do not open a browser, create a separate HTML
+artifact, or start another workflow unless the caller separately asks.

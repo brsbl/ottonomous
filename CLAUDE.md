@@ -28,9 +28,9 @@ Version 2 is an intentional breaking migration:
   replaced by a caller-selected Moss note and bundled template.
 - The former `.otto/` convention is removed. No source skill, generated skill,
   manifest, build step, or test may depend on it.
-- Storage is caller-controlled. `spec` and `summary` require destinations for
-  their written handoffs; other skills default to inline output when none is
-  supplied.
+- Storage is caller-controlled. `spec` requires a destination for its written
+  handoff. `review`, `build`, and `summary` default to inline output and write a
+  file only when the caller supplies a path.
 
 Keep this migration prominent in README and pull-request release notes. Do not
 reintroduce compatibility aliases or an equivalent hidden state system.
@@ -84,8 +84,10 @@ source context, explain product outcome and implementation meaning, identify
 high-leverage review areas and subtle risks, make breaking changes prominent,
 record validation accurately, and account for every changed file.
 
-Write one Moss Markdown note to the exact caller-selected destination. Start
-from `templates/moss-summary.md`: native Moss Markdown owns problem alignment,
+Infer the current pull request or branch when the caller does not name a change
+target. Return the complete Moss Markdown summary inline by default; write a
+note only when the caller supplies an exact path. Start from
+`templates/moss-summary.md`: native Moss Markdown owns problem alignment,
 outcome, documented issues, trade-offs, platform implications, migration,
 validation, and evidence. Always assess performance, security, privacy,
 extensibility/future-proofing, and maintainability. Use `moss-html` only for a
