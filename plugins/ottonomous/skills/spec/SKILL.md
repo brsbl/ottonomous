@@ -1,6 +1,6 @@
 ---
 name: spec
-description: "Writes high-quality product specifications through codebase research, web research, a collaborative requirements interview, independent review, and user approval. Use when planning a feature, defining requirements, revising an existing draft, or creating a spec/PRD. Accepts caller-supplied source references, working locations, formats, and output destinations; it does not require a repository layout or persistent workflow state."
+description: "Writes high-quality product specifications through codebase research, web research, a collaborative requirements interview, and independent review, then gives the user a link to the written spec. Use when planning a feature, defining requirements, revising an existing draft, or creating a spec/PRD. Accepts caller-supplied source references, working locations, formats, and output destinations; it does not require a repository layout or persistent workflow state."
 argument-hint: "[idea or existing draft/spec reference] [working location] [output destination]"
 ---
 
@@ -15,15 +15,15 @@ Identify these inputs from the caller's request:
 
 - **Source:** product idea, inline draft, or existing spec reference
 - **Working location:** codebase or context to research
-- **Output destination:** optional caller-selected file or external destination
+- **Output destination:** caller-selected file or external destination
 - **Format constraints:** optional template, frontmatter, note system, or style
 
-Ask only for information that blocks useful progress. If the caller omits an
-output destination, return the approved spec inline and do not write a file.
-Never invent a spec registry, fixed directory, hidden state file, duplicate
-copy, or symlink. If the caller supplies a destination, use exactly that
-destination and keep any supporting assets beside it or in a caller-selected
-asset location.
+Ask only for information that blocks useful progress. An existing spec file can
+serve as its own destination. Otherwise, if the caller omits an output
+destination, ask for one before drafting. Never invent a spec registry, fixed
+directory, hidden state file, duplicate copy, or symlink. Use exactly the
+caller-selected destination and keep any supporting assets beside it or in a
+caller-selected asset location.
 
 When revising an existing file, read it completely before editing. Preserve
 user-authored content, required metadata, comments, links, and layout unless a
@@ -90,7 +90,7 @@ Adapt the structure to the feature, but cover these concerns when relevant:
 ```markdown
 # {Name}
 
-> {One sentence: what approving and building this spec means, plus any open decision.}
+> {One sentence: what building this spec means, plus any open decision.}
 
 **Proposal:** {One plain sentence describing the change.}
 
@@ -145,24 +145,25 @@ technical correctness, simplicity, and acceptance criteria. Wait for its P0-P2
 findings.
 
 Validate each finding against the draft and source context. Discard false
-positives. For valid findings, apply unambiguous corrections and ask the caller
-to decide genuine product alternatives. Do not silently choose a breaking
-contract or architecture decision.
+positives. Apply unambiguous corrections directly. Ask the caller only when a
+valid finding exposes a genuine product alternative that cannot be resolved
+from the interview or source context. Do not silently choose a breaking contract
+or architecture decision.
 
-## 6. Get approval and deliver
+## 6. Write and link the spec
 
-Present the full revised spec for approval. Offer focused choices:
+Write the complete reviewed spec to the exact caller-selected destination. Then
+read it back to verify that the write succeeded and that the destination
+contains the complete canonical spec.
 
-- **Approve**
-- **Request changes**
-- **Choose an unresolved alternative**, when one remains
+Do not present the full spec inline, ask for confirmation, or propose a next
+workflow. The user can open the written artifact and decide what to do from
+there.
 
-After each revision, present the complete updated spec again. On approval:
+End with only a clickable link to the written spec:
 
-- If the caller supplied an output destination, write or update that exact
-  destination and report it.
-- Otherwise, return the complete approved spec inline.
+```markdown
+[Open the spec]({destination link})
+```
 
-Report the source/context used, decisions still open, and any research or
-codebase limitation that affects confidence. Do not start implementation or
-create additional workflow artifacts unless the caller separately requests it.
+Do not start implementation or create additional workflow artifacts.

@@ -3,8 +3,8 @@
 Three independently invocable product-development skills that work in both
 Claude Code and OpenAI Codex:
 
-- `spec` turns an idea or draft into an approved, implementation-ready product
-  specification.
+- `spec` turns an idea or draft into a reviewed, implementation-ready product
+  specification and returns a link to the written artifact.
 - `review` produces validated P0-P2 code-review findings and can implement
   caller-approved fixes.
 - `build` implements a caller-supplied spec through bounded subagent work,
@@ -26,8 +26,9 @@ Version 2 intentionally replaces the old prescribed workflow:
 - The `.otto/` storage convention is removed. No remaining skill reads or
   writes implicit workflow state, work lists, sessions, plans, review files, or
   generated artifacts there.
-- Storage is caller-controlled. Supply an output destination when you want an
-  artifact saved; otherwise the skills return their result inline.
+- Storage is caller-controlled. `spec` writes to the caller-supplied destination
+  and ends with its link; the other skills return results inline unless the
+  caller supplies a destination.
 
 Existing automation must replace the old invocations explicitly. There is no
 hidden replacement state system.
@@ -54,7 +55,7 @@ Invocation differs by provider: Claude Code uses `/spec`, while Codex uses
 
 | Skill | Caller supplies | Result |
 | --- | --- | --- |
-| `spec` | Idea or existing draft/spec reference; optional working location, format, and output destination | Researched, reviewed, user-approved spec, written only to the caller's destination or returned inline |
+| `spec` | Idea or existing draft/spec reference, output destination, and optional working location and format | Researched and independently reviewed spec written to the caller's destination, followed by a link |
 | `review` | Diff, branch, staged changes, pull request, or file set; optional output destination | Parallel P0-P2 review filtered by a false-positive validator; optional fix plan or approved fixes |
 | `build` | Spec reference, working location, and delivery constraints | Integrated implementation with focused and final verification, repeated until the spec is complete or genuinely blocked |
 
@@ -67,14 +68,14 @@ Invocation differs by provider: Claude Code uses `/spec`, while Codex uses
 3. Interview the caller about consequential requirements and tradeoffs.
 4. Draft one canonical, decision-led spec with observable acceptance criteria.
 5. Run an independent technical-product-manager review.
-6. Resolve findings with the caller, get approval, and deliver to the supplied
-   destination or inline.
+6. Apply validated findings, write to the supplied destination, and return only
+   a link to the finished spec.
 
 Example:
 
 ```text
 spec: Design offline export for the dashboard. Work in /repo/dashboard.
-Write the approved spec to /docs/offline-export.md.
+Write the spec to /docs/offline-export.md.
 ```
 
 If the destination is a Moss note or another specialized format, the skill
@@ -148,9 +149,10 @@ of the other skills. There is no required sequence or implicit handoff.
 
 ### Caller-controlled storage
 
-Returning a result inline is the default. A skill writes only to a destination
-provided by the caller and never creates a hidden registry, duplicate copy,
-symlink, or resumable workflow store.
+`spec` requires a caller-selected destination because its final handoff is a
+link to the written artifact. Other skills return results inline by default. A
+skill writes only to a caller-provided destination and never creates a hidden
+registry, duplicate copy, symlink, or resumable workflow store.
 
 ### Bounded delegation
 

@@ -35,13 +35,15 @@ describe("published skill surface", () => {
 });
 
 describe("standalone contracts", () => {
-  it("preserves the spec research, interview, review, and approval loop", () => {
+  it("writes the researched and reviewed spec, then hands off only its link", () => {
     const spec = readSkill("spec");
 
     expect(spec).toMatch(/Research the problem/);
     expect(spec).toMatch(/Interview for consequential decisions/);
     expect(spec).toMatch(/technical-product-manager/);
-    expect(spec).toMatch(/Get approval and deliver/);
+    expect(spec).toMatch(/Write and link the spec/);
+    expect(spec).toMatch(/\[Open the spec\]\(\{destination link\}\)/);
+    expect(spec).not.toMatch(/approv/i);
     expect(spec).toMatch(/output destination/i);
   });
 

@@ -4,7 +4,8 @@
 
 Ottonomous publishes exactly three provider-agnostic skills:
 
-- `spec` creates or revises a researched, independently reviewed product spec.
+- `spec` creates or revises a researched, independently reviewed product spec,
+  writes it to the caller's destination, and ends with a link.
 - `review` runs parallel P0-P2 code review, validates false positives, and can
   implement caller-approved fixes.
 - `build` implements a caller-supplied spec through bounded delegation,
@@ -24,8 +25,8 @@ Version 2 is an intentional breaking migration:
   removed.
 - The former `.otto/` convention is removed. No source skill, generated skill,
   manifest, build step, or test may depend on it.
-- Storage is caller-controlled. Inline output is the default when no
-  destination is supplied.
+- Storage is caller-controlled. `spec` requires a destination for its link-only
+  handoff; other skills default to inline output when none is supplied.
 
 Keep this migration prominent in README and pull-request release notes. Do not
 reintroduce compatibility aliases or an equivalent hidden state system.
@@ -36,12 +37,14 @@ reintroduce compatibility aliases or an equivalent hidden state system.
 
 Preserve its quality loop: working-context inspection, current primary-source
 research when needed, collaborative requirements interview, one canonical
-decision-led spec, technical-product-manager review, user resolution of genuine
-decisions, and approval before delivery.
+decision-led spec, technical-product-manager review, and user resolution of
+genuine decisions before delivery.
 
 The source may be an idea, inline draft, or exact reference. The destination
-and format are caller-supplied. Without a destination, return the approved spec
-inline and write nothing.
+and format are caller-supplied; an existing spec can be its own destination.
+If no destination is available, ask for one before drafting. Write the complete
+reviewed spec there, verify it, and end with only a clickable link. Do not show
+the full spec inline or request a sign-off.
 
 ### `review`
 
