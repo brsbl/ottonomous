@@ -1,9 +1,11 @@
 {
   "name": "ottonomous",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "node scripts/build-codex-plugin.mjs",
+    "validate": "node scripts/validate-skills.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

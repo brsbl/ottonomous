@@ -1,172 +1,144 @@
-# Ottonomous - Provider-Agnostic Skills for Product Development
+# Ottonomous repository guide
 
-## Project Overview
+## Product contract
 
-Ottonomous is a **provider-agnostic** plugin for structured product development. The same skills install into **both Claude Code and OpenAI Codex**. It operates in two modes:
+Ottonomous publishes exactly three provider-agnostic skills:
 
-1. **Independent Skills** - Use individual skills (`spec`, `task`, `review`, etc.) for specific tasks
-2. **Autonomous Workflow** - Use `otto` to run the full development loop automatically
+- `spec` creates or revises a researched, independently reviewed product spec.
+- `review` runs parallel P0-P2 code review, validates false positives, and can
+  implement caller-approved fixes.
+- `build` implements a caller-supplied spec through bounded delegation,
+  integration, and repeated verification.
 
-> Invocation differs per provider: Claude Code uses `/spec`, Codex uses `$spec`. Skills are referred to by bare name below.
+Each skill is independently invocable. Do not introduce a required sequence,
+fixed working directory, implicit artifact location, resumable workflow state,
+or hidden persistence. Callers provide references, working locations, output
+destinations, and delivery constraints.
 
-### Core Skills
-- `spec` - Create product specifications
-- `task` - Generate implementation tasks from specs
-- `next` - Pick up and implement the next pending task
-- `test` - Run and verify tests (lint, type check, tests, visual `browser` mode)
-- `review` - Code review with prioritized findings
-- `summary` - Create a user-facing change summary
-- `reset` - Clear workflow artifacts
-- `otto` - Autopilot that chains the full loop end-to-end
+## Compatibility boundary
 
-## Core Philosophy
+Version 2 is an intentional breaking migration:
 
-### Subagents for Context Isolation
+- The former `next` surface is replaced by `build` without an alias.
+- The former planning, testing, summarization, autopilot, and reset skills are
+  removed.
+- The former `.otto/` convention is removed. No source skill, generated skill,
+  manifest, build step, or test may depend on it.
+- Storage is caller-controlled. Inline output is the default when no
+  destination is supplied.
 
-Use subagents to isolate concerns and prevent context pollution:
+Keep this migration prominent in README and pull-request release notes. Do not
+reintroduce compatibility aliases or an equivalent hidden state system.
 
-- **Context isolation**: Each subagent gets only what it needs, nothing more. Orchestrator agent delegates to and manages subagent
-- **Specialization**: Different expertise per agent (frontend-developer vs backend-architect, senior-code-reviewer vs architect-reviewer, test-writer, etc)
+## Skill behavior
 
-### Skill/Subagent Separation
+### `spec`
 
-Skills and subagents have distinct responsibilities:
+Preserve its quality loop: working-context inspection, current primary-source
+research when needed, collaborative requirements interview, one canonical
+decision-led spec, technical-product-manager review, user resolution of genuine
+decisions, and approval before delivery.
 
-- **Skills** define *what* to hand off (file list, diff command, scope, context) and are instructions for the Orchestrator agent
-- **Subagents** define *how* to process what's handed off (criteria, detection rules, output format)
+The source may be an idea, inline draft, or exact reference. The destination
+and format are caller-supplied. Without a destination, return the approved spec
+inline and write nothing.
 
-This keeps subagents self-contained and reusable while skills orchestrate the workflow. Delegation is described in tool-neutral prose so the same source runs on either provider — the runtime decides the model and delegation mechanics.
+### `review`
 
-### Swarm Orchestration
+Preserve the review semantics:
 
-Skills coordinate multiple subagents working in parallel using **background subagents** — spawning concurrent work and waiting on the results:
+- Architectural and implementation scopes may run in parallel.
+- Findings use P0-P2 and must be concrete, actionable, and introduced by the
+  reviewed change.
+- The false-positive validator reads full source context and never adds new
+  findings.
+- Fix mode uses caller-supplied, caller-approved findings and verifies the
+  integrated result.
 
-**Coordination patterns:**
-- **Fan-out/Fan-in** — Spawn N agents, wait for all, synthesize results. Used by `review`.
-- **Batches** — Complete batch N before starting N+1 (for dependent work). Used by `review fix`.
-- **Pipeline** — Sequential handoff between specialists. Used by `otto`.
+Review output is inline unless the caller supplies a destination. Do not stage,
+commit, or publish fixes unless separately requested.
 
-**Scaling:** 1-4 items = 1 agent, 5-10 = 2-3 agents, 11+ = 3-5 agents. Group by directory or component type.
+### `build`
 
-### Iterative Review for Verification
+The spec is the completion contract. The orchestrator keeps an in-context list
+of unmet acceptance criteria, chooses the next bounded slice, delegates it with
+an explicit ownership boundary and done condition, integrates the returned
+diff, runs focused verification, and repeats. It owns final repository and
+product verification.
 
-Every phase has explicit verification:
+Do not require generated work lists, sessions, plan files, status files, or a
+particular repository layout. Do not create branches, commits, pull requests,
+or releases unless the caller explicitly includes them.
 
-- **Planning**: spec → spec review → user approval
-- **Implementation**: code → code review → fix → commit
-- **Verification criteria**: Each step defines "Done when..."
-- **Prioritized findings**: P0-P2 across all skills (P0 = critical, P1 = important, P2 = minor)
+## Provider-agnostic source and generated package
 
-## Provider-agnostic structure & build
-
-`skills/` is the **neutral single source of truth**. Each `SKILL.md` carries only `name` / `description` / `argument-hint` frontmatter (no `model:`, no `allowed-tools:`), and agent personas carry only `name` / `description` (no `model`, no `color`). Subagent delegation is written in tool-neutral prose. The agent/runtime decides the model and delegation mechanics at run time.
-
-- **Claude Code** reads `skills/` directly via `.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json`, ignoring the generated `openai.yaml` files.
-- **Codex** reads the generated package at `plugins/ottonomous/` via `.codex-plugin/plugin.json` (root compat manifest) and `.agents/plugins/marketplace.json` (which points to `./plugins/ottonomous`).
-
-**Build:** `npm run build` (`scripts/build-codex-plugin.mjs`) regenerates the Codex package under `plugins/ottonomous/` from `skills/` — copying the skills and emitting a per-skill `agents/openai.yaml` Codex interface file.
-
-**Never hand-edit `plugins/ottonomous/`** — it is generated. Edit `skills/`, then rebuild. This one-source-regenerate-the-mirror flow is the anti-drift mechanism, mirroring the moss-skills approach.
-
-## Claude Code Plugin Development
-
-Essential documentation for plugin development:
-
-- **Skills**: https://code.claude.com/docs/en/skills
-- **Subagents**: https://code.claude.com/docs/en/sub-agents
-- **Plugins**: https://code.claude.com/docs/en/plugins
-- **Plugin Reference**: https://code.claude.com/docs/en/plugins-reference
-- **Hooks**: https://code.claude.com/docs/en/hooks
-- **Memory**: https://code.claude.com/docs/en/memory
-
-## Skill Structure Conventions
-
-### SKILL.md Frontmatter
+`skills/` is the single source of truth. Keep `SKILL.md` frontmatter neutral:
 
 ```yaml
 ---
-name: skill-name           # lowercase with hyphens
-description: ...           # when to use, what it does
-argument-hint: [arg]       # autocomplete hint
+name: skill-name
+description: What the skill does and when to use it
+argument-hint: "[caller inputs]"
 ---
 ```
 
-Keep frontmatter neutral: no `model:` and no `allowed-tools:`. The runtime selects the model.
+Do not add provider-specific model or tool declarations. Describe delegation
+in tool-neutral prose; the runtime chooses the available subagent mechanism.
 
-### Skill Content Pattern
+Claude Code reads `skills/` through `.claude-plugin/plugin.json`. Codex reads
+the generated `plugins/ottonomous/` package. `scripts/build-codex-plugin.mjs`
+copies the three source skills, rewrites persona references for Codex, and emits
+per-skill `agents/openai.yaml` metadata.
 
-1. **Argument capture**: `**Argument:** $ARGUMENTS`
-2. **Command table**: if skill has multiple modes (list vs create)
-3. **Workflow sections**: numbered steps with clear conditions
-4. **Verification**: how to check each step succeeded
-5. **Next steps**: what skill to run next
+Never hand-edit `plugins/ottonomous/`. Run `npm run build` after any source
+skill or packaging change.
 
-### Variable Substitutions
+## Subagent conventions
 
-- `$ARGUMENTS` - all arguments passed
-- `$0`, `$1` - positional arguments
-- `${CLAUDE_SESSION_ID}` - current session ID
-
-## Subagent Conventions
-
-### Location
-
-`skills/{skill-name}/agents/{agent-name}.md`
-
-### Frontmatter
+Personas live at `skills/{skill}/agents/{name}.md` with neutral frontmatter:
 
 ```yaml
 ---
 name: agent-name
-description: When to use this agent (include "PROACTIVELY" for auto-use)
+description: When and why this persona is used
 ---
 ```
 
-Keep persona frontmatter neutral: no `model` and no `color`. Describe delegation in tool-neutral prose so the source works on both providers.
+Every implementation handoff must provide a concrete outcome, exact working
+location, owned files/components, relevant constraints, observable done
+condition, and focused verification. Parallel owners must have disjoint scopes.
 
-### Content Pattern
+Review personas return findings only in their documented format. The
+orchestrator synthesizes, validates, integrates, and reports.
 
-1. Role description paragraph
-2. Core Responsibilities (numbered list)
-3. Focus Areas (bullets)
-4. Process/Approach (numbered steps)
-5. Output Format specification
+## Repository structure
 
-### When to Use Subagents
-
-- **Context isolation**: Prevent one task's details from polluting another
-- **Parallelization**: Multiple independent reviews/implementations
-- **Specialization**: Different expertise (frontend vs backend, architect vs implementer)
-
-## Project Structure
-
-```
-skills/                    # Neutral source of truth (edit here)
-├── {skill}/
-│   ├── SKILL.md          # Main skill file (required)
-│   ├── agents/           # Subagent personas (optional)
-│   │   └── *.md
-│   ├── scripts/          # Support scripts (optional)
-│   └── lib/              # Libraries (optional)
-plugins/ottonomous/        # GENERATED Codex package (do not hand-edit)
-scripts/                   # build-codex-plugin.mjs (npm run build)
-.claude-plugin/            # Claude Code manifests (plugin.json, marketplace.json)
-.codex-plugin/             # Codex root compat manifest
-.agents/plugins/           # Codex marketplace.json → ./plugins/ottonomous
-.otto/                     # Workflow artifacts (git-ignored)
-├── specs/                 # Product specifications
-├── tasks/                 # Sessions and tasks
-├── reviews/               # Review fix plans
-├── summaries/             # Generated HTML summaries
-└── otto/
-    └── sessions/          # Otto session state
+```text
+skills/
+├── build/
+├── review/
+└── spec/
+plugins/ottonomous/              # Generated; do not hand-edit
+scripts/build-codex-plugin.mjs
+scripts/validate-skills.mjs
+.claude-plugin/
+.codex-plugin/
+.agents/plugins/
 ```
 
-## Development Commands
+No other skill directory belongs in the published or repository-local skill
+surface.
+
+## Development commands
 
 ```bash
-npm run build      # Regenerate Codex package (plugins/ottonomous/) from skills/
-npm test           # Run tests
-npm run lint       # Check linting
-npm run lint:fix   # Fix linting issues
+npm run build
+npm run validate
+npm test
+npm run lint
 ```
+
+The validator enforces the exact three-skill surface, neutral frontmatter,
+manifest agent paths, generated-package parity, and the absence of legacy
+storage coupling in runtime skill content. Focused tests cover the standalone
+contracts and build loop.

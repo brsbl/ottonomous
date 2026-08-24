@@ -1,8 +1,8 @@
 {
   "name": "ottonomous",
   "displayName": "Ottonomous",
-  "version": "1.0.0",
-  "description": "Provider-agnostic skills for autonomous product development: spec, task, implement, test, review, and summarize changes.",
+  "version": "2.0.0",
+  "description": "Three independent, provider-agnostic skills for product specification, code review, and spec-driven implementation.",
   "author": {
     "name": "Bersabel Tadesse"
   },
@@ -13,11 +13,9 @@
     "ottonomous",
     "product-development",
     "spec",
-    "tasks",
+    "build",
     "code-review",
-    "testing",
     "subagents",
-    "autonomous",
     "claude-code",
     "codex",
     "plugin"
@@ -25,12 +23,9 @@
   "skills": "./skills",
   "agents": [
     "./skills/spec/agents/technical-product-manager.md",
-    "./skills/task/agents/principal-engineer.md",
-    "./skills/next/agents/frontend-developer.md",
-    "./skills/next/agents/backend-architect.md",
+    "./skills/build/agents/implementation-worker.md",
     "./skills/review/agents/architect-reviewer.md",
     "./skills/review/agents/senior-code-reviewer.md",
-    "./skills/review/agents/false-positive-validator.md",
-    "./skills/test/agents/test-writer.md"
+    "./skills/review/agents/false-positive-validator.md"
   ]
 }

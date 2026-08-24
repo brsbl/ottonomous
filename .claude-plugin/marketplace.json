@@ -1,6 +1,6 @@
 {
   "name": "ottonomous",
-  "description": "Provider-agnostic skills for autonomous product development.",
+  "description": "Independent, provider-agnostic specification, review, and build skills.",
   "owner": {
     "name": "brsbl",
     "email": "brsbl@users.noreply.github.com"
@@ -9,8 +9,8 @@
     {
       "name": "ottonomous",
       "source": "./",
-      "description": "Skills for autonomous product development: spec, task, implement, test, review, summary, and the otto autopilot.",
-      "version": "1.0.0",
+      "description": "Three independently invocable skills: spec, review, and spec-driven build.",
+      "version": "2.0.0",
       "author": {
         "name": "Bersabel Tadesse"
       },
@@ -21,11 +21,9 @@
         "ottonomous",
         "product-development",
         "spec",
-        "tasks",
+        "build",
         "code-review",
-        "testing",
         "subagents",
-        "autonomous",
         "claude-code",
         "codex",
         "plugin"
@@ -34,6 +32,6 @@
   ],
   "metadata": {
     "description": "Ottonomous plugin marketplace",
-    "version": "1.0.0"
+    "version": "2.0.0"
   }
 }

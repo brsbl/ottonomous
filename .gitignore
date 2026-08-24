@@ -12,8 +12,5 @@ node_modules/
 !.claude/skills/
 .claude/settings.local.json
 
-# Otto skill output (specs, tasks, sessions, reviews)
-.otto/
-
 # Local development
 .local/
