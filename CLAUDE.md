@@ -2,7 +2,7 @@
 
 ## Product contract
 
-Ottonomous publishes exactly three provider-agnostic skills:
+Ottonomous publishes exactly four provider-agnostic skills:
 
 - `spec` creates or revises a researched, independently reviewed product spec,
   writes it to the caller's destination, and ends with a link.
@@ -10,6 +10,8 @@ Ottonomous publishes exactly three provider-agnostic skills:
   implement caller-approved fixes.
 - `build` implements a caller-supplied spec through bounded delegation,
   integration, and repeated verification.
+- `summary` creates a decision-focused Moss Markdown change summary led by the
+  problem statement, outcomes, trade-offs, and platform implications.
 
 Each skill is independently invocable. Do not introduce a required sequence,
 fixed working directory, implicit artifact location, resumable workflow state,
@@ -21,12 +23,15 @@ destinations, and delivery constraints.
 Version 2 is an intentional breaking migration:
 
 - The former `next` surface is replaced by `build` without an alias.
-- The former planning, testing, summarization, autopilot, and reset skills are
-  removed.
+- The former planning, testing, autopilot, and reset skills are removed.
+- `summary` remains, but its `.otto/` and separate-browser-artifact behavior is
+  replaced by an inline-first Moss decision brief and bundled native Markdown
+  template. A caller-selected Markdown path is optional.
 - The former `.otto/` convention is removed. No source skill, generated skill,
   manifest, build step, or test may depend on it.
-- Storage is caller-controlled. `spec` requires a destination for its link-only
-  handoff; other skills default to inline output when none is supplied.
+- Storage is caller-controlled. `spec` requires a destination for its written
+  handoff. `review`, `build`, and `summary` default to inline output and write a
+  file only when the caller supplies a path.
 
 Keep this migration prominent in README and pull-request release notes. Do not
 reintroduce compatibility aliases or an equivalent hidden state system.
@@ -73,6 +78,25 @@ Do not require generated work lists, sessions, plan files, status files, or a
 particular repository layout. Do not create branches, commits, pull requests,
 or releases unless the caller explicitly includes them.
 
+### `summary`
+
+Preserve its semantic depth: inspect the complete caller-supplied change and
+source context, explain product outcome and implementation meaning, identify
+high-leverage review areas and subtle risks, make breaking changes prominent,
+record validation accurately, and account for every changed file.
+
+Infer the current pull request or branch when the caller does not name a change
+target. Return the complete Moss Markdown summary inline by default; write a
+note only when the caller supplies an exact path. Start from
+`templates/moss-summary.md`: native Moss Markdown owns problem alignment,
+outcome, documented issues, trade-offs, platform implications, migration,
+validation, and evidence. Always assess performance, security, privacy,
+extensibility/future-proofing, and maintainability. Use `moss-html` only for a
+focused relationship or interaction that native Moss nodes cannot communicate
+clearly. When optional HTML is justified, read and use the exact Endless Color
+light palette in `templates/endless-light-tokens.md`. Do not create separate
+HTML, hidden state, duplicate artifacts, or app-owned Moss sidecars.
+
 ## Provider-agnostic source and generated package
 
 `skills/` is the single source of truth. Keep `SKILL.md` frontmatter neutral:
@@ -90,8 +114,8 @@ in tool-neutral prose; the runtime chooses the available subagent mechanism.
 
 Claude Code reads `skills/` through `.claude-plugin/plugin.json`. Codex reads
 the generated `plugins/ottonomous/` package. `scripts/build-codex-plugin.mjs`
-copies the three source skills, rewrites persona references for Codex, and emits
-per-skill `agents/openai.yaml` metadata.
+copies the four source skills, rewrites bundled resource references for Codex,
+and emits per-skill `agents/openai.yaml` metadata.
 
 Never hand-edit `plugins/ottonomous/`. Run `npm run build` after any source
 skill or packaging change.
@@ -120,7 +144,8 @@ orchestrator synthesizes, validates, integrates, and reports.
 skills/
 ├── build/
 ├── review/
-└── spec/
+├── spec/
+└── summary/
 plugins/ottonomous/              # Generated; do not hand-edit
 scripts/build-codex-plugin.mjs
 scripts/validate-skills.mjs
@@ -141,7 +166,7 @@ npm test
 npm run lint
 ```
 
-The validator enforces the exact three-skill surface, neutral frontmatter,
+The validator enforces the exact four-skill surface, neutral frontmatter,
 manifest agent paths, generated-package parity, and the absence of legacy
 storage coupling in runtime skill content. Focused tests cover the standalone
-contracts and build loop.
+contracts, build loop, and Moss summary template.

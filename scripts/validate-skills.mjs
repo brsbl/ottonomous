@@ -4,7 +4,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const EXPECTED_SKILLS = ["build", "review", "spec"];
+export const EXPECTED_SKILLS = ["build", "review", "spec", "summary"];
 
 const here = dirname(fileURLToPath(import.meta.url));
 const defaultRepoRoot = join(here, "..");
@@ -93,10 +93,9 @@ export function validateRepository(repoRoot = defaultRepoRoot) {
         `Missing generated skill file: ${relative(repoRoot, generatedSkillFile)}`,
       );
     } else {
-      const expectedGeneratedBody = sourceBody.replaceAll(
-        "`agents/",
-        "`$SKILL_DIR/agents/",
-      );
+      const expectedGeneratedBody = sourceBody
+        .replaceAll("`agents/", "`$SKILL_DIR/agents/")
+        .replaceAll("`templates/", "`$SKILL_DIR/templates/");
       const generatedBody = readFileSync(generatedSkillFile, "utf8");
       if (generatedBody !== expectedGeneratedBody) {
         errors.push(
@@ -131,6 +130,31 @@ export function validateRepository(repoRoot = defaultRepoRoot) {
         );
       }
     }
+
+    const sourceTemplatesRoot = join(sourceRoot, skill, "templates");
+    for (const sourceTemplate of walkFiles(sourceTemplatesRoot)) {
+      const templateRelativePath = relative(
+        join(sourceRoot, skill),
+        sourceTemplate,
+      );
+      const generatedTemplate = join(
+        generatedRoot,
+        skill,
+        templateRelativePath,
+      );
+      if (!existsSync(generatedTemplate)) {
+        errors.push(
+          `Missing generated template: ${relative(repoRoot, generatedTemplate)}`,
+        );
+      } else if (
+        readFileSync(sourceTemplate, "utf8") !==
+        readFileSync(generatedTemplate, "utf8")
+      ) {
+        errors.push(
+          `Generated template is stale: ${relative(repoRoot, generatedTemplate)}`,
+        );
+      }
+    }
   }
 
   for (const runtimeRoot of [sourceRoot, generatedRoot]) {
@@ -150,7 +174,7 @@ export function validateRepository(repoRoot = defaultRepoRoot) {
   );
   if (localSkillFiles.length > 0) {
     errors.push(
-      `Repository-local skills are outside the three-skill surface: ${localSkillFiles.map((file) => relative(repoRoot, file)).join(", ")}`,
+      `Repository-local skills are outside the four-skill surface: ${localSkillFiles.map((file) => relative(repoRoot, file)).join(", ")}`,
     );
   }
 
@@ -176,7 +200,7 @@ export function validateRepository(repoRoot = defaultRepoRoot) {
     const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
     if (manifest.version !== "2.0.0") {
       errors.push(
-        `Breaking three-skill manifest must be version 2.0.0: ${relative(repoRoot, manifestPath)}`,
+        `Breaking v2 manifest must be version 2.0.0: ${relative(repoRoot, manifestPath)}`,
       );
     }
   }
@@ -193,7 +217,7 @@ export function validateRepository(repoRoot = defaultRepoRoot) {
     const actualAgents = [...(manifest.agents ?? [])].sort();
     if (JSON.stringify(actualAgents) !== JSON.stringify(expectedAgents)) {
       errors.push(
-        "Claude manifest agent exports do not match the three-skill surface",
+        "Claude manifest agent exports do not match the four-skill surface",
       );
     }
     for (const agentPath of manifest.agents ?? []) {

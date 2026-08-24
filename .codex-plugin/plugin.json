@@ -1,7 +1,7 @@
 {
   "name": "ottonomous",
   "version": "2.0.0",
-  "description": "Compatibility manifest for three independent Ottonomous skills: spec, review, and build.",
+  "description": "Compatibility manifest for four independent Ottonomous skills: spec, review, build, and Moss change summary.",
   "author": {
     "name": "Bersabel Tadesse"
   },
@@ -14,6 +14,8 @@
     "spec",
     "build",
     "code-review",
+    "change-summary",
+    "moss",
     "subagents",
     "codex",
     "plugin"
@@ -21,15 +23,16 @@
   "skills": "./plugins/ottonomous/skills/",
   "interface": {
     "displayName": "Ottonomous",
-    "shortDescription": "Independent spec, review, and build skills",
-    "longDescription": "Compatibility manifest for direct root installs. The Codex app package lives at ./plugins/ottonomous and contains three independent skills: spec, review, and build. Callers control references, working locations, and output destinations.",
+    "shortDescription": "Independent spec, review, build, and summary skills",
+    "longDescription": "Compatibility manifest for direct root installs. The Codex app package lives at ./plugins/ottonomous and contains four independent skills: spec, review, build, and Moss change summary. Skills use explicit caller context or the active repository context without requiring a prescribed workflow or hidden state.",
     "developerName": "Bersabel Tadesse",
     "category": "Productivity",
     "websiteURL": "https://github.com/brsbl/ottonomous",
     "defaultPrompt": [
       "Use $spec with this idea, working location, and output destination to write a product specification.",
       "Use $review with this target to run a validated P0-P2 code review.",
-      "Use $build with this spec reference and working location to implement and verify it to completion."
+      "Use $build with this spec reference and working location to implement and verify it to completion.",
+      "Use $summary to summarize the current pull request or branch as a decision-focused Moss review brief."
     ]
   }
 }
