@@ -107,7 +107,7 @@ describe("standalone contracts", () => {
       /return the complete Moss Markdown summary inline by default/i,
     );
     expect(summary).toMatch(
-      /pull request attached to the current bb thread or branch/i,
+      /pull request associated with the current session or branch/i,
     );
     expect(summary).not.toMatch(/\*\*Working location:\*\*/);
     expect(summary).not.toMatch(/\*\*Output destination:\*\*/);

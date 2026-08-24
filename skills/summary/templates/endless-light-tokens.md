@@ -1,8 +1,8 @@
 # Endless Color light tokens for optional Moss HTML
 
 Use this literal palette only when the summary genuinely needs a scoped
-`moss-html` node. Moss HTML is isolated, so it cannot inherit the active bb
-theme variables.
+`moss-html` node. Moss HTML is isolated, so it cannot inherit the host
+application's theme variables.
 
 ```css
 :root {
@@ -33,4 +33,4 @@ pre {
 ```
 
 Do not substitute a generic palette, fetch remote fonts or styles, or add
-runtime coupling to bb theme variables.
+runtime coupling to the host application's theme variables.

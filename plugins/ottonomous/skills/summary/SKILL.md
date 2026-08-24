@@ -16,7 +16,7 @@ Use an explicit pull request, branch, commit range, supplied diff, or file set
 when the caller names one. Otherwise infer the review target from the active
 context in this order:
 
-1. the pull request attached to the current bb thread or branch;
+1. the pull request associated with the current session or branch;
 2. the current branch against its repository-resolved merge base;
 3. staged or unstaged changes only when the request clearly refers to the
    current uncommitted work.
