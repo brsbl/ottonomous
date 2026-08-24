@@ -103,9 +103,10 @@ describe("standalone contracts", () => {
 
     expect(summary).toMatch(/align on the problem first/i);
     expect(summary).toMatch(/templates\/moss-summary\.md/);
-    expect(summary).toMatch(
-      /return the complete Moss Markdown summary inline by default/i,
-    );
+    expect(summary).toMatch(/~\/Moss\/Notes\/<Title>\/<Title>\.md/);
+    expect(summary).toMatch(/only when the caller explicitly requests inline/i);
+    expect(summary).toMatch(/return only a clickable\s+link/i);
+    expect(summary).toMatch(/Never launch, focus, drive, or inspect/i);
     expect(summary).toMatch(
       /pull request associated with the current session or branch/i,
     );
@@ -159,7 +160,7 @@ describe("standalone contracts", () => {
     );
     expect(generatedInterface).not.toMatch(/interactive change map/i);
     expect(rootCodexManifest.interface.defaultPrompt).toContain(
-      "Use $summary to summarize the current pull request or branch as a decision-focused Moss review brief.",
+      "Use $summary to summarize the current pull request or branch as a decision-focused note in the default Moss workspace, then return its link.",
     );
     expect(rootCodexManifest.interface.defaultPrompt.join("\n")).not.toMatch(
       /\$summary.*(?:working location|output destination)/i,

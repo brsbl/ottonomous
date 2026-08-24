@@ -14,27 +14,10 @@ Ottonomous publishes exactly four provider-agnostic skills:
   problem statement, outcomes, trade-offs, and platform implications.
 
 Each skill is independently invocable. Do not introduce a required sequence,
-fixed working directory, implicit artifact location, resumable workflow state,
-or hidden persistence. Callers provide references, working locations, output
-destinations, and delivery constraints.
-
-## Compatibility boundary
-
-Version 2 is an intentional breaking migration:
-
-- The former `next` surface is replaced by `build` without an alias.
-- The former planning, testing, autopilot, and reset skills are removed.
-- `summary` remains, but its `.otto/` and separate-browser-artifact behavior is
-  replaced by an inline-first Moss decision brief and bundled native Markdown
-  template. A caller-selected Markdown path is optional.
-- The former `.otto/` convention is removed. No source skill, generated skill,
-  manifest, build step, or test may depend on it.
-- Storage is caller-controlled. `spec` requires a destination for its written
-  handoff. `review`, `build`, and `summary` default to inline output and write a
-  file only when the caller supplies a path.
-
-Keep this migration prominent in README and pull-request release notes. Do not
-reintroduce compatibility aliases or an equivalent hidden state system.
+fixed working directory, resumable workflow state, or hidden persistence.
+Callers may provide references, working locations, output destinations, and
+delivery constraints. The one default artifact location is `summary`'s visible
+Moss workspace note; it is a public delivery contract, not workflow state.
 
 ## Skill behavior
 
@@ -86,8 +69,9 @@ high-leverage review areas and subtle risks, make breaking changes prominent,
 record validation accurately, and account for every changed file.
 
 Infer the current pull request or branch when the caller does not name a change
-target. Return the complete Moss Markdown summary inline by default; write a
-note only when the caller supplies an exact path. Start from
+target. Write a canonical note under `~/Moss/Notes/<Title>/<Title>.md` and
+return its link by default. Use an exact caller-supplied path when present, or
+return the complete summary inline only when explicitly requested. Start from
 `templates/moss-summary.md`: native Moss Markdown owns problem alignment,
 outcome, documented issues, trade-offs, platform implications, migration,
 validation, and evidence. Always assess performance, security, privacy,
@@ -95,7 +79,9 @@ extensibility/future-proofing, and maintainability. Use `moss-html` only for a
 focused relationship or interaction that native Moss nodes cannot communicate
 clearly. When optional HTML is justified, read and use the exact Endless Color
 light palette in `templates/endless-light-tokens.md`. Do not create separate
-HTML, hidden state, duplicate artifacts, or app-owned Moss sidecars.
+HTML, hidden state, duplicate artifacts, or app-owned Moss sidecars. Never
+launch a development or production Moss app for note authoring or verification;
+the user opens the returned link in the production app.
 
 ## Provider-agnostic source and generated package
 

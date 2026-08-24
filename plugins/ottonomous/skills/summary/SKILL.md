@@ -1,7 +1,7 @@
 ---
 name: summary
-description: "Creates a decision-focused Moss change summary for reviewers who care about the problem, outcomes, trade-offs, and platform implications more than code structure. Use for pull-request summaries, release notes, branch or diff overviews, implementation handoffs, and explanations of what changed and why it matters. Inspect an explicit change target or infer the current pull request or branch context, then return Moss Markdown inline unless the caller asks for a file."
-argument-hint: "[PR, branch, range, or diff] [optional issue/spec context]"
+description: "Creates a decision-focused Moss change summary for reviewers who care about the problem, outcomes, trade-offs, and platform implications more than code structure. Use for pull-request summaries, release notes, branch or diff overviews, implementation handoffs, and explanations of what changed and why it matters. Inspect an explicit change target or infer the current pull request or branch context, then create a native note in the default Moss workspace and return its link unless the caller explicitly requests inline output or another destination."
+argument-hint: "[PR, branch, range, or diff] [optional issue/spec context] [optional destination or inline]"
 ---
 
 # Summary
@@ -32,15 +32,21 @@ Identify the evidence that frames the review:
 - **Problem evidence:** pull-request description, linked issue or spec, commit
   intent, user report, or explicit caller context
 - **Review lens:** optional product, release, risk, or handoff emphasis
-- **Delivery:** return the complete Moss Markdown summary inline by default; if
-  the caller supplies an exact Markdown path or explicitly asks for a note,
-  write there and return a link
+- **Delivery:** use an exact caller-supplied destination when present; return
+  the complete summary in chat only when the caller explicitly requests inline
+  output; otherwise create a canonical workspace note at
+  `~/Moss/Notes/<Title>/<Title>.md` and return its link
+
+For a default workspace note, choose a concise descriptive title and keep the
+directory and Markdown filename identical. If that path already belongs to an
+unrelated note, choose a collision-safe title rather than overwriting it. Create
+only the note directory and Markdown file; do not create Moss-owned sidecars.
 
 Lack of an authoritative problem statement is not a reason to ask for storage
 or workflow setup. Infer the most defensible problem from the available
-evidence and label it as inferred. Never invent an output path, summary
-registry, fixed directory, hidden state, duplicate HTML file, sidecar, symlink,
-or resumable workflow record.
+evidence and label it as inferred. The visible default workspace note is the
+only implicit artifact. Never invent a summary registry, hidden state,
+duplicate HTML file, sidecar, symlink, or resumable workflow record.
 
 ## 2. Inspect the complete change
 
@@ -106,9 +112,9 @@ editable, and commentable without activating an HTML node.
 ## 4. Populate the Moss template
 
 Read the complete bundled `$SKILL_DIR/templates/moss-summary.md` file before writing. Use
-its structure for the inline response or caller-selected note and replace every
-`{{TOKEN}}` with evidence from the inspected change. Duplicate or remove table
-rows as needed.
+its structure for the default workspace note, caller-selected note, or explicit
+inline response and replace every `{{TOKEN}}` with evidence from the inspected
+change. Duplicate or remove table rows as needed.
 
 The platform-implications table is mandatory and always keeps these five rows:
 performance, security, privacy, extensibility/future-proofing, and
@@ -152,11 +158,23 @@ Read the completed summary back and confirm:
 
 If the note contains an optional rich node, verify that node using its current
 Moss authoring rules. Otherwise use file-level structure, syntax, link, table,
-and evidence checks; do not launch a Moss app merely to verify note content.
+and evidence checks. For file delivery, read the written Markdown back and
+confirm it is complete before linking it.
+
+Never launch, focus, drive, or inspect either a development or production Moss
+app while creating or verifying the summary. The user opens the returned note
+link in the production app. A Moss development build is appropriate only for a
+separate task that changes code in the Moss repository and requires product
+verification; authoring a Moss note is not such a task.
 
 ## 6. Hand off the summary
 
-When delivery is inline, return the complete Moss Markdown summary. When the
-caller selected a note path, return a clickable link plus one short clause for
-any material evidence limitation. Do not open a browser, create a separate HTML
-artifact, or start another workflow unless the caller separately asks.
+For default workspace or caller-selected file delivery, return only a clickable
+link to the Markdown file plus one short clause for any material evidence
+limitation. Use an absolute file target in the Markdown link so the host can
+hand it to the installed production Moss app. When the caller explicitly chose
+inline delivery, return the complete Moss Markdown summary instead.
+
+Do not open the note, launch a browser or Moss app, create a separate HTML
+artifact, or start another workflow unless the caller separately asks for work
+outside note authoring.
