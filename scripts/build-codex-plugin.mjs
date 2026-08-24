@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Build the Codex app plugin package from the provider-agnostic source skills.
 //
-// Source of truth: ../skills/<name>/ (neutral SKILL.md + agents/*.md personas).
+// Source of truth: ../skills/<name>/ (neutral SKILL.md + bundled resources).
 // Output (generated, do not hand-edit): ../plugins/ottonomous/
 //   - skills/<name>/                copied from source
 //   - skills/<name>/agents/openai.yaml   Codex interface metadata (generated)
@@ -27,13 +27,13 @@ const repoRoot = join(here, "..");
 const sourceSkills = join(repoRoot, "skills");
 const pkgRoot = join(repoRoot, "plugins", "ottonomous");
 const pkgSkills = join(pkgRoot, "skills");
-const PUBLISHED_SKILLS = ["build", "review", "spec"];
+const PUBLISHED_SKILLS = ["build", "review", "spec", "summary"];
 
 const PLUGIN = {
   name: "ottonomous",
   version: "2.0.0",
   description:
-    "Three independent, provider-agnostic skills for product specification, code review, and spec-driven implementation.",
+    "Four independent, provider-agnostic skills for product specification, code review, spec-driven implementation, and Moss change summaries.",
   author: { name: "Bersabel Tadesse" },
   homepage: "https://github.com/brsbl/ottonomous",
   repository: "https://github.com/brsbl/ottonomous",
@@ -44,6 +44,8 @@ const PLUGIN = {
     "spec",
     "build",
     "code-review",
+    "change-summary",
+    "moss",
     "subagents",
     "claude-code",
     "codex",
@@ -74,6 +76,13 @@ const INTERFACE = {
       "Multi-agent code review with P0-P2 prioritized findings",
     default_prompt:
       "Use $review with this target and output destination to run a validated P0-P2 code review.",
+  },
+  summary: {
+    display_name: "Moss Summary",
+    short_description:
+      "Align on a change's problem, outcomes, trade-offs, and implications",
+    default_prompt:
+      "Use $summary to summarize the current pull request or branch as a decision-focused Moss review brief.",
   },
 };
 
@@ -128,15 +137,16 @@ function writeOpenaiYaml(skill, dest) {
 }
 
 // Codex resolves skill-bundled files relative to $SKILL_DIR, not the project
-// working directory. Rewrite the neutral `agents/<persona>.md` references in the
-// copied SKILL.md to `$SKILL_DIR/agents/...` so a Codex agent can locate the
-// persona file. Claude needs no rewrite: it invokes each persona as a registered
-// subagent by name, so the source keeps the plain relative reference.
-function rewritePersonaPaths(dest) {
+// working directory. Rewrite neutral bundled-resource references in the copied
+// SKILL.md so Codex can locate personas and templates. Claude resolves the
+// source-relative references directly.
+function rewriteBundledPaths(dest) {
   const skillFile = join(dest, "SKILL.md");
   if (!existsSync(skillFile)) return;
   const body = readFileSync(skillFile, "utf8");
-  const rewritten = body.replaceAll("`agents/", "`$SKILL_DIR/agents/");
+  const rewritten = body
+    .replaceAll("`agents/", "`$SKILL_DIR/agents/")
+    .replaceAll("`templates/", "`$SKILL_DIR/templates/");
   if (rewritten !== body) {
     writeFileSync(skillFile, rewritten);
   }
@@ -157,7 +167,7 @@ function main() {
       filter: (s) => !EXCLUDE.has(basename(s)),
     });
     writeOpenaiYaml(skill, dest);
-    rewritePersonaPaths(dest);
+    rewriteBundledPaths(dest);
   }
 
   // Codex package manifest.
@@ -166,9 +176,9 @@ function main() {
     skills: "./skills/",
     interface: {
       displayName: "Ottonomous",
-      shortDescription: "Independent spec, review, and build skills",
+      shortDescription: "Independent spec, review, build, and summary skills",
       longDescription:
-        "Codex app package for three independent Ottonomous skills: spec, review, and build. Callers supply references, working locations, and output destinations; the skills require no prescribed workflow or hidden state.",
+        "Codex app package for four independent Ottonomous skills: spec, review, build, and Moss change summary. Skills use explicit caller context or the active repository context without requiring a prescribed workflow or hidden state.",
       developerName: "Bersabel Tadesse",
       category: "Productivity",
       capabilities: ["Read", "Write"],
@@ -177,6 +187,7 @@ function main() {
         "Use $spec with this idea, working location, and output destination to write a product specification.",
         "Use $review with this target to run a validated P0-P2 code review.",
         "Use $build with this spec reference and working location to implement and verify it to completion.",
+        "Use $summary to summarize the current pull request or branch as a decision-focused Moss review brief.",
       ],
     },
   };

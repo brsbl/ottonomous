@@ -1,6 +1,6 @@
 # Ottonomous 🚌💨
 
-Three independently invocable product-development skills that work in both
+Four independently invocable product-development skills that work in both
 Claude Code and OpenAI Codex:
 
 - `spec` turns an idea or draft into a reviewed, implementation-ready product
@@ -9,10 +9,12 @@ Claude Code and OpenAI Codex:
   caller-approved fixes.
 - `build` implements a caller-supplied spec through bounded subagent work,
   integration, and verification loops.
+- `summary` explains a code change in a decision-focused Moss Markdown note for
+  reviewers who care about outcomes and platform implications, not code tours.
 
-Ottonomous is a skill collection, not a workflow engine. Callers choose the
-spec references, working locations, output destinations, and delivery boundary
-for each invocation.
+Ottonomous is a skill collection, not a workflow engine. Each skill uses
+explicit caller context when provided and otherwise works from the active
+repository or conversation without imposing a shared sequence or state store.
 
 ## Breaking migration to v2
 
@@ -22,13 +24,17 @@ Version 2 intentionally replaces the old prescribed workflow:
   caller-supplied spec directly, delegates bounded implementation slices,
   integrates them, verifies the result, and repeats until complete or genuinely
   blocked.
-- `task`, `test`, `summary`, `otto`, and `reset` are removed.
+- `summary` remains available, but now returns a decision-focused Moss Markdown
+  brief inline by default instead of creating separate `.otto/` Markdown and
+  HTML artifacts. It writes a note only when the caller explicitly supplies a
+  Markdown path.
+- `task`, `test`, `otto`, and `reset` are removed.
 - The `.otto/` storage convention is removed. No remaining skill reads or
   writes implicit workflow state, work lists, sessions, plans, review files, or
   generated artifacts there.
-- Storage is caller-controlled. `spec` writes to the caller-supplied destination
-  and ends with its link; the other skills return results inline unless the
-  caller supplies a destination.
+- Storage is caller-controlled. `spec` writes to a caller-supplied destination;
+  `review`, `build`, and `summary` return results inline unless the caller
+  supplies a destination.
 
 Existing automation must replace the old invocations explicitly. There is no
 hidden replacement state system.
@@ -58,6 +64,7 @@ Invocation differs by provider: Claude Code uses `/spec`, while Codex uses
 | `spec` | Idea or existing draft/spec reference, output destination, and optional working location and format | Researched and independently reviewed spec written to the caller's destination, followed by a link |
 | `review` | Diff, branch, staged changes, pull request, or file set; optional output destination | Parallel P0-P2 review filtered by a false-positive validator; optional fix plan or approved fixes |
 | `build` | Spec reference, working location, and delivery constraints | Integrated implementation with focused and final verification, repeated until the spec is complete or genuinely blocked |
+| `summary` | Current or explicit change target; optional problem context and review lens | Inline Moss brief covering problem alignment, outcomes, trade-offs, and platform implications; optional caller-selected note |
 
 ### `spec`
 
@@ -140,19 +147,54 @@ build the spec at /docs/offline-export.md in /repo/dashboard; stop after
 verified local implementation
 ```
 
+### `summary`
+
+`summary` preserves the original emphasis on why a change matters while making
+the result native to Moss:
+
+- It uses an explicit pull request, branch, commit range, diff, or file set when
+  provided; otherwise it infers the current pull request or branch and resolves
+  the real merge base.
+- It reads the complete diff and relevant source context, then explains product
+  outcome, documented friction, trade-offs, platform implications,
+  compatibility, and verification.
+- It returns the complete Moss Markdown summary inline by default. When the
+  caller explicitly supplies a Markdown path, it writes one note there using
+  the bundled `templates/moss-summary.md` file.
+- Native Moss Markdown leads with the problem statement and alignment check,
+  then records the outcome, documented implementation issues, trade-offs,
+  platform implications, migration, validation, and complete change inventory.
+- The platform assessment always covers performance, security, privacy,
+  extensibility/future-proofing, and maintainability, including neutral or
+  unverified conclusions.
+- HTML is optional and scoped to a relationship or interaction that native
+  Markdown, tables, callouts, tabs, charts, or compact ASCII cannot communicate
+  clearly. It is never decorative or required by the template. When HTML is
+  justified, the bundled `templates/endless-light-tokens.md` reference supplies
+  the exact Endless Color light palette.
+- It creates no separate browser page, hidden directory, duplicate artifact,
+  or Moss-owned sidecar.
+
+Example:
+
+```text
+summarize this PR for product review
+```
+
 ## Design principles
 
 ### Independent invocation
 
-Each skill resolves its own caller-supplied inputs and can run without either
-of the other skills. There is no required sequence or implicit handoff.
+Each skill resolves its own caller-supplied inputs and can run without any of
+the other skills. There is no required sequence or implicit handoff.
 
 ### Caller-controlled storage
 
-`spec` requires a caller-selected destination because its final handoff is a
-link to the written artifact. Other skills return results inline by default. A
-skill writes only to a caller-provided destination and never creates a hidden
-registry, duplicate copy, symlink, or resumable workflow store.
+`spec` requires a caller-selected destination because its final output is a
+written artifact. `review`, `build`, and `summary` return results inline by
+default. When a caller asks one of them to write a file, the skill uses only the
+supplied destination and never creates a hidden registry, duplicate copy,
+symlink, or resumable workflow store.
 
 ### Bounded delegation
 
@@ -175,22 +217,27 @@ skills/                              # Neutral source of truth
 │       ├── architect-reviewer.md
 │       ├── false-positive-validator.md
 │       └── senior-code-reviewer.md
-└── spec/
+├── spec/
+│   ├── SKILL.md
+│   └── agents/
+│       └── technical-product-manager.md
+└── summary/
     ├── SKILL.md
-    └── agents/
-        └── technical-product-manager.md
+    └── templates/
+        ├── endless-light-tokens.md
+        └── moss-summary.md
 
 plugins/ottonomous/                  # Generated Codex package
 scripts/build-codex-plugin.mjs       # Package generator
-scripts/validate-skills.mjs          # Three-skill contract validator
+scripts/validate-skills.mjs          # Four-skill contract validator
 .claude-plugin/                      # Claude Code manifests
 .codex-plugin/                       # Codex root compatibility manifest
 .agents/plugins/                     # Codex marketplace entry
 ```
 
 `skills/` is the provider-agnostic source. `npm run build` regenerates
-`plugins/ottonomous/`, including each skill's Codex `agents/openai.yaml`.
-Never hand-edit the generated package.
+`plugins/ottonomous/`, including each skill's Codex `agents/openai.yaml` and
+bundled templates. Never hand-edit the generated package.
 
 ## Development
 
@@ -199,7 +246,7 @@ Requires Node.js 18+ and Git.
 ```bash
 npm ci
 npm run build       # Regenerate the Codex package
-npm run validate    # Validate the exact three-skill surface and manifests
+npm run validate    # Validate the exact four-skill surface and manifests
 npm test            # Run focused contract tests
 npm run lint        # Check repository formatting and lint rules
 ```
