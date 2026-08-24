@@ -12,32 +12,11 @@ Claude Code and OpenAI Codex:
 - `summary` explains a code change in a decision-focused Moss Markdown note for
   reviewers who care about outcomes and platform implications, not code tours.
 
+<img width="3072" height="1428" alt="image 1 (1)" src="https://github.com/user-attachments/assets/2e8b420b-8b85-43af-9db7-764f6d4dc269" />
+
 Ottonomous is a skill collection, not a workflow engine. Each skill uses
 explicit caller context when provided and otherwise works from the active
 repository or conversation without imposing a shared sequence or state store.
-
-## Breaking migration to v2
-
-Version 2 intentionally replaces the old prescribed workflow:
-
-- `next` becomes `build`. There is no compatibility alias. `build` reads a
-  caller-supplied spec directly, delegates bounded implementation slices,
-  integrates them, verifies the result, and repeats until complete or genuinely
-  blocked.
-- `summary` remains available, but now returns a decision-focused Moss Markdown
-  brief inline by default instead of creating separate `.otto/` Markdown and
-  HTML artifacts. It writes a note only when the caller explicitly supplies a
-  Markdown path.
-- `task`, `test`, `otto`, and `reset` are removed.
-- The `.otto/` storage convention is removed. No remaining skill reads or
-  writes implicit workflow state, work lists, sessions, plans, review files, or
-  generated artifacts there.
-- Storage is caller-controlled. `spec` writes to a caller-supplied destination;
-  `review`, `build`, and `summary` return results inline unless the caller
-  supplies a destination.
-
-Existing automation must replace the old invocations explicitly. There is no
-hidden replacement state system.
 
 ## Install
 
@@ -64,7 +43,7 @@ Invocation differs by provider: Claude Code uses `/spec`, while Codex uses
 | `spec` | Idea or existing draft/spec reference, output destination, and optional working location and format | Researched and independently reviewed spec written to the caller's destination, followed by a link |
 | `review` | Diff, branch, staged changes, pull request, or file set; optional output destination | Parallel P0-P2 review filtered by a false-positive validator; optional fix plan or approved fixes |
 | `build` | Spec reference, working location, and delivery constraints | Integrated implementation with focused and final verification, repeated until the spec is complete or genuinely blocked |
-| `summary` | Current or explicit change target; optional problem context and review lens | Inline Moss brief covering problem alignment, outcomes, trade-offs, and platform implications; optional caller-selected note |
+| `summary` | Current or explicit change target; optional problem context, review lens, destination, or inline override | Moss workspace note covering problem alignment, outcomes, trade-offs, and platform implications, followed by its link |
 
 ### `spec`
 
@@ -158,9 +137,9 @@ the result native to Moss:
 - It reads the complete diff and relevant source context, then explains product
   outcome, documented friction, trade-offs, platform implications,
   compatibility, and verification.
-- It returns the complete Moss Markdown summary inline by default. When the
-  caller explicitly supplies a Markdown path, it writes one note there using
-  the bundled `templates/moss-summary.md` file.
+- It writes one canonical note under `~/Moss/Notes/<Title>/<Title>.md` and
+  returns its link by default. An explicit caller-selected Markdown path wins;
+  complete inline delivery is available only when explicitly requested.
 - Native Moss Markdown leads with the problem statement and alignment check,
   then records the outcome, documented implementation issues, trade-offs,
   platform implications, migration, validation, and complete change inventory.
@@ -173,7 +152,8 @@ the result native to Moss:
   justified, the bundled `templates/endless-light-tokens.md` reference supplies
   the exact Endless Color light palette.
 - It creates no separate browser page, hidden directory, duplicate artifact,
-  or Moss-owned sidecar.
+  or Moss-owned sidecar, and never launches either a development or production
+  Moss app. The user opens the returned note link in the production app.
 
 Example:
 
@@ -188,13 +168,14 @@ summarize this PR for product review
 Each skill resolves its own caller-supplied inputs and can run without any of
 the other skills. There is no required sequence or implicit handoff.
 
-### Caller-controlled storage
+### Explicit, visible delivery
 
 `spec` requires a caller-selected destination because its final output is a
-written artifact. `review`, `build`, and `summary` return results inline by
-default. When a caller asks one of them to write a file, the skill uses only the
-supplied destination and never creates a hidden registry, duplicate copy,
-symlink, or resumable workflow store.
+written artifact. `review` and `build` return results inline. `summary` creates
+one visible, editable note in the default Moss workspace and returns its link,
+unless the caller selects another destination or explicitly asks for inline
+delivery. No skill creates a hidden registry, duplicate copy, symlink, or
+resumable workflow store.
 
 ### Bounded delegation
 

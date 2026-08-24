@@ -82,7 +82,7 @@ const INTERFACE = {
     short_description:
       "Align on a change's problem, outcomes, trade-offs, and implications",
     default_prompt:
-      "Use $summary to summarize the current pull request or branch as a decision-focused Moss review brief.",
+      "Use $summary to summarize the current pull request or branch as a decision-focused note in the default Moss workspace, then return its link.",
   },
 };
 
@@ -187,7 +187,7 @@ function main() {
         "Use $spec with this idea, working location, and output destination to write a product specification.",
         "Use $review with this target to run a validated P0-P2 code review.",
         "Use $build with this spec reference and working location to implement and verify it to completion.",
-        "Use $summary to summarize the current pull request or branch as a decision-focused Moss review brief.",
+        "Use $summary to summarize the current pull request or branch as a decision-focused note in the default Moss workspace, then return its link.",
       ],
     },
   };
