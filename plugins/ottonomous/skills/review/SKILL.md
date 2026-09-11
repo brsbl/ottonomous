@@ -49,6 +49,64 @@ Assign implementation changes to the `senior-code-reviewer` persona in
 
 Assign a file to both when both lenses materially apply.
 
+For user-visible action, navigation, menu, command-palette, or responsive
+changes, inventory every equivalent entry point before assigning priority:
+
+- Inline and overflow controls
+- Dropdown and context-menu actions
+- Pointer, keyboard, right-click, and long-press paths
+- Wide and compact layouts
+
+Record whether each surface exposes the same action, consequence, enabled
+state, and easiest completion path. A diff that updates one surface is not
+complete evidence that the product behavior is consistent.
+
+### Prioritize impact separately from root-cause scope
+
+Priority answers **how badly the change breaks the product contract**. Root-
+cause scope answers **how broadly ownership must change to prevent recurrence**.
+Never infer one from the other: a one-line regression can be P1, while a shared
+ownership gap with no present user harm can be P2.
+
+Use these priority rules:
+
+- **P0:** Crashes, data loss, security vulnerabilities, or loss of core
+  functionality without a viable recovery path.
+- **P1:** Wrong user-visible behavior in a normal path, including a regression
+  from explicitly approved behavior; loss of the primary, easiest, or only
+  discoverable path; or parity drift where equivalent surfaces expose
+  materially different actions or consequences. A cumbersome, hidden,
+  viewport-dependent, or different-surface workaround does not automatically
+  reduce this to P2.
+- **P2:** Rare or low-impact edge cases, optional polish, and maintainability
+  issues that have not broken an approved behavior or normal completion path.
+
+Evidence of an approved contract may come from the caller's requirements and
+decisions, accepted stories or tests, established shared action definitions,
+or the compared base revision. Do not treat the patch's behavior as intentional
+merely because the patch implements it consistently in one place.
+
+Classify every valid finding independently as:
+
+- **One-off:** A unique localized mistake; equivalent surfaces already share a
+  reliable owner, so the smallest local fix restores the contract.
+- **Shared ownership gap:** The same semantic behavior is assembled separately
+  across routes, result types, viewports, or interaction surfaces, making drift
+  likely or already observable.
+
+A shared ownership gap calls for the smallest useful contract consolidation,
+not an automatic framework or broad rewrite. When the caller asks how many
+bugs are one-offs versus systemic, count these classifications after priority
+is assigned and explain the concrete shared owner each systemic fix needs.
+
+Calibration examples:
+
+| Finding | Priority | Root-cause scope |
+| --- | --- | --- |
+| An approved inline action is moved behind a singleton overflow menu | P1 | One-off if one toolbar condition caused it |
+| Overflow, context-menu, and long-press actions drift, and compact loses the easiest creation path | P1 | Shared ownership gap |
+| Equivalent actions match, but an uncommon icon has minor optical imbalance | P2 | One-off |
+
 ### 2. Delegate independent review
 
 Scale to the change rather than a fixed ceremony:
@@ -76,9 +134,9 @@ finding and preserve evidence and done conditions.
 ```markdown
 ## Code Review Findings
 
-| P | Problem | Fix approach | Files | Done when |
-| --- | --- | --- | --- | --- |
-| P0 | Null pointer in user lookup | Add an early 404 return | `users.ts:47` | Missing user returns 404 |
+| P | Problem | Root-cause scope | Fix approach | Files | Done when |
+| --- | --- | --- | --- | --- | --- |
+| P0 | Null pointer in user lookup | One-off | Add an early 404 return | `users.ts:47` | Missing user returns 404 |
 
 **Verdict: CORRECT | NEEDS FIXES**
 ```
@@ -106,6 +164,7 @@ Return a self-contained fix plan containing:
 
 - Target identity and reviewed revision/range
 - Priority, title, problem, fix, files, and done condition for each finding
+- Root-cause scope (`One-off` or `Shared ownership gap`) with its evidence
 - Dependencies between fixes only where ordering is genuinely required
 - Validation removals and downgrades
 - Final verdict

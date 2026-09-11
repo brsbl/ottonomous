@@ -31,7 +31,22 @@ A finding is a false positive if ANY of these apply:
 3. **Context negates issue**: Surrounding code, caller guarantees, or type system constraints make the issue impossible
 4. **Not in this change**: The issue is pre-existing, not introduced by the diff
 5. **Hypothetical only**: The scenario requires conditions that can't occur given the actual codebase
-6. **Intentional product/UX change**: The diff shows a deliberate behavior change (e.g., removing a confirmation dialog, changing a flow) that the reviewer misidentified as a bug
+6. **Intentional product/UX change**: Explicit current requirements or an approval source support the changed behavior. The patch implementing a behavior is not by itself evidence that the behavior was approved; regressions from supplied requirements, accepted stories/tests, or the compared base remain valid findings.
+
+## Priority and scope validation
+
+Validate two independent judgments for every finding:
+
+1. **Priority from product impact.** Keep P1 for regressions from explicitly
+   approved behavior, loss of the primary/easiest/only discoverable path, or
+   material drift between equivalent interaction surfaces. Do not downgrade
+   solely because the diff or fix is small, or because a cumbersome, hidden,
+   viewport-dependent, or different-surface workaround exists.
+2. **Root-cause scope.** Confirm `One-off` only when equivalent surfaces already
+   share a reliable owner. Use `Shared ownership gap` when the same semantic
+   action or consequence is assembled separately across routes, result types,
+   viewports, or interaction surfaces. This classification does not itself
+   raise or lower priority.
 
 ## Verdict Per Finding
 

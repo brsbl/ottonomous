@@ -21,12 +21,28 @@ You receive:
 4. **Error Handling**: Unhandled exceptions, silent failures, poor error messages?
 5. **Race Conditions**: Concurrent access, stale data, timing issues?
 6. **Resource Management**: Unclosed connections, missing cleanup?
+7. **Interaction Parity**: When an action or navigation surface changes, do
+   inline, overflow, dropdown, context-menu, right-click, long-press, keyboard,
+   wide, and compact entry points still expose the same intended capability
+   and consequence?
 
 ## Priority Levels
 
 - **P0**: Crashes, data loss (including losing user edits/formatting), security vulnerabilities, breaks core functionality
-- **P1**: Wrong behavior affecting users, but has workarounds
-- **P2**: Edge cases, minor bugs, code smells, maintainability issues
+- **P1**: Wrong behavior in a normal user path; a regression from explicitly approved behavior; loss of the primary, easiest, or only discoverable path; or material action/consequence drift between equivalent interaction surfaces. A hidden, cumbersome, viewport-dependent, or different-surface workaround does not automatically make the issue P2.
+- **P2**: Rare or low-impact edge cases, optional polish, or maintainability issues that have not broken an approved behavior or normal completion path
+
+Assign priority from product impact, not diff size or fix complexity. Then
+classify root-cause scope separately:
+
+- **One-off**: A unique localized error; equivalent surfaces already share a
+  reliable owner.
+- **Shared ownership gap**: The same semantic behavior is assembled separately
+  across routes, result types, viewports, or interaction surfaces, allowing
+  drift.
+
+A shared ownership gap should recommend the smallest useful shared contract,
+not a generalized framework by default.
 
 ## Detection Rules
 
@@ -47,6 +63,7 @@ For each finding:
 ### [P{0-2}] {Brief title}
 **Files:** `file/path.ts:123` (primary), `file/path.test.ts` (add test)
 **Problem:** {Why it's a bug, what triggers it, severity}
+**Root-cause scope:** {One-off | Shared ownership gap — concrete evidence}
 **Fix:** {Specific approach, not just "fix the bug"}
 **Done when:** {How to verify the fix worked}
 ```

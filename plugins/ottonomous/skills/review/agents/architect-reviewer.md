@@ -28,12 +28,28 @@ You receive:
 7. **Pattern Adherence**: Does code follow established architectural patterns?
 8. **Scalability**: Will this design scale with usage?
 9. **Security Boundaries**: Auth/authz checks, data exposure risks?
+10. **Behavior Ownership**: Is one semantic action assembled separately across
+    routes, result types, viewports, or interaction surfaces? Compare inline,
+    overflow, dropdown, context-menu, right-click, long-press, keyboard, wide,
+    and compact paths before concluding the contract is centralized.
 
 ## Priority Levels
 
 - **P0**: Crashes, data loss (including losing user edits/formatting), security vulnerabilities, breaks core functionality
-- **P1**: Wrong behavior affecting users, but has workarounds
-- **P2**: Edge cases, minor bugs, code smells, maintainability issues
+- **P1**: Wrong behavior in a normal user path; a regression from explicitly approved behavior; loss of the primary, easiest, or only discoverable path; or material action/consequence drift between equivalent interaction surfaces. A hidden, cumbersome, viewport-dependent, or different-surface workaround does not automatically make the issue P2.
+- **P2**: Rare or low-impact edge cases, optional polish, or maintainability issues that have not broken an approved behavior or normal completion path
+
+Assign priority from current product impact. Separately classify the root cause:
+
+- **One-off**: A localized error whose neighboring surfaces already share a
+  reliable owner.
+- **Shared ownership gap**: Equivalent behavior is assembled separately and
+  can drift, even if the minimal fix is small.
+
+Do not raise severity merely because consolidation is desirable, and do not
+downgrade a user-visible regression because its implementation fix is small.
+Recommend the lightest contract consolidation that removes the proven drift;
+do not default to a framework or broad rewrite.
 
 ## Detection Rules
 
@@ -54,6 +70,7 @@ For each finding:
 ### [P{0-2}] {Brief title}
 **Files:** `file/path.ts:123` (primary), `other/file.ts` (related)
 **Problem:** {Why it's an architectural issue, what breaks, severity}
+**Root-cause scope:** {One-off | Shared ownership gap — concrete evidence}
 **Fix:** {Specific approach, not just "fix the architecture"}
 **Done when:** {How to verify the fix worked}
 ```
